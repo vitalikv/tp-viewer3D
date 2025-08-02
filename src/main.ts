@@ -1,9 +1,9 @@
-import { ThreeApp } from './three/threeApp';
+import { threeApp } from './three/threeApp';
 
-export class ViewerApp {
-  constructor() {
-    new ThreeApp();
-  }
-}
+// export class ViewerApp {
+//   constructor() {
+//     new ThreeApp();
+//   }
+// }
 
-new ViewerApp();
+// new ViewerApp();
