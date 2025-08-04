@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast, MeshBVHHelper, MeshBVH } from 'three-mesh-bvh';
 
 import { threeApp } from '../threeApp';
 
@@ -13,6 +14,10 @@ export class ModelLoader {
     this.dracoLoader = new DRACOLoader();
     this.dracoLoader.setDecoderPath('three/examples/jsm/libs/draco/');
     this.loader.setDRACOLoader(this.dracoLoader);
+
+    THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+    THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+    THREE.Mesh.prototype.raycast = acceleratedRaycast;
   }
 
   handleFileLoad = (e) => {
@@ -49,9 +54,20 @@ export class ModelLoader {
     const mergedMeshes = this.mergeGeometriesWithMaterials(model);
     this.disposeHierarchy(model);
 
-    const mergedGroup = new THREE.Group();
-    mergedMeshes.forEach((mesh) => mergedGroup.add(mesh));
-    threeApp.sceneManager.scene.add(mergedGroup);
+    //const mergedGroup = new THREE.Group();
+    mergedMeshes.forEach((mesh: THREE.Mesh) => {
+      //mesh.updateMatrixWorld();
+      threeApp.sceneManager.scene.add(mesh);
+
+      //mesh.geometry.computeBoundsTree();
+      //mesh.geometry.boundsTree = new MeshBVH(mesh.geometry);
+    });
+
+    // mergedMeshes.forEach((mesh) => {
+    //   const helper = new MeshBVHHelper(mesh);
+    //   helper.color.set(0xe91e63);
+    //   threeApp.sceneManager.scene.add(helper);
+    // });
   }
 
   centerModel(model) {
@@ -154,7 +170,15 @@ export class ModelLoader {
         //const mergedMeshe = new THREE.Mesh(mergedGeometry, group.material);
         mergedMeshes.push(mergedMeshe);
 
-        this.testAdd({ geometries: group.geometries, mergeGeometries: mergedGeometry });
+        // mergedGeometry.computeBoundsTree();
+
+        mergedGeometry.computeBoundsTree({
+          // Отключаем пересортировку треугольников
+          setBoundingBox: true, // BVH будет работать, но индексы останутся прежними
+          indirect: true,
+        });
+
+        this.setGeomAttribute({ geometries: group.geometries, mergedGeometry });
       }
     });
 
@@ -172,29 +196,24 @@ export class ModelLoader {
     return clonedGeo;
   }
 
-  private testAdd({ geometries, mergeGeometries }) {
-    // geometries исходные геометрии
-    //const objectIds = new Uint8Array(mergeGeometries.attributes.position.count); // массив ID объектов
-
-    // Создаём массив objectId для каждой грани
-
-    const faceCount = mergeGeometries.index ? mergeGeometries.index.count / 3 : mergeGeometries.attributes.position.count / 3;
+  private setGeomAttribute({ geometries, mergedGeometry }) {
+    const faceCount = mergedGeometry.index ? mergedGeometry.index.count / 3 : mergedGeometry.attributes.position.count / 3;
     const faceObjectIds = new Uint8Array(faceCount);
 
     let faceOffset = 0;
+    const gs = [];
     geometries.forEach((geom, objId) => {
       const geomFaceCount = geom.index ? geom.index.count / 3 : geom.attributes.position.count / 3;
       for (let i = 0; i < geomFaceCount; i++) {
         faceObjectIds[faceOffset + i] = objId;
       }
       faceOffset += geomFaceCount;
+
+      gs.push(geom.clone());
     });
 
-    // Добавляем атрибут (используем `uv` или создаём новый)
-    mergeGeometries.setAttribute('objectId', new THREE.BufferAttribute(faceObjectIds, 1));
+    mergedGeometry.setAttribute('objectId', new THREE.BufferAttribute(faceObjectIds, 1));
 
-    mergeGeometries.userData = { gs: geometries };
-    // this.mergeGeometries.push(mergeGeometries);
-    //this.geometryWallsMerge = geometryWallsMerge;
+    mergedGeometry.userData = { gs };
   }
 }

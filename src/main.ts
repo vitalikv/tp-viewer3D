@@ -7,3 +7,5 @@ import { threeApp } from './three/threeApp';
 // }
 
 // new ViewerApp();
+
+threeApp;

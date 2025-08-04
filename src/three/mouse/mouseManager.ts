@@ -9,8 +9,6 @@ export class MouseManager {
   private selectedObj: { objectId: any; g: any; color: any } = { objectId: null, g: null, color: null };
   private isDown = false;
   private isMove = false;
-  private planeMath: THREE.Mesh;
-  private offset = new THREE.Vector3();
 
   public init(scene: THREE.Scene, camera: THREE.Camera, domElement: HTMLElement) {
     this.scene = scene;
@@ -20,7 +18,8 @@ export class MouseManager {
     this.raycaster = new THREE.Raycaster();
     this.raycaster.params.Line.threshold = 0.1;
     this.raycaster.params.Points.threshold = 0.1;
-    this.raycaster.far = 100;
+    this.raycaster.far = 1000;
+    this.raycaster.firstHitOnly = true;
 
     this.mouse = new THREE.Vector2();
 
@@ -29,19 +28,6 @@ export class MouseManager {
     this.domElement.addEventListener('pointerup', this.pointerUp);
 
     window.addEventListener('keydown', this.keyDown);
-
-    this.planeMath = this.initPlaneMath();
-  }
-
-  private initPlaneMath() {
-    const geometry = new THREE.PlaneGeometry(10000, 10000);
-    const material = new THREE.MeshPhongMaterial({ color: 0xffff00, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
-    material.visible = false;
-    const planeMath = new THREE.Mesh(geometry, material);
-    planeMath.rotation.set(-Math.PI / 2, 0, 0);
-    this.scene.add(planeMath);
-
-    return planeMath;
   }
 
   private keyDown = (event) => {
@@ -101,6 +87,7 @@ export class MouseManager {
     const intersects = this.raycaster.intersectObjects(this.scene.children, true);
     //const intersects = this.raycaster.intersectObjects(createModel.meshesWinds, true);
 
+    console.log(888, intersects);
     if (intersects.length > 0) {
       intersect = intersects[0];
       let object = intersect.object;
