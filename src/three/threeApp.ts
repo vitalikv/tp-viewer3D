@@ -1,19 +1,19 @@
 import { SceneManager } from './core/sceneManager';
-import { FileUtils } from './utils/fileUtils';
+import { ModelFileLoader } from './loaders/modelFileLoader';
 import { ModelLoader } from './loaders/modelLoader';
 import { MouseManager } from './mouse/mouseManager';
 import { BVHManager } from './bvh/bvhManager';
 
 class ThreeApp {
   sceneManager: SceneManager;
-  fileUtils: FileUtils;
+  modelFileLoader: ModelFileLoader;
   modelLoader: ModelLoader;
   mouseManager: MouseManager;
   bvhManager: BVHManager;
 
   constructor() {
     this.sceneManager = new SceneManager();
-    this.fileUtils = new FileUtils();
+    this.modelFileLoader = new ModelFileLoader();
     this.modelLoader = new ModelLoader();
     this.mouseManager = new MouseManager();
     this.bvhManager = new BVHManager();

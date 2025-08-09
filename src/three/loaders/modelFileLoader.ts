@@ -1,6 +1,7 @@
 import { threeApp } from '../threeApp';
+import { ModelWorker } from './modelWorker';
 
-export class FileUtils {
+export class ModelFileLoader {
   mixer = null;
   currentAnimations = [];
 
@@ -13,7 +14,7 @@ export class FileUtils {
 
   setupEventListeners() {
     const fileInput = document.getElementById('file-input');
-    fileInput.addEventListener('change', this.handleFileInput);
+    fileInput.addEventListener('change', this.handleFileInput2);
 
     // Элементы управления анимацией
     document.getElementById('play-btn').addEventListener('click', () => {
@@ -61,5 +62,13 @@ export class FileUtils {
     };
 
     reader.readAsArrayBuffer(file);
+  };
+
+  handleFileInput2 = (event) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+
+    const modelWorkerHandler = new ModelWorker();
+
+    if (file) modelWorkerHandler.loadModel(file);
   };
 }
