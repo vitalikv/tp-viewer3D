@@ -16,17 +16,23 @@ export class SceneManager {
     this.renderer = null;
     this.controls = null;
 
-    this.initStats();
+    this.initStats(); // workerRender
     this.initScene();
     this.initCamera();
-    this.initRenderer();
-    this.initControls();
-    this.initLights();
-    this.initHelpers();
+    this.initRenderer(); // workerRender
+    this.initControls(); // workerRender
+    this.initLights(); // workerRender
+    this.initHelpers(); // workerRender
 
-    window.addEventListener('resize', this.handleWindowResize);
+    // setInterval(() => {
+    //   const start = performance.now();
+    //   while (performance.now() - start < 1000) {} // Блокируем поток на 100мс
+    //   console.log('Main thread busy');
+    // }, 1000);
 
-    this.startAnimationLoop();
+    window.addEventListener('resize', this.handleWindowResize); // workerRender
+
+    this.startAnimationLoop(); // workerRender
   }
 
   initStats() {

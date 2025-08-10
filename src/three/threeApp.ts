@@ -4,6 +4,8 @@ import { ModelLoader } from './loaders/modelLoader';
 import { MouseManager } from './mouse/mouseManager';
 import { BVHManager } from './bvh/bvhManager';
 
+import { RenderWorker } from './render/initRenderWorker';
+
 class ThreeApp {
   sceneManager: SceneManager;
   modelFileLoader: ModelFileLoader;
@@ -22,6 +24,12 @@ class ThreeApp {
 
     this.modelLoader.setMerge({ merge: true });
     this.bvhManager.init();
+
+    // const canvas = document.createElement('canvas');
+    // canvas.width = window.innerWidth;
+    // canvas.height = window.innerHeight;
+    // document.getElementById('container')?.appendChild(canvas);
+    // new RenderWorker(canvas);
   }
 }
 
