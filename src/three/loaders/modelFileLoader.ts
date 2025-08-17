@@ -14,7 +14,7 @@ export class ModelFileLoader {
 
   setupEventListeners() {
     const fileInput = document.getElementById('file-input');
-    fileInput.addEventListener('change', this.handleFileInput2);
+    fileInput.addEventListener('change', this.handleFileInput);
 
     // Элементы управления анимацией
     document.getElementById('play-btn').addEventListener('click', () => {

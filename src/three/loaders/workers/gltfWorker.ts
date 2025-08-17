@@ -26,6 +26,7 @@ class GLTFWorker {
   private async loadModel(buffer: ArrayBuffer) {
     try {
       const gltf = await this.parseGLTF(buffer);
+      console.log(gltf);
       const { objectsData, materialsData } = await this.serializeScene(gltf.scene);
 
       self.postMessage({

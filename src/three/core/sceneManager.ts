@@ -71,10 +71,15 @@ export class SceneManager {
     const ambientLight = new THREE.AmbientLight(0x404040);
     this.scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 7);
     directionalLight.position.set(1, 1, 1);
     directionalLight.castShadow = true;
     this.scene.add(directionalLight);
+
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight2.position.set(-1, 1, -1);
+    directionalLight2.castShadow = true;
+    this.scene.add(directionalLight2);
   }
 
   initHelpers() {

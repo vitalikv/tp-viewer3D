@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+import { threeApp } from '../threeApp';
+
 export class MouseManager {
   private raycaster: THREE.Raycaster;
   private mouse: THREE.Vector2;
@@ -7,6 +9,7 @@ export class MouseManager {
   private camera: THREE.Camera;
   private scene: THREE.Scene;
   private selectedObj: { objectId: any; g: any; color: any } = { objectId: null, g: null, color: null };
+  private activedObj = { items: [] };
   private isDown = false;
   private isMove = false;
 
@@ -16,8 +19,8 @@ export class MouseManager {
     this.domElement = domElement;
 
     this.raycaster = new THREE.Raycaster();
-    this.raycaster.params.Line.threshold = 0.1;
-    this.raycaster.params.Points.threshold = 0.1;
+    this.raycaster.params.Line.threshold = 0.0;
+    this.raycaster.params.Points.threshold = 0.0;
     this.raycaster.far = 1000;
     this.raycaster.firstHitOnly = true;
 
@@ -33,6 +36,7 @@ export class MouseManager {
   private keyDown = (event) => {
     //if (event.code === 'Delete') this.deleteSelectedObj();
     //if (event.code === 'Enter') this.addWindow();
+    if (event.code === 'Delete') this.hideModel();
   };
 
   private pointerDown = (event: MouseEvent) => {
@@ -47,16 +51,74 @@ export class MouseManager {
     this.updateRaycaster();
   };
 
-  private pointerUp = (event: MouseEvent) => {
+  private pointerUp = async (event: MouseEvent) => {
     if (!this.isMove) {
       this.resetSelectedObj();
+      this.resetActivedObj();
 
       this.calculateMousePosition(event);
       this.updateRaycaster();
 
-      let { intersect } = this.intersectObj({ event });
+      let { obj, intersect } = await this.intersectObj({ event });
 
-      this.changeColor({ intersect });
+      if (obj) {
+        console.log('parentNode', obj);
+
+        const nodeId = await this.findNodeId(obj.uuid);
+        console.log('nodeId', nodeId);
+
+        const color = obj.userData.structureData ? 0x00ff00 : 0xff0000;
+        const material = new THREE.MeshStandardMaterial({ color, depthTest: false, transparent: true });
+        obj.traverse((child) => {
+          if (child.isMesh) {
+            this.setActivedObj({ obj: child });
+            child.material = material;
+          }
+        });
+
+        if (obj.userData.structureData && 1 == 2) {
+          const json2 = threeApp.modelLoader.json2;
+          const fragment_guid = obj.userData.structureData.fragment_guid.toLowerCase();
+          const result = json2.find((item) => item.fragment_guid == fragment_guid);
+          //console.log(result, obj.userData.structureData.fragment_guid);
+
+          if (result) {
+            this.resetActivedObj();
+
+            const guid = result.guid;
+            const results2 = json2.filter((item) => item.guid === guid);
+            console.log('guids', results2, obj.userData.structureData.description, obj.userData.structureData.number);
+
+            if (results2) {
+              const model = threeApp.modelLoader.getModel();
+
+              results2.forEach((element) => {
+                const fragment_guid = element.fragment_guid.toLowerCase();
+
+                model.traverse((obj) => {
+                  if (obj.userData.structureData && obj.userData.structureData.fragment_guid.toLowerCase() === fragment_guid) {
+                    let count = 0;
+
+                    obj.traverse((child) => {
+                      count++;
+                      if (child.isMesh) {
+                        this.setActivedObj({ obj: child });
+                        child.material = material;
+                      }
+                    });
+
+                    //console.log('шт: ', count, obj.userData.structureData.description, obj.userData.structureData.number);
+                  }
+                });
+              });
+            }
+          }
+        }
+
+        console.log('userData.structureData', obj.userData.structureData);
+      }
+
+      //if (intersect) this.changeColor({ intersect });
     }
 
     this.isDown = false;
@@ -73,7 +135,7 @@ export class MouseManager {
     this.raycaster.setFromCamera(this.mouse, this.camera);
   }
 
-  private intersectObj({ event }: { event: MouseEvent }) {
+  private async intersectObj({ event }: { event: MouseEvent }) {
     let obj: null | THREE.Mesh | THREE.Object3D;
     let intersect: THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>> | null;
     obj = null;
@@ -84,10 +146,27 @@ export class MouseManager {
     this.calculateMousePosition(event);
     this.updateRaycaster();
 
-    const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+    const model = threeApp.modelLoader.getModel();
+    if (!model) return { obj, intersect };
+    const intersects = this.raycaster.intersectObjects([model], true);
     //const intersects = this.raycaster.intersectObjects(createModel.meshesWinds, true);
 
-    console.log(888, intersects);
+    if (intersects.length > 0) {
+      intersect = intersects[0];
+      const object = intersect.object;
+      console.log('object', object.userData);
+
+      if (object.userData.nodeId || object.userData.parentNodeId) {
+        const gltf = threeApp.modelLoader.getJsonGltf();
+        const nodeId = object.userData.nodeId ? object.userData.nodeId : object.userData.parentNodeId;
+
+        const threeNode = await gltf.parser.getDependency('node', nodeId);
+        const nodeInScene = gltf.scene.getObjectByProperty('uuid', threeNode.uuid);
+
+        return { obj: nodeInScene, intersect };
+      }
+    }
+
     if (intersects.length > 0) {
       intersect = intersects[0];
       let object = intersect.object;
@@ -104,6 +183,23 @@ export class MouseManager {
     }
 
     return { obj, intersect };
+  }
+
+  private async findNodeId(targetUuid) {
+    const gltf = threeApp.modelLoader.getJsonGltf();
+    const nodes = gltf.parser.json.nodes;
+
+    for (let nodeId = 0; nodeId < nodes.length; nodeId++) {
+      try {
+        const obj = await gltf.parser.getDependency('node', nodeId);
+        if (obj && obj.uuid === targetUuid) {
+          return nodeId;
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+    return null;
   }
 
   private changeColor({ intersect }: { intersect: THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>> }) {
@@ -145,6 +241,34 @@ export class MouseManager {
     this.setSelectedObj({ g, objectId, color: color2 });
   }
 
+  // ----
+  private getActivedObj() {
+    return this.activedObj;
+  }
+  private setActivedObj({ obj }: { obj: any }) {
+    if (!obj) return;
+
+    obj.traverse((child) => {
+      if (child.isMesh) {
+        this.activedObj.items.push({ obj: child, mat: child.material });
+      }
+    });
+  }
+
+  private resetActivedObj() {
+    const activedObj = this.getActivedObj();
+    activedObj.items.forEach((item) => {
+      item.obj.material = item.mat;
+    });
+
+    this.clearActivedObj();
+  }
+
+  private clearActivedObj() {
+    this.activedObj.items.length = 0;
+  }
+  // ----
+
   private getSelectedObj() {
     return this.selectedObj;
   }
@@ -168,5 +292,10 @@ export class MouseManager {
     }
 
     this.clearSelectedObj();
+  }
+
+  private hideModel() {
+    console.log(this.scene, this.scene.children[3]);
+    this.scene.children[3].visible = false;
   }
 }

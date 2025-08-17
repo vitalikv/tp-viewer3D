@@ -22,8 +22,8 @@ class ThreeApp {
 
     this.mouseManager.init(this.sceneManager.scene, this.sceneManager.camera, this.sceneManager.renderer.domElement);
 
-    this.modelLoader.setMerge({ merge: true });
-    this.bvhManager.init();
+    this.modelLoader.setMerge({ merge: false });
+    //this.bvhManager.init();
 
     // const canvas = document.createElement('canvas');
     // canvas.width = window.innerWidth;
