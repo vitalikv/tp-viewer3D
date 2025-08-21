@@ -1,21 +1,19 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import Stats from 'stats.js';
+
+import { ViewCube } from './viewCube';
 
 export class SceneManager {
   stats = null;
   scene = null;
   camera = null;
   renderer = null;
-  controls = null;
+  //controls: OrbitControls;
+  controls: ArcballControls;
 
   constructor() {
-    this.stats = null;
-    this.scene = null;
-    this.camera = null;
-    this.renderer = null;
-    this.controls = null;
-
     this.initStats(); // workerRender
     this.initScene();
     this.initCamera();
@@ -32,7 +30,10 @@ export class SceneManager {
 
     window.addEventListener('resize', this.handleWindowResize); // workerRender
 
-    this.startAnimationLoop(); // workerRender
+    //this.startAnimationLoop(); // workerRender
+    this.animate();
+
+    new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.animate() });
   }
 
   initStats() {
@@ -47,6 +48,12 @@ export class SceneManager {
   initScene() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xffffff);
+
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const cube = new THREE.Mesh(geometry, material);
+    cube.position.x = 3;
+    this.scene.add(cube);
   }
 
   initCamera() {
@@ -62,16 +69,22 @@ export class SceneManager {
   }
 
   initControls() {
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.enableDamping = false;
-    this.controls.dampingFactor = 0.05;
+    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    // this.controls.enableDamping = false;
+    // this.controls.dampingFactor = 0.05;
+
+    this.controls = new ArcballControls(this.camera, this.renderer.domElement, this.scene);
+    this.controls.enableAnimations = false;
+    this.controls.addEventListener('change', () => this.animate());
+    this.controls.addEventListener('start', () => this.animate());
+    this.controls.addEventListener('end', () => this.animate());
   }
 
   initLights() {
     const ambientLight = new THREE.AmbientLight(0x404040);
     this.scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 7);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(1, 1, 1);
     directionalLight.castShadow = true;
     this.scene.add(directionalLight);
@@ -87,13 +100,13 @@ export class SceneManager {
     this.scene.add(gridHelper);
   }
 
-  handleWindowResize = () => {
+  private handleWindowResize = () => {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   };
 
-  startAnimationLoop() {
+  private startAnimationLoop() {
     const animate = () => {
       requestAnimationFrame(animate);
       this.stats.begin();
@@ -105,5 +118,15 @@ export class SceneManager {
     };
 
     animate();
+  }
+
+  private animate() {
+    if (!this.renderer) return;
+    this.stats.begin();
+
+    this.controls.update();
+    this.renderer.render(this.scene, this.camera);
+
+    this.stats.end();
   }
 }
