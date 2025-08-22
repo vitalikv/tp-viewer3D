@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js';
 import { MergeMeshes } from './mergeMeshes';
+import { MergeEnvironmentUtils } from './mergeEnvironmentUtils';
 
 import { threeApp } from '../threeApp';
 
@@ -72,6 +73,8 @@ export class ModelLoader {
 
         this.centerModel(model);
 
+        model = MergeEnvironmentUtils.mergeObj(model);
+
         if (merge) {
           model = MergeMeshes.processModelWithMerge(model);
           threeApp.bvhManager.setupBVH(model);
@@ -116,9 +119,6 @@ export class ModelLoader {
 
         const nodeId = 1340;
         const targetNode = gltf.parser.json.nodes[nodeId];
-
-        // Если нужно найти соответствующий THREE.Object3D в сцене
-        //const threeNode = await model.getObjectByProperty('userData.nodeId', nodeId);
         const threeNode = await gltf.parser.getDependency('node', nodeId);
         const nodeInScene = gltf.scene.getObjectByProperty('uuid', threeNode.uuid);
 
