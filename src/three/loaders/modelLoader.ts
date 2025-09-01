@@ -73,7 +73,7 @@ export class ModelLoader {
 
         this.centerModel(model);
 
-        model = MergeEnvironmentUtils.mergeObj(model);
+        //model = MergeEnvironmentUtils.mergeObj(model);
 
         if (merge) {
           model = MergeMeshes.processModelWithMerge(model);
@@ -83,23 +83,61 @@ export class ModelLoader {
         console.log(gltf, contents);
 
         const structure = gltf.parser.json.extras.tflex.structure;
-        const nodesMap = new Map(); // Для быстрого поиска structure по nodeId
+        // Строим карты
+        const nodesMap = new Map();
+        const childrenMap = new Map(); // nodeId => массив structure элементов, которые считают этот nodeId своим child
 
-        // Строим карту: nodeId => structureElement
-        structure.forEach((item) => {
+        structure.forEach((item, structureIndex) => {
           if (item.nodes) {
             item.nodes.forEach((nodeId) => {
-              nodesMap.set(nodeId, item);
+              nodesMap.set(nodeId, {
+                structureData: item,
+                structureIndex: structureIndex,
+              });
+            });
+          }
+
+          // Заполняем карту childrenMap: для каждого childId храним родительские элементы
+          if (item.children) {
+            item.children.forEach((childId) => {
+              if (!childrenMap.has(childId)) {
+                childrenMap.set(childId, item.children);
+              }
             });
           }
         });
+
+        console.log(333, childrenMap);
 
         gltf.parser.json.nodes.forEach(async (node, index) => {
           if (nodesMap.has(index)) {
             const threeObj = await gltf.parser.getDependency('node', index);
             if (threeObj) {
+              const { structureData, structureIndex } = nodesMap.get(index);
+
               threeObj.userData.nodeId = index;
-              threeObj.userData.structureData = nodesMap.get(index);
+              threeObj.userData.structureData = structureData;
+              threeObj.userData.structureId = structureIndex; // Записываем индекс из structure
+
+              if (childrenMap.has(structureIndex)) {
+                const children = childrenMap.get(structureIndex);
+                threeObj.userData.children = children;
+
+                // Получаем childrenNodeIds (список ID nodes, а не объектов)
+                const childrenNodeIds = [];
+
+                // Для каждого дочернего structureId находим его nodeIds
+                for (const childStructureId of children) {
+                  // Находим structure элемент по индексу
+                  const childStructure = structure[childStructureId];
+                  if (childStructure && childStructure.nodes) {
+                    // Добавляем все nodeIds из дочернего элемента
+                    childrenNodeIds.push(...childStructure.nodes);
+                  }
+                }
+
+                threeObj.userData.childrenNodeIds = childrenNodeIds;
+              }
 
               threeObj.traverse((node) => {
                 if (threeObj !== node) node.userData.parentNodeId = index;
@@ -122,7 +160,7 @@ export class ModelLoader {
         const threeNode = await gltf.parser.getDependency('node', nodeId);
         const nodeInScene = gltf.scene.getObjectByProperty('uuid', threeNode.uuid);
 
-        // console.log(targetNode, threeNode, nodeInScene);
+        console.log(targetNode, threeNode, nodeInScene);
 
         // if (nodeInScene) {
         //   model.traverse((obj) => {

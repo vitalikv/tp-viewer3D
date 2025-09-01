@@ -61,64 +61,95 @@ export class MouseManager {
 
       let { obj, intersect } = await this.intersectObj({ event });
 
-      if (obj) {
+      if (obj && 1 == 1) {
         console.log('parentNode', obj);
 
-        const nodeId = await this.findNodeId(obj.uuid);
-        console.log('nodeId', nodeId);
+        const selectObjs = async (obj) => {
+          const nodeId = await this.findNodeId(obj.uuid);
+          console.log('nodeId', nodeId);
 
-        const color = obj.userData.structureData ? 0x00ff00 : 0xff0000;
-        const material = new THREE.MeshStandardMaterial({ color, depthTest: false, transparent: true });
+          const color = obj.userData.structureData ? 0x00ff00 : 0xff0000;
+          const material = new THREE.MeshStandardMaterial({ color, depthTest: false, transparent: true });
+          obj.traverse((child) => {
+            if (child.isMesh) {
+              this.setActivedObj({ obj: child });
+              child.material = material;
+            }
+          });
+
+          if (obj.userData.structureData) {
+            const json2 = threeApp.modelLoader.json2;
+            const fragment_guid = obj.userData.structureData.fragment_guid.toLowerCase();
+            const result = json2.find((item) => item.fragment_guid == fragment_guid);
+            console.log(result, obj.userData.structureData.fragment_guid);
+
+            if (result) {
+              this.resetActivedObj();
+
+              const guid = result.guid;
+              const results2 = json2.filter((item) => item.guid === guid);
+              console.log('guids', results2, obj.userData.structureData.description, obj.userData.structureData.number);
+
+              if (results2) {
+                const model = threeApp.modelLoader.getModel();
+
+                results2.forEach((element) => {
+                  const fragment_guid = element.fragment_guid.toLowerCase();
+
+                  model.traverse((obj) => {
+                    if (obj.userData.structureData && obj.userData.structureData.fragment_guid.toLowerCase() === fragment_guid) {
+                      let count = 0;
+
+                      obj.traverse((child) => {
+                        count++;
+                        if (child.isMesh) {
+                          this.setActivedObj({ obj: child });
+                          child.material = material;
+                        }
+                      });
+
+                      //console.log('шт: ', count, obj.userData.structureData.description, obj.userData.structureData.number);
+                    }
+                  });
+                });
+              }
+            }
+          }
+        };
+
+        if (obj.userData.childrenNodeIds && obj.userData.childrenNodeIds.length > 0) {
+          const gltf = threeApp.modelLoader.getJsonGltf();
+
+          for (let i = 0; i < obj.userData.childrenNodeIds.length; i++) {
+            const nodeId = obj.userData.childrenNodeIds[i];
+            const threeNode = await gltf.parser.getDependency('node', nodeId);
+            const nodeInScene = gltf.scene.getObjectByProperty('uuid', threeNode.uuid);
+            selectObjs(nodeInScene);
+          }
+        } else {
+          selectObjs(obj);
+        }
+
+        console.log('userData.structureData', obj.userData.structureData);
+      } else if (intersect) {
+        console.log('2222', intersect);
+
+        if (!intersect || !intersect.object) return;
+        if (!(intersect.object instanceof THREE.Mesh)) return;
+
+        const material = new THREE.MeshStandardMaterial({ color: 0xff0000, depthTest: false, transparent: true });
+
+        const obj = intersect.object as THREE.Mesh;
+
         obj.traverse((child) => {
-          if (child.isMesh) {
+          if (child instanceof THREE.Mesh) {
             this.setActivedObj({ obj: child });
             child.material = material;
           }
         });
 
-        if (obj.userData.structureData && 1 == 2) {
-          const json2 = threeApp.modelLoader.json2;
-          const fragment_guid = obj.userData.structureData.fragment_guid.toLowerCase();
-          const result = json2.find((item) => item.fragment_guid == fragment_guid);
-          //console.log(result, obj.userData.structureData.fragment_guid);
-
-          if (result) {
-            this.resetActivedObj();
-
-            const guid = result.guid;
-            const results2 = json2.filter((item) => item.guid === guid);
-            console.log('guids', results2, obj.userData.structureData.description, obj.userData.structureData.number);
-
-            if (results2) {
-              const model = threeApp.modelLoader.getModel();
-
-              results2.forEach((element) => {
-                const fragment_guid = element.fragment_guid.toLowerCase();
-
-                model.traverse((obj) => {
-                  if (obj.userData.structureData && obj.userData.structureData.fragment_guid.toLowerCase() === fragment_guid) {
-                    let count = 0;
-
-                    obj.traverse((child) => {
-                      count++;
-                      if (child.isMesh) {
-                        this.setActivedObj({ obj: child });
-                        child.material = material;
-                      }
-                    });
-
-                    //console.log('шт: ', count, obj.userData.structureData.description, obj.userData.structureData.number);
-                  }
-                });
-              });
-            }
-          }
-        }
-
-        console.log('userData.structureData', obj.userData.structureData);
+        //this.changeColor({ intersect });
       }
-
-      //if (intersect) this.changeColor({ intersect });
     }
 
     this.isDown = false;
@@ -151,7 +182,7 @@ export class MouseManager {
     const intersects = this.raycaster.intersectObjects([model], true);
     //const intersects = this.raycaster.intersectObjects(createModel.meshesWinds, true);
 
-    if (intersects.length > 0) {
+    if (intersects.length > 0 && 1 === 2) {
       intersect = intersects[0];
       const object = intersect.object;
       console.log('object', object.userData);
