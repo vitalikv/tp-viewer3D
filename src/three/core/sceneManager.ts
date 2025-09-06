@@ -11,20 +11,21 @@ export class SceneManager {
   scene = null;
   camera = null;
   renderer = null;
-  //controls: OrbitControls;
   controls: ArcballControls;
 
-  constructor({ width, height }) {
+  constructor() {}
+
+  init({ width, height }) {
     this.innerWidth = width;
     this.innerHeight = height;
 
-    // this.initStats(); // workerRender
+    this.initStats(); // workerRender
     this.initScene();
     this.initCamera();
-    // this.initRenderer(); // workerRender
-    // this.initControls(); // workerRender
-    this.initLights(); // workerRender
-    this.initHelpers(); // workerRender
+    this.initRenderer(); // workerRender
+    this.initControls(); // workerRender
+    this.initLights();
+    this.initHelpers();
 
     // setInterval(() => {
     //   const start = performance.now();
@@ -32,12 +33,23 @@ export class SceneManager {
     //   console.log('Main thread busy');
     // }, 1000);
 
-    // window.addEventListener('resize', this.handleWindowResize); // workerRender
+    window.addEventListener('resize', this.handleWindowResize);
 
-    // //this.startAnimationLoop(); // workerRender
-    // this.animate();
+    // //this.startAnimationLoop();
 
-    // new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.animate() });
+    this.animate();
+
+    new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.animate() });
+  }
+
+  initWorker({ width, height }) {
+    this.innerWidth = width;
+    this.innerHeight = height;
+
+    this.initScene();
+    this.initCamera();
+    this.initLights();
+    this.initHelpers();
   }
 
   initStats() {
@@ -73,10 +85,6 @@ export class SceneManager {
   }
 
   initControls() {
-    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    // this.controls.enableDamping = false;
-    // this.controls.dampingFactor = 0.05;
-
     this.controls = new ArcballControls(this.camera, this.renderer.domElement, this.scene);
     this.controls.enableAnimations = false;
     this.controls.addEventListener('change', () => this.animate());

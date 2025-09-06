@@ -63,7 +63,8 @@ class RenderWorker {
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(width, height, false);
 
-    const sceneManager = new SceneManager({ width, height });
+    const sceneManager = new SceneManager();
+    sceneManager.initWorker({ width, height });
     this.scene = sceneManager.scene;
     this.camera = sceneManager.camera;
 

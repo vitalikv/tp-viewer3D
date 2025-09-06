@@ -2,7 +2,13 @@ export class RenderWorker {
   public worker: Worker;
   private canvas: HTMLCanvasElement;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor({ container }: { container: HTMLElement }) {
+    const rect = container.getBoundingClientRect();
+    const canvas = document.createElement('canvas');
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    container?.appendChild(canvas);
+
     this.canvas = canvas;
     this.worker = new Worker(new URL('./workers/renderWorker.ts', import.meta.url), { type: 'module' });
 

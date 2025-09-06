@@ -16,23 +16,27 @@ class ThreeApp {
   renderWorker: RenderWorker;
 
   constructor() {
-    // this.sceneManager = new SceneManager();
-    // this.modelFileLoader = new ModelFileLoader();
-    // this.modelLoader = new ModelLoader();
-    // this.mouseManager = new MouseManager();
-    // this.bvhManager = new BVHManager();
+    let isRenderWorker = true;
 
-    // this.mouseManager.init(this.sceneManager.scene, this.sceneManager.camera, this.sceneManager.renderer.domElement);
+    const elContainer = document.getElementById('container');
+    const rect = elContainer.getBoundingClientRect();
 
-    // this.modelLoader.setMerge({ merge: false });
-    //this.bvhManager.init();
+    if (isRenderWorker) {
+      new ModelFileLoader2();
+      this.renderWorker = new RenderWorker({ container: elContainer });
+    } else {
+      this.sceneManager = new SceneManager();
+      this.sceneManager.init({ width: rect.width, height: rect.height });
+      this.modelFileLoader = new ModelFileLoader();
+      this.modelLoader = new ModelLoader();
+      this.mouseManager = new MouseManager();
+      this.bvhManager = new BVHManager();
 
-    new ModelFileLoader2();
-    const canvas = document.createElement('canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    document.getElementById('container')?.appendChild(canvas);
-    this.renderWorker = new RenderWorker(canvas);
+      this.mouseManager.init(this.sceneManager.scene, this.sceneManager.camera, this.sceneManager.renderer.domElement);
+
+      // this.modelLoader.setMerge({ merge: false });
+      //this.bvhManager.init();
+    }
   }
 }
 
