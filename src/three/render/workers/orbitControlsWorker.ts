@@ -1,5 +1,41 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
+
+// В начале воркера
+if (typeof window === 'undefined') {
+  const eventListeners: Record<string, Array<(e: any) => void>> = {};
+
+  (globalThis as any).window = globalThis;
+  (globalThis as any).document = {
+    addEventListener: (type: string, listener: (e: any) => void) => {
+      if (!eventListeners[type]) eventListeners[type] = [];
+      eventListeners[type].push(listener);
+    },
+    removeEventListener: (type: string, listener: (e: any) => void) => {
+      if (eventListeners[type]) {
+        eventListeners[type] = eventListeners[type].filter((l) => l !== listener);
+      }
+    },
+    createElement: () => ({
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      style: {},
+    }),
+    documentElement: { style: {} },
+  };
+
+  // Эмулируем add/removeEventListener на window
+  globalThis.addEventListener = (type: string, listener: (e: any) => void) => {
+    if (!eventListeners[type]) eventListeners[type] = [];
+    eventListeners[type].push(listener);
+  };
+
+  globalThis.removeEventListener = (type: string, listener: (e: any) => void) => {
+    if (eventListeners[type]) {
+      eventListeners[type] = eventListeners[type].filter((l) => l !== listener);
+    }
+  };
+}
 
 class VirtualDOMElement {
   private listeners: Record<string, ((event: any) => void)[]> = {};
@@ -71,17 +107,29 @@ class VirtualDOMElement {
   focus() {}
 }
 
-export class VirtualOrbitControls extends OrbitControls {
+export class VirtualOrbitControls extends ArcballControls {
   private virtualElement: VirtualDOMElement;
 
-  constructor(camera: THREE.Camera, size: { width: number; height: number }) {
+  constructor(camera: THREE.Camera, size: { width: number; height: number }, scene: THREE.Scene) {
     const virtualElement = new VirtualDOMElement(size);
-    super(camera, virtualElement as unknown as HTMLElement);
+    super(camera, virtualElement as unknown as HTMLElement, scene);
     this.virtualElement = virtualElement;
 
-    // Переопределяем connect/disconnect чтобы избежать ошибок
-    (this as any).connect = () => {};
-    (this as any).disconnect = () => {};
+    this.virtualConnect();
+  }
+
+  private virtualConnect() {
+    const domElement = this.virtualElement;
+
+    domElement.addEventListener('contextmenu', (event) => {
+      event.preventDefault(); // Предотвращаем контекстное меню
+      event.stopPropagation(); // Останавливаем всплытие
+    });
+    domElement.addEventListener('pointerdown', (event) => (this as any)._onPointerDown(event));
+    domElement.addEventListener('pointermove', (event) => (this as any)._onPointerMove(event));
+    domElement.addEventListener('pointerup', (event) => (this as any)._onPointerUp(event));
+    domElement.addEventListener('pointercancel', (event) => (this as any)._onPointerCancel(event));
+    domElement.addEventListener('wheel', (event) => (this as any)._onWheel(event));
   }
 
   public setSize(width: number, height: number) {
@@ -127,7 +175,7 @@ export class VirtualOrbitControls extends OrbitControls {
     }
   }
 
-  public update(): boolean {
-    return super.update();
+  public update() {
+    super.update();
   }
 }

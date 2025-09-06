@@ -1,5 +1,5 @@
 export class RenderWorker {
-  private worker: Worker;
+  public worker: Worker;
   private canvas: HTMLCanvasElement;
 
   constructor(canvas: HTMLCanvasElement) {

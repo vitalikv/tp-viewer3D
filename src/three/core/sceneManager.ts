@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import Stats from 'stats.js';
 
@@ -7,18 +6,23 @@ import { ViewCube } from './viewCube';
 
 export class SceneManager {
   stats = null;
+  innerWidth = 0;
+  innerHeight = 0;
   scene = null;
   camera = null;
   renderer = null;
   //controls: OrbitControls;
   controls: ArcballControls;
 
-  constructor() {
-    this.initStats(); // workerRender
+  constructor({ width, height }) {
+    this.innerWidth = width;
+    this.innerHeight = height;
+
+    // this.initStats(); // workerRender
     this.initScene();
     this.initCamera();
-    this.initRenderer(); // workerRender
-    this.initControls(); // workerRender
+    // this.initRenderer(); // workerRender
+    // this.initControls(); // workerRender
     this.initLights(); // workerRender
     this.initHelpers(); // workerRender
 
@@ -28,12 +32,12 @@ export class SceneManager {
     //   console.log('Main thread busy');
     // }, 1000);
 
-    window.addEventListener('resize', this.handleWindowResize); // workerRender
+    // window.addEventListener('resize', this.handleWindowResize); // workerRender
 
-    //this.startAnimationLoop(); // workerRender
-    this.animate();
+    // //this.startAnimationLoop(); // workerRender
+    // this.animate();
 
-    new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.animate() });
+    // new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.animate() });
   }
 
   initStats() {
@@ -57,13 +61,13 @@ export class SceneManager {
   }
 
   initCamera() {
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(75, this.innerWidth / this.innerHeight, 0.1, 1000);
     this.camera.position.set(5, 5, 5);
   }
 
   initRenderer() {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(this.innerWidth, this.innerHeight);
     this.renderer.shadowMap.enabled = true;
     document.getElementById('container').appendChild(this.renderer.domElement);
   }
@@ -101,9 +105,9 @@ export class SceneManager {
   }
 
   private handleWindowResize = () => {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.aspect = this.innerWidth / this.innerHeight;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(this.innerWidth, this.innerHeight);
   };
 
   private startAnimationLoop() {
