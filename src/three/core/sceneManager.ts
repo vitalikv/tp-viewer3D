@@ -10,7 +10,7 @@ export class SceneManager {
   innerHeight = 0;
   scene = null;
   camera = null;
-  renderer = null;
+  renderer: THREE.WebGLRenderer;
   controls: ArcballControls;
 
   constructor() {}
@@ -26,6 +26,7 @@ export class SceneManager {
     this.initControls(); // workerRender
     this.initLights();
     this.initHelpers();
+    window.addEventListener('resize', this.handleWindowResize);
 
     // setInterval(() => {
     //   const start = performance.now();
@@ -33,10 +34,7 @@ export class SceneManager {
     //   console.log('Main thread busy');
     // }, 1000);
 
-    window.addEventListener('resize', this.handleWindowResize);
-
-    // //this.startAnimationLoop();
-
+    //this.startAnimationLoop();
     this.animate();
 
     new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.animate() });

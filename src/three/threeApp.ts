@@ -16,7 +16,7 @@ class ThreeApp {
   renderWorker: RenderWorker;
 
   constructor() {
-    let isRenderWorker = true;
+    let isRenderWorker = false;
 
     const elContainer = document.getElementById('container');
     const rect = elContainer.getBoundingClientRect();
