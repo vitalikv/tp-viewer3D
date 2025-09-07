@@ -1,46 +1,48 @@
 export class RenderWorker {
   public worker: Worker;
-  private canvas: HTMLCanvasElement;
+  private container: HTMLElement;
+  //private canvas: HTMLCanvasElement;
 
   constructor({ container }: { container: HTMLElement }) {
-    const rect = container.getBoundingClientRect();
+    this.worker = new Worker(new URL('./workers/renderWorker.ts', import.meta.url), { type: 'module' });
+
+    this.container = container;
+
+    const rect = this.getClientRect();
     const canvas = document.createElement('canvas');
     canvas.width = rect.width;
     canvas.height = rect.height;
     container?.appendChild(canvas);
 
-    this.canvas = canvas;
-    this.worker = new Worker(new URL('./workers/renderWorker.ts', import.meta.url), { type: 'module' });
-
-    this.initWorker();
+    this.initWorker({ canvas });
     this.setupEventListeners();
   }
 
-  private initWorker() {
-    const rect = this.canvas.getBoundingClientRect();
-    const offscreen = this.canvas.transferControlToOffscreen();
+  private getClientRect() {
+    return this.container.getBoundingClientRect();
+  }
 
+  private initWorker({ canvas }) {
+    const offscreen = canvas.transferControlToOffscreen();
+    //console.log(888, offscreen, { width: this.canvas.width, height: this.canvas.height, dpr: window.devicePixelRatio });
     this.worker.postMessage(
       {
         type: 'init',
         canvas: offscreen,
-        width: rect.width,
-        height: rect.height,
-        dpr: window.devicePixelRatio,
+        container: { width: canvas.width, height: canvas.height, dpr: window.devicePixelRatio },
       },
       [offscreen as Transferable]
     );
   }
 
   private setupEventListeners() {
-    // Pointer events
     const pointerEvents = ['pointerdown', 'pointermove', 'pointerup', 'pointercancel'];
     pointerEvents.forEach((type) => {
-      this.canvas.addEventListener(
+      this.container.addEventListener(
         type,
         (e: PointerEvent) => {
           e.preventDefault();
-          const rect = this.canvas.getBoundingClientRect();
+          const rect = this.getClientRect();
           this.worker.postMessage({
             type: 'event',
             event: {
@@ -59,12 +61,11 @@ export class RenderWorker {
       );
     });
 
-    // Wheel event
-    this.canvas.addEventListener(
+    this.container.addEventListener(
       'wheel',
       (e: WheelEvent) => {
         e.preventDefault();
-        const rect = this.canvas.getBoundingClientRect();
+        const rect = this.getClientRect();
         this.worker.postMessage({
           type: 'event',
           event: {
@@ -78,9 +79,8 @@ export class RenderWorker {
       { passive: false }
     );
 
-    // Resize
     window.addEventListener('resize', () => {
-      const rect = this.canvas.getBoundingClientRect();
+      const rect = this.getClientRect();
       this.worker.postMessage({
         type: 'resize',
         width: rect.width,

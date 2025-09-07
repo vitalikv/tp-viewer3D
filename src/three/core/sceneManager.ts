@@ -2,28 +2,25 @@ import * as THREE from 'three';
 import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import Stats from 'stats.js';
 
+import { threeApp } from '../threeApp';
 import { ViewCube } from './viewCube';
 
 export class SceneManager {
   stats = null;
-  innerWidth = 0;
-  innerHeight = 0;
-  scene = null;
-  camera = null;
+  container: HTMLElement | any;
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   renderer: THREE.WebGLRenderer;
   controls: ArcballControls;
 
-  constructor() {}
+  public init({ container }) {
+    this.container = container;
 
-  init({ width, height }) {
-    this.innerWidth = width;
-    this.innerHeight = height;
-
-    this.initStats(); // workerRender
+    this.initStats();
     this.initScene();
     this.initCamera();
-    this.initRenderer(); // workerRender
-    this.initControls(); // workerRender
+    this.initRenderer();
+    this.initControls();
     this.initLights();
     this.initHelpers();
     window.addEventListener('resize', this.handleWindowResize);
@@ -40,9 +37,8 @@ export class SceneManager {
     new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.animate() });
   }
 
-  initWorker({ width, height }) {
-    this.innerWidth = width;
-    this.innerHeight = height;
+  public initWorker({ container }) {
+    this.container = container;
 
     this.initScene();
     this.initCamera();
@@ -50,7 +46,12 @@ export class SceneManager {
     this.initHelpers();
   }
 
-  initStats() {
+  private getClientRect() {
+    //return this.container instanceof HTMLElement ? this.container.getBoundingClientRect() : this.container;
+    return this.container.virtDom ? this.container : this.container.getBoundingClientRect();
+  }
+
+  private initStats() {
     this.stats = new Stats();
     this.stats.showPanel(0);
 
@@ -59,7 +60,7 @@ export class SceneManager {
     this.stats.domElement.style.right = '0';
   }
 
-  initScene() {
+  private initScene() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xffffff);
 
@@ -70,19 +71,23 @@ export class SceneManager {
     this.scene.add(cube);
   }
 
-  initCamera() {
-    this.camera = new THREE.PerspectiveCamera(75, this.innerWidth / this.innerHeight, 0.1, 1000);
+  private initCamera() {
+    const rect = this.getClientRect();
+
+    this.camera = new THREE.PerspectiveCamera(75, rect.width / rect.height, 0.01, 1000);
     this.camera.position.set(5, 5, 5);
   }
 
-  initRenderer() {
+  private initRenderer() {
+    const rect = this.getClientRect();
+
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setSize(this.innerWidth, this.innerHeight);
+    this.renderer.setSize(rect.width, rect.height);
     this.renderer.shadowMap.enabled = true;
     document.getElementById('container').appendChild(this.renderer.domElement);
   }
 
-  initControls() {
+  private initControls() {
     this.controls = new ArcballControls(this.camera, this.renderer.domElement, this.scene);
     this.controls.enableAnimations = false;
     this.controls.addEventListener('change', () => this.animate());
@@ -90,7 +95,7 @@ export class SceneManager {
     this.controls.addEventListener('end', () => this.animate());
   }
 
-  initLights() {
+  private initLights() {
     const ambientLight = new THREE.AmbientLight(0x404040);
     this.scene.add(ambientLight);
 
@@ -105,15 +110,26 @@ export class SceneManager {
     this.scene.add(directionalLight2);
   }
 
-  initHelpers() {
+  private initHelpers() {
     const gridHelper = new THREE.GridHelper(10, 10);
     this.scene.add(gridHelper);
   }
 
   private handleWindowResize = () => {
-    this.camera.aspect = this.innerWidth / this.innerHeight;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(this.innerWidth, this.innerHeight);
+    const rect = this.getClientRect();
+
+    if (this.camera instanceof THREE.PerspectiveCamera) {
+      this.camera.aspect = rect.width / rect.height;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(rect.width, rect.height);
+    }
+
+    // не работает при вкл renderWorker
+    if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
+      threeApp.effectsManager.setSize();
+    }
+
+    this.animate();
   };
 
   private startAnimationLoop() {
@@ -134,8 +150,14 @@ export class SceneManager {
     if (!this.renderer) return;
     this.stats.begin();
 
+    // не работает при вкл renderWorker
+    if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
+      threeApp.effectsManager.render();
+    } else {
+      this.renderer.render(this.scene, this.camera);
+    }
+
     this.controls.update();
-    this.renderer.render(this.scene, this.camera);
 
     //console.log(this.renderer.info.render.calls);
 

@@ -7,20 +7,20 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { SceneManager } from '../../core/sceneManager';
 
 // Расширяем тип сообщений
-type WorkerMessage = { type: 'init'; canvas: OffscreenCanvas; width: number; height: number; dpr: number } | { type: 'resize'; width: number; height: number; dpr?: number } | { type: 'event'; event: any } | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string }; // Добавляем новый тип
+type WorkerMessage = { type: 'init'; canvas: OffscreenCanvas; container: any } | { type: 'resize'; width: number; height: number; dpr?: number } | { type: 'event'; event: any } | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string }; // Добавляем новый тип
 
 class RenderWorker {
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private controls!: VirtualOrbitControls;
-  private width = 300;
-  private height = 150;
+  private container;
   private dpr = 1;
   private loader!: GLTFLoader;
   private mixers: THREE.AnimationMixer[] = [];
 
   constructor() {
+    console.log(9999);
     this.setupLoader();
     self.onmessage = (e: MessageEvent<WorkerMessage>) => this.handleMessage(e.data);
   }
@@ -37,7 +37,7 @@ class RenderWorker {
   private handleMessage(msg: WorkerMessage) {
     switch (msg.type) {
       case 'init':
-        this.init(msg.canvas, msg.width, msg.height, msg.dpr);
+        this.init(msg.canvas, msg.container);
         break;
       case 'resize':
         this.resize(msg.width, msg.height, msg.dpr ?? this.dpr);
@@ -51,20 +51,22 @@ class RenderWorker {
     }
   }
 
-  private init(canvas: OffscreenCanvas, width: number, height: number, dpr: number) {
+  private init(canvas: OffscreenCanvas, container) {
     console.log('Worker initialized in thread:', self.name);
 
-    this.width = width;
-    this.height = height;
-    this.dpr = dpr;
+    this.container = container;
+    const width = this.container.width;
+    const height = this.container.height;
+    this.dpr = this.container.dpr;
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    this.renderer.setPixelRatio(dpr);
+    this.renderer.setPixelRatio(this.dpr);
     this.renderer.setSize(width, height, false);
 
     const sceneManager = new SceneManager();
-    sceneManager.initWorker({ width, height });
+    container.virtDom = true;
+    sceneManager.initWorker({ container });
     this.scene = sceneManager.scene;
     this.camera = sceneManager.camera;
 
@@ -208,16 +210,12 @@ class RenderWorker {
     self.postMessage({ type: 'progress', data: text });
   }
 
-  private resize(width: number, height: number, dpr: number) {
-    this.width = width;
-    this.height = height;
-    this.dpr = dpr;
-
-    this.renderer.setPixelRatio(dpr);
-    this.renderer.setSize(width, height, false);
-
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
+  private resize(width, height, dpr) {
+    if (this.camera instanceof THREE.PerspectiveCamera) {
+      this.camera.aspect = width / height;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(width, height, false);
+    }
 
     this.controls.setSize(width, height);
   }

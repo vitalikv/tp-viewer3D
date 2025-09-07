@@ -69,7 +69,8 @@ export class MouseManager {
           console.log('nodeId', nodeId);
 
           const color = obj.userData.structureData ? 0x00ff00 : 0xff0000;
-          const material = new THREE.MeshStandardMaterial({ color, depthTest: false, transparent: true });
+          const material = new THREE.MeshStandardMaterial({ color });
+          //const material = new THREE.MeshStandardMaterial({ color, depthTest: false, transparent: true });
           obj.traverse((child) => {
             if (child.isMesh) {
               this.setActivedObj({ obj: child });
@@ -282,6 +283,10 @@ export class MouseManager {
     obj.traverse((child) => {
       if (child.isMesh) {
         this.activedObj.items.push({ obj: child, mat: child.material });
+
+        if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
+          threeApp.outlineSelection.addOutlineObject(child);
+        }
       }
     });
   }
@@ -291,6 +296,10 @@ export class MouseManager {
     activedObj.items.forEach((item) => {
       item.obj.material = item.mat;
     });
+
+    if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
+      threeApp.outlineSelection.clearOutlineObjects();
+    }
 
     this.clearActivedObj();
   }
