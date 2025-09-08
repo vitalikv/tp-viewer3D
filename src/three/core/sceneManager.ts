@@ -3,6 +3,7 @@ import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import Stats from 'stats.js';
 
 import { threeApp } from '../threeApp';
+import { CameraManager } from './cameraManager';
 import { ViewCube } from './viewCube';
 
 export class SceneManager {
@@ -12,6 +13,7 @@ export class SceneManager {
   camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   renderer: THREE.WebGLRenderer;
   controls: ArcballControls;
+  cameraManager: CameraManager;
 
   public init({ container }) {
     this.container = container;
@@ -32,9 +34,9 @@ export class SceneManager {
     // }, 1000);
 
     //this.startAnimationLoop();
-    this.animate();
+    this.render();
 
-    new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.animate() });
+    new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.render() });
   }
 
   public initWorker({ container }) {
@@ -46,7 +48,7 @@ export class SceneManager {
     this.initHelpers();
   }
 
-  private getClientRect() {
+  public getClientRect() {
     //return this.container instanceof HTMLElement ? this.container.getBoundingClientRect() : this.container;
     return this.container.virtDom ? this.container : this.container.getBoundingClientRect();
   }
@@ -72,10 +74,13 @@ export class SceneManager {
   }
 
   private initCamera() {
-    const rect = this.getClientRect();
+    this.cameraManager = new CameraManager();
+    this.cameraManager.init({ container: this.container, renderer: this.renderer });
+    this.camera = this.cameraManager.getActiveCamera();
 
-    this.camera = new THREE.PerspectiveCamera(75, rect.width / rect.height, 0.01, 1000);
-    this.camera.position.set(5, 5, 5);
+    // const rect = this.getClientRect();
+    // this.camera = new THREE.PerspectiveCamera(75, rect.width / rect.height, 0.01, 1000);
+    // this.camera.position.set(5, 5, 5);
   }
 
   private initRenderer() {
@@ -90,9 +95,9 @@ export class SceneManager {
   private initControls() {
     this.controls = new ArcballControls(this.camera, this.renderer.domElement, this.scene);
     this.controls.enableAnimations = false;
-    this.controls.addEventListener('change', () => this.animate());
-    this.controls.addEventListener('start', () => this.animate());
-    this.controls.addEventListener('end', () => this.animate());
+    this.controls.addEventListener('change', () => this.render());
+    this.controls.addEventListener('start', () => this.render());
+    this.controls.addEventListener('end', () => this.render());
   }
 
   private initLights() {
@@ -129,7 +134,7 @@ export class SceneManager {
       threeApp.effectsManager.setSize();
     }
 
-    this.animate();
+    this.render();
   };
 
   private startAnimationLoop() {
@@ -137,8 +142,9 @@ export class SceneManager {
       requestAnimationFrame(animate);
       this.stats.begin();
 
+      const camera = this.cameraManager.getActiveCamera();
       this.controls.update();
-      this.renderer.render(this.scene, this.camera);
+      this.renderer.render(this.scene, camera);
 
       this.stats.end();
     };
@@ -146,7 +152,7 @@ export class SceneManager {
     animate();
   }
 
-  private animate() {
+  public render() {
     if (!this.renderer) return;
     this.stats.begin();
 
@@ -154,7 +160,8 @@ export class SceneManager {
     if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
       threeApp.effectsManager.render();
     } else {
-      this.renderer.render(this.scene, this.camera);
+      const camera = this.cameraManager.getActiveCamera();
+      this.renderer.render(this.scene, camera);
     }
 
     this.controls.update();

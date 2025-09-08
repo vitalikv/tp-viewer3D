@@ -46,7 +46,8 @@ export class EffectsManager {
   }
 
   private initOutlineEffect() {
-    const resolution = new THREE.Vector2(this.width, this.height);
+    const rect = this.container.getBoundingClientRect();
+    const resolution = new THREE.Vector2(rect.width, rect.height);
 
     this.outlinePass = new OutlinePass(resolution, this.scene, this.camera);
 
@@ -65,8 +66,10 @@ export class EffectsManager {
   }
 
   private initSMAA() {
+    const rect = this.container.getBoundingClientRect();
+
     this.smaaPass = new SMAAPass();
-    this.smaaPass.setSize(this.width, this.height);
+    this.smaaPass.setSize(rect.width, rect.height);
     this.composer.addPass(this.smaaPass);
   }
 
