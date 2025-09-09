@@ -27,7 +27,7 @@ export class CameraManager {
       }
     });
 
-    //window.addEventListener('resize', () => this.handleResize());
+    window.addEventListener('resize', this.handleResize);
   }
 
   private initCameras() {

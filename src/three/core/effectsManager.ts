@@ -3,14 +3,15 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 
 export class EffectsManager {
   public composer: EffectComposer;
   public outlinePass: OutlinePass;
-  public renderPass: RenderPass;
-  public outputPass: OutputPass;
-  public smaaPass: SMAAPass;
+  private renderPass: RenderPass;
+  private outputPass: OutputPass;
+  private smaaPass: SMAAPass;
   public enabled = false;
 
   private container: HTMLElement;
@@ -18,7 +19,7 @@ export class EffectsManager {
   private camera: THREE.Camera;
   private renderer: THREE.WebGLRenderer;
 
-  public init({ scene, camera, renderer, container }) {
+  public init({ scene, camera, renderer, container }: { scene: THREE.Scene; camera: THREE.Camera; renderer: THREE.WebGLRenderer; container: HTMLElement }) {
     if (this.enabled) return;
     this.enabled = true;
 
@@ -27,15 +28,20 @@ export class EffectsManager {
     this.camera = camera;
     this.renderer = renderer;
 
-    this.initComposer();
-    this.initOutlineEffect();
-    this.initSMAA();
+    const rect = this.container.getBoundingClientRect();
+
+    this.initComposer(rect);
+    this.initOutlineEffect(rect);
+    this.initLineEffect(rect);
+    //this.initSMAA();
 
     this.setSize();
   }
 
-  private initComposer() {
-    this.composer = new EffectComposer(this.renderer);
+  private initComposer(rect: DOMRect) {
+    const renderTarget = new THREE.WebGLRenderTarget(rect.width, rect.height, { samples: 4 });
+
+    this.composer = new EffectComposer(this.renderer, renderTarget);
     this.composer.setPixelRatio(this.renderer.getPixelRatio());
     this.renderPass = new RenderPass(this.scene, this.camera);
     this.composer.addPass(this.renderPass);
@@ -45,16 +51,14 @@ export class EffectsManager {
     this.outputPass.renderToScreen = true;
   }
 
-  private initOutlineEffect() {
-    const rect = this.container.getBoundingClientRect();
+  private initOutlineEffect(rect: DOMRect) {
     const resolution = new THREE.Vector2(rect.width, rect.height);
 
     this.outlinePass = new OutlinePass(resolution, this.scene, this.camera);
 
-    // Настройки по умолчанию или из конфига
-    this.outlinePass.edgeStrength = 2;
+    this.outlinePass.edgeStrength = 1.0;
     this.outlinePass.edgeGlow = 0;
-    this.outlinePass.edgeThickness = 0.1;
+    this.outlinePass.edgeThickness = 0.0;
     this.outlinePass.pulsePeriod = 0;
 
     this.outlinePass.visibleEdgeColor.setHex(0x00ff00);
@@ -65,6 +69,61 @@ export class EffectsManager {
     this.composer.addPass(this.outlinePass);
   }
 
+  private initLineEffect(rect: DOMRect) {
+    const lineShader = {
+      uniforms: {
+        tDiffuse: { value: null },
+        maskTexture: { value: null },
+        lineColor: { value: new THREE.Color(0x00ff00) },
+        lineThickness: { value: 1 },
+        resolution: { value: new THREE.Vector2(rect.width, rect.height) },
+      },
+      vertexShader: `
+          varying vec2 vUv;
+          void main() {
+              vUv = uv;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+      `,
+      fragmentShader: `
+      uniform sampler2D tDiffuse;
+      uniform sampler2D maskTexture;
+      uniform vec3 lineColor;
+      uniform float lineThickness;
+      uniform vec2 resolution;
+      varying vec2 vUv;
+      
+      void main() {
+        vec4 sceneColor = texture2D(tDiffuse, vUv);
+        float centerMask = texture2D(maskTexture, vUv).r;
+        
+        vec2 gradient = vec2(
+          texture2D(maskTexture, vUv + vec2(1.0/resolution.x, 0.0)).r - 
+          texture2D(maskTexture, vUv - vec2(1.0/resolution.x, 0.0)).r,
+          texture2D(maskTexture, vUv + vec2(0.0, 1.0/resolution.y)).r - 
+          texture2D(maskTexture, vUv - vec2(0.0, 1.0/resolution.y)).r
+        );
+        
+        float edgeStrength = length(gradient);
+        
+        float line = smoothstep(0.5 - lineThickness * 0.01, 0.5 + lineThickness * 0.01, edgeStrength);
+        line *= centerMask;
+        
+        gl_FragColor = mix(sceneColor, vec4(lineColor, 1.0), line);
+      }
+    `,
+    };
+
+    const linePass = new ShaderPass(lineShader);
+    linePass.renderToScreen = true;
+    linePass.material.depthTest = false;
+    linePass.material.depthWrite = false;
+    linePass.material.transparent = true;
+    linePass.uniforms.maskTexture.value = this.outlinePass.renderTargetMaskBuffer.texture;
+    this.composer.addPass(linePass);
+  }
+
+  // сглаживание, но не использую потому что есть const renderTarget = new THREE.WebGLRenderTarget(rect.width, rect.height, { samples: 4 });
   private initSMAA() {
     const rect = this.container.getBoundingClientRect();
 

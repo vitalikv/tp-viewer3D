@@ -20,12 +20,11 @@ export class SceneManager {
 
     this.initStats();
     this.initScene();
-    this.initCamera();
     this.initRenderer();
+    this.initCamera();
     this.initControls();
     this.initLights();
     this.initHelpers();
-    window.addEventListener('resize', this.handleWindowResize);
 
     // setInterval(() => {
     //   const start = performance.now();
@@ -119,23 +118,6 @@ export class SceneManager {
     const gridHelper = new THREE.GridHelper(10, 10);
     this.scene.add(gridHelper);
   }
-
-  private handleWindowResize = () => {
-    const rect = this.getClientRect();
-
-    if (this.camera instanceof THREE.PerspectiveCamera) {
-      this.camera.aspect = rect.width / rect.height;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(rect.width, rect.height);
-    }
-
-    // не работает при вкл renderWorker
-    if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
-      threeApp.effectsManager.setSize();
-    }
-
-    this.render();
-  };
 
   private startAnimationLoop() {
     const animate = () => {

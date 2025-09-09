@@ -1,11 +1,14 @@
 import * as THREE from 'three';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 
 export class OutlineSelection {
   private outlinePass: OutlinePass;
+  private composer: EffectComposer;
 
-  public init({ outlinePass }: { outlinePass: OutlinePass }) {
+  public init({ outlinePass, composer }: { outlinePass: OutlinePass; composer: EffectComposer }) {
     this.outlinePass = outlinePass;
+    this.composer = composer;
   }
 
   private isActivated() {
@@ -33,5 +36,9 @@ export class OutlineSelection {
     if (!this.isActivated()) return;
 
     this.outlinePass.selectedObjects = [];
+
+    this.composer.renderer.setRenderTarget(this.outlinePass.renderTargetMaskBuffer);
+    this.composer.renderer.clear();
+    this.composer.renderer.setRenderTarget(null);
   }
 }

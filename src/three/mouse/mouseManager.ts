@@ -69,12 +69,17 @@ export class MouseManager {
           console.log('nodeId', nodeId);
 
           const color = obj.userData.structureData ? 0x00ff00 : 0xff0000;
-          const material = new THREE.MeshStandardMaterial({ color });
+          const material = new THREE.MeshStandardMaterial({ color, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
+          const baseMat2 = new THREE.LineBasicMaterial({ color, transparent: true, depthTest: false, opacity: 0.1 });
           //const material = new THREE.MeshStandardMaterial({ color, depthTest: false, transparent: true });
           obj.traverse((child) => {
             if (child.isMesh) {
               this.setActivedObj({ obj: child });
               child.material = material;
+            }
+            if (child.isLine) {
+              this.setActivedObj({ obj: child });
+              child.material = baseMat2;
             }
           });
 
@@ -106,6 +111,10 @@ export class MouseManager {
                         if (child.isMesh) {
                           this.setActivedObj({ obj: child });
                           child.material = material;
+                        }
+                        if (child.isLine) {
+                          this.setActivedObj({ obj: child });
+                          child.material = baseMat2;
                         }
                       });
 
@@ -281,10 +290,10 @@ export class MouseManager {
     if (!obj) return;
 
     obj.traverse((child) => {
-      if (child.isMesh) {
+      if (child.isMesh || child.isLine) {
         this.activedObj.items.push({ obj: child, mat: child.material });
 
-        if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
+        if (child.isMesh && threeApp.effectsManager && threeApp.effectsManager.enabled) {
           threeApp.outlineSelection.addOutlineObject(child);
         }
       }
