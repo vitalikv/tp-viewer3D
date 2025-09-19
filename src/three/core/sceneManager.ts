@@ -64,6 +64,20 @@ export class SceneManager {
   private initScene() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xffffff);
+    //this.scene.background = new THREE.Color(0xe3e4e7);
+
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load(
+      './Grey-blue T-FLEX 16.jpg',
+      (texture) => {
+        this.scene.background = texture;
+        this.render();
+      },
+      () => {},
+      (error) => {
+        console.error('Ошибка загрузки фона:', error);
+      }
+    );
 
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
