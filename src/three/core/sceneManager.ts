@@ -64,26 +64,95 @@ export class SceneManager {
   private initScene() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xffffff);
-    //this.scene.background = new THREE.Color(0xe3e4e7);
 
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.load(
-      './Grey-blue T-FLEX 16.jpg',
-      (texture) => {
-        this.scene.background = texture;
-        this.render();
-      },
-      () => {},
-      (error) => {
-        console.error('Ошибка загрузки фона:', error);
-      }
-    );
+    const texture = this.createAdvancedGradient({
+      color1: '#ffffff',
+      color2: '#c0c0c0',
+      direction: 'radial',
+      transitionSharpness: 0.7, // Очень плавный
+      transitionPoint: 0.4, // Центр
+      transitionWidth: 0.8, // Широкая зона перехода
+    });
+
+    this.scene.background = texture;
 
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
     const cube = new THREE.Mesh(geometry, material);
     cube.position.x = 3;
     this.scene.add(cube);
+  }
+
+  private createAdvancedGradient(options: { color1: string | number | THREE.Color; color2: string | number | THREE.Color; direction: 'vertical' | 'horizontal' | 'radial'; transitionSharpness: number; transitionPoint: number; transitionWidth: number }) {
+    const color1: string = '#' + new THREE.Color(options.color1).getHexString();
+    const color2: string = '#' + new THREE.Color(options.color2).getHexString();
+    const direction: string = options.direction;
+    const transitionSharpness: number = options.transitionSharpness;
+    const transitionPoint: number = options.transitionPoint;
+    const transitionWidth: number = options.transitionWidth;
+
+    const canvas: HTMLCanvasElement = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const ctx: CanvasRenderingContext2D = canvas.getContext('2d')!;
+
+    let gradient: CanvasGradient;
+    if (direction === 'vertical') {
+      gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    } else if (direction === 'horizontal') {
+      gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    } else {
+      gradient = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2);
+    }
+
+    const mixColors = (color1: string, color2: string, weight: number): string => {
+      const hex1: string = color1.replace('#', '');
+      const hex2: string = color2.replace('#', '');
+
+      const r1: number = parseInt(hex1.substring(0, 2), 16);
+      const g1: number = parseInt(hex1.substring(2, 4), 16);
+      const b1: number = parseInt(hex1.substring(4, 6), 16);
+
+      const r2: number = parseInt(hex2.substring(0, 2), 16);
+      const g2: number = parseInt(hex2.substring(2, 4), 16);
+      const b2: number = parseInt(hex2.substring(4, 6), 16);
+
+      const r: number = Math.round(r1 + (r2 - r1) * weight);
+      const g: number = Math.round(g1 + (g2 - g1) * weight);
+      const b: number = Math.round(b1 + (b2 - b1) * weight);
+
+      return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    };
+
+    const startTransition: number = Math.max(0, transitionPoint - transitionWidth / 2);
+    const endTransition: number = Math.min(1, transitionPoint + transitionWidth / 2);
+
+    if (transitionSharpness < 0.2) {
+      gradient.addColorStop(0, color1);
+      gradient.addColorStop(transitionPoint - 0.001, color1);
+      gradient.addColorStop(transitionPoint, color2);
+      gradient.addColorStop(1, color2);
+    } else {
+      gradient.addColorStop(0, color1);
+      gradient.addColorStop(startTransition, color1);
+
+      const steps: number = Math.ceil(transitionSharpness * 10);
+      for (let i: number = 0; i <= steps; i++) {
+        const pos: number = startTransition + (endTransition - startTransition) * (i / steps);
+        const blend: number = i / steps;
+        gradient.addColorStop(pos, mixColors(color1, color2, blend));
+      }
+
+      gradient.addColorStop(endTransition, color2);
+      gradient.addColorStop(1, color2);
+    }
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const texture: THREE.Texture = new THREE.CanvasTexture(canvas);
+
+    return texture;
   }
 
   private initCamera() {
