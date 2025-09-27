@@ -6,6 +6,8 @@ import { GltfStructure } from '../model/gltfStructure';
 
 import { threeApp } from '../threeApp';
 
+import { InitData } from './data/InitData';
+
 export class ModelLoader {
   private loader: GLTFLoader;
   private dracoLoader: DRACOLoader;
@@ -14,6 +16,7 @@ export class ModelLoader {
   private model;
   private jsonGltf;
   public json2;
+  public initData: InitData;
 
   constructor() {
     this.loader = new GLTFLoader();
@@ -89,7 +92,9 @@ export class ModelLoader {
 
         const gltfStructure = new GltfStructure();
         gltfStructure.initStructure({ gltf });
-        await gltfStructure.selectedNode({ gltf, model, nodeId: 759 });
+        //await gltfStructure.selectedNode({ gltf, model, nodeId: 759 });
+
+        this.initData = new InitData({ structure: gltf.parser.json.extras.tflex.structure, gltf });
 
         threeApp.sceneManager.renderer.render(threeApp.sceneManager.scene, threeApp.sceneManager.camera);
         // console.log(threeApp.sceneManager.renderer.info.programs);
@@ -116,7 +121,8 @@ export class ModelLoader {
   }
 
   async loadJSON() {
-    const response = await fetch('./assets/ТРР-1-000 - Транспортер - A.1.json'); // путь к вашему файлу
+    const response = await fetch('./assets/СЕ-00-00 - Сборка - A.1 (1).json'); // путь к вашему файлу
+    //const response = await fetch('./assets/ТРР-1-000 - Транспортер - A.1 (5).json');
 
     const jsonData = await response.json();
     console.log('Загруженный JSON:', jsonData);

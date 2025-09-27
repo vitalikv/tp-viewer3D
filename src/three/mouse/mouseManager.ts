@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { threeApp } from '../threeApp';
+import { SelectedByData } from '../loaders/data/selectedByData';
 
 export class MouseManager {
   private raycaster: THREE.Raycaster;
@@ -211,6 +212,26 @@ export class MouseManager {
     if (intersects.length > 0) {
       intersect = intersects[0];
       let object = intersect.object;
+
+      const objs = SelectedByData.getSelectedNode({ obj: object });
+      const color = 0x00ff00;
+      const material = new THREE.MeshStandardMaterial({ color, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
+      const baseMat2 = new THREE.LineBasicMaterial({ color, transparent: true, depthTest: false, opacity: 0.1 });
+
+      objs.forEach((obj) => {
+        obj.traverse((child) => {
+          if (child.isMesh) {
+            this.setActivedObj({ obj: child });
+            child.material = material;
+          }
+          if (child.isLine) {
+            this.setActivedObj({ obj: child });
+            child.material = baseMat2;
+          }
+        });
+      });
+
+      return { obj: null, intersect: null };
 
       while (object.parent && !(object.parent instanceof THREE.Object3D)) {
         object = object.parent;

@@ -29,6 +29,11 @@ export class MergeEnvironmentUtils {
     const { geomMesh, geomLine } = this.getGeometries(obj);
 
     const mergedGeomMesh = geomMesh.length > 0 ? BufferGeometryUtils.mergeGeometries(geomMesh) : null;
+    geomLine.forEach((geometry) => {
+      if (geometry.hasAttribute('color')) {
+        geometry.deleteAttribute('color');
+      }
+    });
     const mergedGeomLine = geomLine.length > 0 ? BufferGeometryUtils.mergeGeometries(geomLine) : null;
 
     return { mergedGeomMesh, mergedGeomLine };

@@ -35,7 +35,7 @@ export class SceneManager {
     //this.startAnimationLoop();
     this.render();
 
-    new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.render() });
+    //new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.render() });
   }
 
   public initWorker({ container }) {
