@@ -62,104 +62,14 @@ export class MouseManager {
 
       let { obj, intersect } = await this.intersectObj({ event });
 
-      if (obj && 1 == 1) {
-        console.log('parentNode', obj);
+      const mode = 'tflex';
 
-        const selectObjs = async (obj) => {
-          const nodeId = await this.findNodeId(obj.uuid);
-          console.log('nodeId', nodeId);
-
-          const color = obj.userData.structureData ? 0x00ff00 : 0xff0000;
-          const material = new THREE.MeshStandardMaterial({ color, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
-          const baseMat2 = new THREE.LineBasicMaterial({ color, transparent: true, depthTest: false, opacity: 0.1 });
-          //const material = new THREE.MeshStandardMaterial({ color, depthTest: false, transparent: true });
-          obj.traverse((child) => {
-            if (child.isMesh) {
-              this.setActivedObj({ obj: child });
-              child.material = material;
-            }
-            if (child.isLine) {
-              this.setActivedObj({ obj: child });
-              child.material = baseMat2;
-            }
-          });
-
-          if (obj.userData.structureData) {
-            const json2 = threeApp.modelLoader.json2;
-            const fragment_guid = obj.userData.structureData.fragment_guid.toLowerCase();
-            const result = json2.find((item) => item.fragment_guid == fragment_guid);
-            console.log(result, obj.userData.structureData.fragment_guid);
-
-            if (result) {
-              this.resetActivedObj();
-
-              const guid = result.guid;
-              const results2 = json2.filter((item) => item.guid === guid);
-              console.log('guids', results2, obj.userData.structureData.description, obj.userData.structureData.number);
-
-              if (results2) {
-                const model = threeApp.modelLoader.getModel();
-
-                results2.forEach((element) => {
-                  const fragment_guid = element.fragment_guid.toLowerCase();
-
-                  model.traverse((obj) => {
-                    if (obj.userData.structureData && obj.userData.structureData.fragment_guid.toLowerCase() === fragment_guid) {
-                      let count = 0;
-
-                      obj.traverse((child) => {
-                        count++;
-                        if (child.isMesh) {
-                          this.setActivedObj({ obj: child });
-                          child.material = material;
-                        }
-                        if (child.isLine) {
-                          this.setActivedObj({ obj: child });
-                          child.material = baseMat2;
-                        }
-                      });
-
-                      //console.log('шт: ', count, obj.userData.structureData.description, obj.userData.structureData.number);
-                    }
-                  });
-                });
-              }
-            }
-          }
-        };
-
-        if (obj.userData.childrenNodeIds && obj.userData.childrenNodeIds.length > 0) {
-          const gltf = threeApp.modelLoader.getJsonGltf();
-
-          for (let i = 0; i < obj.userData.childrenNodeIds.length; i++) {
-            const nodeId = obj.userData.childrenNodeIds[i];
-            const threeNode = await gltf.parser.getDependency('node', nodeId);
-            const nodeInScene = gltf.scene.getObjectByProperty('uuid', threeNode.uuid);
-            selectObjs(nodeInScene);
-          }
-        } else {
-          selectObjs(obj);
-        }
-
-        console.log('userData.structureData', obj.userData.structureData);
-      } else if (intersect) {
-        console.log('2222', intersect);
-
-        if (!intersect || !intersect.object) return;
-        if (!(intersect.object instanceof THREE.Mesh)) return;
-
-        const material = new THREE.MeshStandardMaterial({ color: 0xff0000, depthTest: false, transparent: true });
-
-        const obj = intersect.object as THREE.Mesh;
-
-        obj.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            this.setActivedObj({ obj: child });
-            child.material = material;
-          }
-        });
-
-        //this.changeColor({ intersect });
+      if (obj && mode === 'my') {
+        await this.mySelect(obj);
+      } else if (obj && mode === 'tflex') {
+        this.tflexSelect(obj);
+      } else if (intersect && mode === 'mege') {
+        this.changeColor({ intersect });
       }
     }
 
@@ -190,61 +100,127 @@ export class MouseManager {
 
     const model = threeApp.modelLoader.getModel();
     if (!model) return { obj, intersect };
+
     const intersects = this.raycaster.intersectObjects([model], true);
     //const intersects = this.raycaster.intersectObjects(createModel.meshesWinds, true);
 
-    if (intersects.length > 0 && 1 === 2) {
-      intersect = intersects[0];
-      const object = intersect.object;
-      console.log('object', object.userData);
-
-      if (object.userData.nodeId || object.userData.parentNodeId) {
-        const gltf = threeApp.modelLoader.getJsonGltf();
-        const nodeId = object.userData.nodeId ? object.userData.nodeId : object.userData.parentNodeId;
-
-        const threeNode = await gltf.parser.getDependency('node', nodeId);
-        const nodeInScene = gltf.scene.getObjectByProperty('uuid', threeNode.uuid);
-
-        return { obj: nodeInScene, intersect };
-      }
-    }
-
     if (intersects.length > 0) {
       intersect = intersects[0];
-      let object = intersect.object;
-
-      const objs = SelectedByData.getSelectedNode({ obj: object });
-      const color = 0x00ff00;
-      const material = new THREE.MeshStandardMaterial({ color, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
-      const baseMat2 = new THREE.LineBasicMaterial({ color, transparent: true, depthTest: false, opacity: 0.1 });
-
-      objs.forEach((obj) => {
-        obj.traverse((child) => {
-          if (child.isMesh) {
-            this.setActivedObj({ obj: child });
-            child.material = material;
-          }
-          if (child.isLine) {
-            this.setActivedObj({ obj: child });
-            child.material = baseMat2;
-          }
-        });
-      });
-
-      return { obj: null, intersect: null };
-
-      while (object.parent && !(object.parent instanceof THREE.Object3D)) {
-        object = object.parent;
-      }
-
-      const targetObject = object.parent instanceof THREE.Object3D ? object.parent : object;
-
-      if (targetObject instanceof THREE.Mesh || targetObject instanceof THREE.Object3D) {
-        obj = targetObject;
-      }
+      obj = intersect.object;
     }
 
     return { obj, intersect };
+  }
+
+  // мой вариант выделения (нужно доделывать, не все части выделяются)
+  private async mySelect(obj) {
+    while (obj.parent && !(obj.parent instanceof THREE.Object3D)) {
+      obj = obj.parent;
+    }
+
+    const targetObject = obj.parent instanceof THREE.Object3D ? obj.parent : obj;
+
+    if (targetObject instanceof THREE.Mesh || targetObject instanceof THREE.Object3D) {
+      obj = targetObject;
+    }
+
+    console.log('parentNode', obj);
+
+    const selectObjs = async (obj) => {
+      const nodeId = await this.findNodeId(obj.uuid);
+      console.log('nodeId', nodeId);
+
+      const color = obj.userData.structureData ? 0x00ff00 : 0xff0000;
+      const material = new THREE.MeshStandardMaterial({ color, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
+      const baseMat2 = new THREE.LineBasicMaterial({ color, transparent: true, depthTest: false, opacity: 0.1 });
+
+      obj.traverse((child) => {
+        if (child.isMesh) {
+          this.setActivedObj({ obj: child });
+          child.material = material;
+        }
+        if (child.isLine) {
+          this.setActivedObj({ obj: child });
+          child.material = baseMat2;
+        }
+      });
+
+      if (obj.userData.structureData) {
+        const json2 = threeApp.modelLoader.json2;
+        const fragment_guid = obj.userData.structureData.fragment_guid.toLowerCase();
+        const result = json2.find((item) => item.fragment_guid == fragment_guid);
+        console.log(result, obj.userData.structureData.fragment_guid);
+
+        if (result) {
+          this.resetActivedObj();
+
+          const guid = result.guid;
+          const results2 = json2.filter((item) => item.guid === guid);
+          console.log('guids', results2, obj.userData.structureData.description, obj.userData.structureData.number);
+
+          if (results2) {
+            const model = threeApp.modelLoader.getModel();
+
+            results2.forEach((element) => {
+              const fragment_guid = element.fragment_guid.toLowerCase();
+
+              model.traverse((obj) => {
+                if (obj.userData.structureData && obj.userData.structureData.fragment_guid.toLowerCase() === fragment_guid) {
+                  let count = 0;
+
+                  obj.traverse((child) => {
+                    count++;
+                    if (child.isMesh) {
+                      this.setActivedObj({ obj: child });
+                      child.material = material;
+                    }
+                    if (child.isLine) {
+                      this.setActivedObj({ obj: child });
+                      child.material = baseMat2;
+                    }
+                  });
+                }
+              });
+            });
+          }
+        }
+      }
+    };
+
+    if (obj.userData.childrenNodeIds && obj.userData.childrenNodeIds.length > 0) {
+      const gltf = threeApp.modelLoader.getJsonGltf();
+
+      for (let i = 0; i < obj.userData.childrenNodeIds.length; i++) {
+        const nodeId = obj.userData.childrenNodeIds[i];
+        const threeNode = await gltf.parser.getDependency('node', nodeId);
+        const nodeInScene = gltf.scene.getObjectByProperty('uuid', threeNode.uuid);
+        selectObjs(nodeInScene);
+      }
+    } else {
+      selectObjs(obj);
+    }
+
+    console.log('userData.structureData', obj.userData.structureData);
+  }
+
+  private tflexSelect(obj) {
+    const objs = SelectedByData.getSelectedNode({ obj });
+    const color = 0x00ff00;
+    const material = new THREE.MeshStandardMaterial({ color, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
+    const baseMat2 = new THREE.LineBasicMaterial({ color, transparent: true, depthTest: false, opacity: 0.1 });
+
+    objs.forEach((obj) => {
+      obj.traverse((child) => {
+        if (child.isMesh) {
+          this.setActivedObj({ obj: child });
+          child.material = material;
+        }
+        if (child.isLine) {
+          this.setActivedObj({ obj: child });
+          child.material = baseMat2;
+        }
+      });
+    });
   }
 
   private async findNodeId(targetUuid) {
@@ -277,7 +253,7 @@ export class MouseManager {
     this.setColor({ g, objectId });
   }
 
-  setColor({ g, objectId, color = { x: 0, y: 1, z: 0 } }) {
+  private setColor({ g, objectId, color = { x: 0, y: 1, z: 0 } }) {
     const colorAttr = g.attributes.color;
     let vertexStart = 0;
 
