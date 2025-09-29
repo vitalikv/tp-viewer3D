@@ -231,7 +231,7 @@ export class SceneManager {
 
     this.controls.update();
 
-    //console.log(this.renderer.info.render.calls);
+    console.log(this.renderer.info.render.calls);
 
     this.stats.end();
   }

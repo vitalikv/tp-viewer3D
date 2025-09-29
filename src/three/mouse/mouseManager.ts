@@ -2,6 +2,7 @@ import * as THREE from 'three';
 
 import { threeApp } from '../threeApp';
 import { SelectedByData } from '../loaders/data/selectedByData';
+import { SelectedMergedByData } from '../loaders/data/selectedMergedByData';
 
 export class MouseManager {
   private raycaster: THREE.Raycaster;
@@ -54,7 +55,8 @@ export class MouseManager {
 
   private pointerUp = async (event: MouseEvent) => {
     if (!this.isMove) {
-      this.resetSelectedObj();
+      this.clearSelection();
+
       this.resetActivedObj();
 
       this.calculateMousePosition(event);
@@ -62,7 +64,7 @@ export class MouseManager {
 
       let { obj, intersect } = await this.intersectObj({ event });
 
-      const mode = 'tflex';
+      const mode = 'mege';
 
       if (obj && mode === 'my') {
         await this.mySelect(obj);
@@ -240,43 +242,177 @@ export class MouseManager {
     return null;
   }
 
+  // ----
   private changeColor({ intersect }: { intersect: THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>> }) {
     if (!intersect || !intersect.object) return;
-    if (!(intersect.object instanceof THREE.Mesh)) return;
+
+    // Определяем тип объекта (Mesh или Line)
+    const isMesh = intersect.object instanceof THREE.Mesh;
+    const isLine = intersect.object instanceof THREE.Line || intersect.object instanceof THREE.LineSegments;
+
+    if (!isMesh && !isLine) return;
     if (!intersect.object.geometry || !intersect.object.geometry.attributes.objectId) return;
+
     const faceIndex = intersect.faceIndex;
-    const g = intersect.object.geometry;
-    const objectId = g.attributes.objectId.array[faceIndex];
+    const geometry = intersect.object.geometry;
+    const objectId = geometry.attributes.objectId.array[faceIndex];
+    const clickedUuid = geometry.userData.uuids[objectId];
 
-    console.log(intersect, faceIndex, objectId);
+    console.log('Clicked object uuid:', clickedUuid);
 
-    this.setColor({ g, objectId });
+    // Сначала сбрасываем все выделения
+    this.clearSelection();
+
+    this.highlightObjectsWithUuid(clickedUuid);
+    this.highlightLinesWithUuid(clickedUuid);
+
+    const objs = SelectedMergedByData.getSelectedNode({ uuid: clickedUuid });
+
+    // Затем выделяем новые объекты
+    for (let i = 0; i < objs.length; i++) {
+      const element = objs[i];
+
+      this.highlightObjectsWithUuid(element.uuid);
+      this.highlightLinesWithUuid(element.uuid);
+    }
+
+    // Обновляем материалы для отображения выделения
+    this.updateHighlightMaterials();
   }
 
-  private setColor({ g, objectId, color = { x: 0, y: 1, z: 0 } }) {
-    const colorAttr = g.attributes.color;
-    let vertexStart = 0;
+  private highlightObjectsWithUuid(targetUuid: string) {
+    this.scene.traverse((object) => {
+      if (object instanceof THREE.Mesh && object.geometry) {
+        const geometry = object.geometry;
 
-    let color2 = null;
-
-    g.userData.gs.forEach((geom, idx) => {
-      const vertexCount = geom.attributes.position.count;
-      if (idx === objectId) {
-        if (!color2) {
-          color2 = { x: 0, y: 0, z: 0 };
-          color2.x = colorAttr.array[vertexStart * 3];
-          color2.y = colorAttr.array[vertexStart * 3 + 1];
-          color2.z = colorAttr.array[vertexStart * 3 + 2];
-        }
-        for (let i = vertexStart; i < vertexStart + vertexCount; i++) {
-          colorAttr.setXYZ(i, color.x, color.y, color.z);
+        if (geometry.userData?.uuids && geometry.userData?.vertexOffsets) {
+          this.highlightPartsWithUuidInGeometry(geometry, targetUuid);
         }
       }
-      vertexStart += vertexCount;
     });
-    colorAttr.needsUpdate = true;
+  }
 
-    this.setSelectedObj({ g, objectId, color: color2 });
+  private highlightLinesWithUuid(targetUuid: string) {
+    this.scene.traverse((object) => {
+      if ((object instanceof THREE.Line || object instanceof THREE.LineSegments) && object.geometry) {
+        const geometry = object.geometry;
+
+        if (geometry.userData?.uuids) {
+          const { uuids } = geometry.userData;
+
+          // Проверяем, содержит ли эта линия нужный uuid
+          if (uuids.includes(targetUuid)) {
+            // Для линий просто меняем материал
+            if (!object.userData.originalMaterial) {
+              object.userData.originalMaterial = object.material;
+            }
+
+            const highlightMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, depthTest: false, opacity: 0.1 });
+            object.material = highlightMaterial;
+          }
+        }
+      }
+    });
+  }
+
+  private highlightPartsWithUuidInGeometry(geometry: THREE.BufferGeometry, targetUuid: string) {
+    const highlightAttr = geometry.attributes.highlight;
+    const { vertexOffsets, vertexCounts, uuids } = geometry.userData;
+
+    if (!highlightAttr) return;
+
+    for (let objId = 0; objId < uuids.length; objId++) {
+      if (uuids[objId] === targetUuid) {
+        const vertexStart = vertexOffsets[objId];
+        const vertexCount = vertexCounts[objId];
+
+        // Устанавливаем флаг выделения для всех вершин объекта
+        for (let i = vertexStart; i < vertexStart + vertexCount; i++) {
+          highlightAttr.setX(i, 1); // 1 = выделено
+        }
+
+        highlightAttr.needsUpdate = true;
+
+        // Помечаем, что этот меш нужно переключить на шейдерный материал
+        geometry.userData.needsHighlightUpdate = true;
+      }
+    }
+  }
+
+  private clearAllHighlights() {
+    this.scene.traverse((object) => {
+      // Обрабатываем меши
+      if (object instanceof THREE.Mesh && object.geometry) {
+        const geometry = object.geometry;
+        const highlightAttr = geometry.attributes.highlight;
+
+        if (highlightAttr) {
+          // Сбрасываем все выделения в атрибуте
+          for (let i = 0; i < highlightAttr.count; i++) {
+            highlightAttr.setX(i, 0); // 0 = не выделено
+          }
+          highlightAttr.needsUpdate = true;
+          geometry.userData.needsHighlightUpdate = true;
+        }
+      }
+
+      // Обрабатываем линии - возвращаем оригинальные материалы
+      if ((object instanceof THREE.Line || object instanceof THREE.LineSegments) && object.userData.originalMaterial) {
+        object.material = object.userData.originalMaterial;
+        object.userData.originalMaterial = null;
+      }
+    });
+  }
+
+  private updateHighlightMaterials() {
+    this.scene.traverse((object) => {
+      if (object instanceof THREE.Mesh && object.geometry) {
+        const geometry = object.geometry;
+
+        if (geometry.userData?.needsHighlightUpdate) {
+          this.applyHighlightMaterial(object);
+          geometry.userData.needsHighlightUpdate = false;
+        }
+      }
+    });
+  }
+
+  private applyHighlightMaterial(mesh: THREE.Mesh) {
+    const geometry = mesh.geometry;
+    const highlightAttr = geometry.attributes.highlight;
+
+    if (!highlightAttr) return;
+
+    // Проверяем, есть ли выделенные вершины
+    let hasHighlight = false;
+    for (let i = 0; i < highlightAttr.count; i++) {
+      if (highlightAttr.getX(i) > 0.5) {
+        hasHighlight = true;
+        break;
+      }
+    }
+
+    if (hasHighlight) {
+      // Переключаем на шейдерный материал для выделения
+      if (!mesh.userData.originalMaterial) {
+        mesh.userData.originalMaterial = mesh.material;
+      }
+
+      if (!(mesh.material instanceof THREE.ShaderMaterial)) {
+        mesh.material = new THREE.MeshStandardMaterial({ color: 0x00ff00, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
+      }
+    } else {
+      // Возвращаем оригинальный материал
+      if (mesh.userData.originalMaterial) {
+        mesh.material = mesh.userData.originalMaterial;
+        mesh.userData.originalMaterial = null;
+      }
+    }
+  }
+
+  public clearSelection() {
+    this.clearAllHighlights();
+    this.updateHighlightMaterials(); // Добавьте этот вызов!
   }
 
   // ----
@@ -314,31 +450,6 @@ export class MouseManager {
     this.activedObj.items.length = 0;
   }
   // ----
-
-  private getSelectedObj() {
-    return this.selectedObj;
-  }
-
-  private setSelectedObj({ g, objectId, color }: { g: any; objectId: any; color: any }) {
-    this.selectedObj.g = g;
-    this.selectedObj.objectId = objectId;
-    this.selectedObj.color = color;
-  }
-
-  private clearSelectedObj() {
-    this.setSelectedObj({ g: null, objectId: null, color: null });
-  }
-
-  private resetSelectedObj() {
-    const selectedObj = this.getSelectedObj();
-
-    if (selectedObj.g) {
-      console.log(selectedObj.color);
-      this.setColor({ g: selectedObj.g, objectId: selectedObj.objectId, color: selectedObj.color });
-    }
-
-    this.clearSelectedObj();
-  }
 
   private hideModel() {
     console.log(this.scene, this.scene.children[3]);

@@ -16,7 +16,7 @@ export class BVHManager {
     if (!THREE.BufferGeometry.prototype.computeBoundsTree) return;
 
     obj.traverse((child) => {
-      if (child.geometry && THREE.Mesh) {
+      if (child.geometry && child.isMesh) {
         child.geometry.computeBoundsTree({ indirect: true });
         //child.geometry.boundsTree = new MeshBVH(mesh.geometry);
       }
