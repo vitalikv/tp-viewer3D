@@ -1,11 +1,14 @@
 import { threeApp } from '../../threeApp';
 
 export class SelectedMergedByData {
-  public static getSelectedNode({ uuid }) {
+  public static getSelectedNode({ uuid, parentUuid }) {
     let selectID = NaN;
 
     const targetUUID = uuid;
+    const targetParentUUID = parentUuid;
     const structure = threeApp.modelLoader.initData.getStructure();
+
+    console.log('uuid: ', uuid, 'parentUuid: ', targetParentUUID);
 
     const getChildren = (children, arr) => {
       for (const child of children) {
@@ -21,7 +24,6 @@ export class SelectedMergedByData {
     for (let item of structure.value) {
       if (item.uuid === targetUUID) {
         selectID = item.id;
-
         break;
       } else {
         if (item.children && item.children !== null && item.children.length > 0) {
@@ -34,9 +36,28 @@ export class SelectedMergedByData {
             }
           }
         }
+
+        if (targetParentUUID) {
+          for (let item of structure.value) {
+            if (item.uuid === targetParentUUID) {
+              selectID = item.id;
+              break;
+            } else if (item.children && item.children !== null && item.children.length > 0) {
+              const children = getChildren(item.children, []);
+
+              for (let ch of children) {
+                if (ch.uuid === targetParentUUID) {
+                  selectID = item.id;
+                  break;
+                }
+              }
+            }
+          }
+        }
       }
     }
-    console.log(targetUUID, structure);
+
+    console.log('structure', structure);
     console.log('selectID', selectID);
     let node = null;
 
@@ -49,7 +70,8 @@ export class SelectedMergedByData {
       }
     }
 
-    const nodes = this.selectedObj3dFromScene({ node });
+    const nodes = [node]; // только выделенная группа
+    //const nodes = this.selectedObj3dFromScene({ node }); // свзанные группы объектов
     console.log('nodes', nodes);
 
     const groupNodes = this.cmd_api_selected3d(nodes);

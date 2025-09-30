@@ -2,17 +2,16 @@ import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export class MergeMeshes {
-  private static readonly MAX_VERTICES_PER_GEOMETRY = 350000;
   private static readonly tempVector = new THREE.Vector3(); // Переиспользуемый вектор
 
   public static processModelWithMerge(model) {
     const { mergedMeshes, mergedLines } = this.mergeGeometriesWithMaterials(model);
     this.disposeHierarchy(model);
 
-    const group = new THREE.Group();
-    group.add(...mergedMeshes, ...mergedLines);
+    // const group = new THREE.Group();
+    // group.add(...mergedMeshes, ...mergedLines);
 
-    return group;
+    return { mergedMeshes, mergedLines };
   }
 
   private static mergeGeometriesWithMaterials(model) {
@@ -63,14 +62,27 @@ export class MergeMeshes {
         const key = material.uuid || `mat_${idx}`;
 
         if (!materialGroups.has(key)) {
-          materialGroups.set(key, { material: material, geometries: [], uuids: [] });
+          materialGroups.set(key, {
+            material: material,
+            geometries: [],
+            // ИЗМЕНЕНО: Добавляем массивы для сохранения оригинальных UUID и parent UUID
+            originalUuids: [],
+            originalParentUuids: [],
+          });
         }
 
         const geometry = this.prepareGeometry(mesh.geometry, worldMatrix);
-        geometry.userData.uuid = mesh.parent.uuid ? mesh.parent.uuid : mesh.uuid;
+        // ИСПРАВЛЕНО: Сохраняем оригинальный UUID и parent UUID
+        const originalUuid = mesh.uuid;
+        const originalParentUuid = mesh.parent?.uuid || '';
+
+        geometry.userData.uuid = originalUuid;
+        geometry.userData.parentUuid = originalParentUuid;
 
         materialGroups.get(key).geometries.push(geometry);
-        materialGroups.get(key).uuids.push(mesh.uuid);
+        // ДОБАВЛЕНО: Сохраняем оригинальный UUID и parent UUID в отдельные массивы
+        materialGroups.get(key).originalUuids.push(originalUuid);
+        materialGroups.get(key).originalParentUuids.push(originalParentUuid);
       });
     });
 
@@ -78,25 +90,27 @@ export class MergeMeshes {
     materialGroups.forEach((group) => {
       if (group.geometries.length === 0) return;
 
-      const geometryChunks = this.splitGeometriesIfNeeded(group.geometries);
-      geometryChunks.forEach((chunkGeometries) => {
-        if (chunkGeometries.length === 0) return;
+      // ИЗМЕНЕНО: Сохраняем UUID и parent UUID перед мерджем на случай если они потеряются
+      const savedUuids = [...group.originalUuids];
+      const savedParentUuids = [...group.originalParentUuids];
 
-        const mergedGeometry = BufferGeometryUtils.mergeGeometries(chunkGeometries, false);
+      const mergedGeometry = BufferGeometryUtils.mergeGeometries(group.geometries, false);
 
-        if (mergedGeometry && mergedGeometry.attributes.position && mergedGeometry.attributes.position.count > 0) {
-          const mergedMesh = new THREE.Mesh(mergedGeometry, group.material);
-          mergedMeshes.push(mergedMesh);
+      if (mergedGeometry && mergedGeometry.attributes.position && mergedGeometry.attributes.position.count > 0) {
+        const mergedMesh = new THREE.Mesh(mergedGeometry, group.material);
+        mergedMeshes.push(mergedMesh);
 
-          this.setGeomAttribute({ geometries: chunkGeometries, mergedGeometry, uuids: group.uuids });
+        // ИЗМЕНЕНО: Передаем сохраненные UUID и parent UUID
+        this.setGeomAttribute({
+          geometries: group.geometries,
+          mergedGeometry,
+          originalUuids: savedUuids,
+          originalParentUuids: savedParentUuids,
+        });
 
-          // Очищаем временные геометрии
-          chunkGeometries.forEach((geom) => geom.dispose());
-        }
-      });
-
-      // Очищаем исходные геометрии
-      group.geometries.forEach((geom) => geom.dispose());
+        // Очищаем исходные геометрии
+        group.geometries.forEach((geom) => geom.dispose());
+      }
     });
 
     return mergedMeshes;
@@ -117,16 +131,24 @@ export class MergeMeshes {
             material: material,
             geometries: [],
             isLineSegments: isLineSegments,
-            uuids: [],
+            // ИЗМЕНЕНО: Добавляем массивы для сохранения оригинальных UUID и parent UUID
+            originalUuids: [],
+            originalParentUuids: [],
           });
         }
 
         const geometry = this.prepareLineGeometry(line.geometry, worldMatrix);
-        //geometry.userData.uuid = line.parent.uuid ? line.parent.uuid : line.uuid;
-        geometry.userData.uuid = line.uuid;
+        // ИСПРАВЛЕНО: Сохраняем оригинальный UUID и parent UUID
+        const originalUuid = line.uuid;
+        const originalParentUuid = line.parent?.uuid || '';
+
+        geometry.userData.uuid = originalUuid;
+        geometry.userData.parentUuid = originalParentUuid;
 
         lineMaterialGroups.get(key).geometries.push(geometry);
-        lineMaterialGroups.get(key).uuids.push(line.uuid);
+        // ДОБАВЛЕНО: Сохраняем оригинальный UUID и parent UUID в отдельные массивы
+        lineMaterialGroups.get(key).originalUuids.push(originalUuid);
+        lineMaterialGroups.get(key).originalParentUuids.push(originalParentUuid);
       });
     });
 
@@ -134,74 +156,40 @@ export class MergeMeshes {
     lineMaterialGroups.forEach((group) => {
       if (group.geometries.length === 0) return;
 
-      const geometryChunks = this.splitGeometriesIfNeeded(group.geometries);
-      geometryChunks.forEach((chunkGeometries) => {
-        if (chunkGeometries.length === 0) return;
+      // ИЗМЕНЕНО: Сохраняем UUID и parent UUID перед мерджем
+      const savedUuids = [...group.originalUuids];
+      const savedParentUuids = [...group.originalParentUuids];
 
-        const mergedGeometry = BufferGeometryUtils.mergeGeometries(chunkGeometries, false);
+      const mergedGeometry = BufferGeometryUtils.mergeGeometries(group.geometries, false);
 
-        if (mergedGeometry && mergedGeometry.attributes.position && mergedGeometry.attributes.position.count > 0) {
-          const lineMaterial = new THREE.LineBasicMaterial({
-            vertexColors: true,
-            color: group.material.color || 0xffffff,
-          });
+      if (mergedGeometry && mergedGeometry.attributes.position && mergedGeometry.attributes.position.count > 0) {
+        const lineMaterial = new THREE.LineBasicMaterial({
+          vertexColors: true,
+          color: group.material.color || 0xffffff,
+        });
 
-          let mergedLine;
-          if (group.isLineSegments) {
-            mergedLine = new THREE.LineSegments(mergedGeometry, lineMaterial);
-          } else {
-            mergedLine = new THREE.Line(mergedGeometry, lineMaterial);
-          }
-
-          mergedLines.push(mergedLine);
-          this.setGeomAttribute({
-            geometries: chunkGeometries,
-            mergedGeometry,
-            uuids: group.uuids,
-          });
-
-          // Очищаем временные геометрии
-          chunkGeometries.forEach((geom) => geom.dispose());
+        let mergedLine;
+        if (group.isLineSegments) {
+          mergedLine = new THREE.LineSegments(mergedGeometry, lineMaterial);
+        } else {
+          mergedLine = new THREE.Line(mergedGeometry, lineMaterial);
         }
-      });
 
-      // Очищаем исходные геометрии
-      group.geometries.forEach((geom) => geom.dispose());
+        mergedLines.push(mergedLine);
+        // ИЗМЕНЕНО: Передаем сохраненные UUID и parent UUID
+        this.setGeomAttribute({
+          geometries: group.geometries,
+          mergedGeometry,
+          originalUuids: savedUuids,
+          originalParentUuids: savedParentUuids,
+        });
+
+        // Очищаем исходные геометрии
+        group.geometries.forEach((geom) => geom.dispose());
+      }
     });
 
     return mergedLines;
-  }
-
-  private static splitGeometriesIfNeeded(geometries) {
-    const chunks = [];
-    let currentChunk = [];
-    let currentVertexCount = 0;
-
-    for (const geometry of geometries) {
-      const vertexCount = geometry.attributes.position.count;
-
-      if (vertexCount > this.MAX_VERTICES_PER_GEOMETRY) {
-        console.log('Geometry too large, skipping:', vertexCount);
-        continue;
-      }
-
-      if (currentVertexCount + vertexCount > this.MAX_VERTICES_PER_GEOMETRY) {
-        if (currentChunk.length > 0) {
-          chunks.push(currentChunk);
-          currentChunk = [];
-          currentVertexCount = 0;
-        }
-      }
-
-      currentChunk.push(geometry);
-      currentVertexCount += vertexCount;
-    }
-
-    if (currentChunk.length > 0) {
-      chunks.push(currentChunk);
-    }
-
-    return chunks;
   }
 
   private static prepareGeometry(geometry, matrix) {
@@ -239,11 +227,13 @@ export class MergeMeshes {
     return clonedGeo;
   }
 
-  private static setGeomAttribute({ geometries, mergedGeometry, uuids = [] }) {
+  // ИЗМЕНЕНО: Добавлен параметр originalParentUuids
+  private static setGeomAttribute({ geometries, mergedGeometry, originalUuids = [], originalParentUuids = [] }) {
     const vertexOffsets = [];
     const vertexCounts = [];
     const faceObjectIds = [];
     const mergedUuids = [];
+    const mergedParentUuids = [];
 
     let vertexOffset = 0;
     let totalFaces = 0;
@@ -253,7 +243,10 @@ export class MergeMeshes {
 
     geometries.forEach((geom, objId) => {
       const geomVertexCount = geom.attributes.position?.count || 0;
-      const objectUuid = geom.userData?.uuid || (uuids.length > objId ? uuids[objId] : null) || `obj_${objId}`;
+
+      // ИСПРАВЛЕНО: Используем сохраненные UUID или берем из geometry.userData
+      const objectUuid = originalUuids[objId] || geom.userData?.uuid || `obj_${objId}`;
+      const objectParentUuid = originalParentUuids[objId] || geom.userData?.parentUuid || '';
 
       let geomFaceCount = 0;
       if (geom.index && geom.index.count) {
@@ -277,6 +270,7 @@ export class MergeMeshes {
       vertexOffsets.push(vertexOffset);
       vertexCounts.push(geomVertexCount);
       mergedUuids.push(objectUuid);
+      mergedParentUuids.push(objectParentUuid);
       vertexOffset += geomVertexCount;
     });
 
@@ -293,7 +287,8 @@ export class MergeMeshes {
       vertexOffsets,
       vertexCounts,
       objectCount: geometries.length,
-      uuids: mergedUuids,
+      uuids: mergedUuids, // ТЕПЕРЬ: Здесь будут правильные оригинальные UUID
+      parentUuids: mergedParentUuids, // ДОБАВЛЕНО: Массив parent UUID
       actualFaceCount: totalFaces,
       highlightAttribute: highlightAttribute, // Сохраняем ссылку для быстрого доступа
     };

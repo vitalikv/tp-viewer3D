@@ -17,6 +17,8 @@ export class ModelLoader {
   private jsonGltf;
   public json2;
   public initData: InitData;
+  public mergedMeshes: Set<THREE.Mesh> = new Set();
+  public mergedLines: Set<THREE.Line | THREE.LineSegments> = new Set();
 
   constructor() {
     this.loader = new GLTFLoader();
@@ -39,7 +41,7 @@ export class ModelLoader {
     this.isMerge = merge;
   }
 
-  private getMerge() {
+  public getMerge() {
     return this.isMerge;
   }
 
@@ -82,10 +84,16 @@ export class ModelLoader {
         //model = MergeEnvironmentUtils.mergeObj(model);
 
         if (merge) {
-          model = MergeMeshes.processModelWithMerge(model);
-          threeApp.bvhManager.setupBVH(model);
+          const { mergedMeshes, mergedLines } = MergeMeshes.processModelWithMerge(model);
+          const group = new THREE.Group();
+          group.add(...mergedMeshes, ...mergedLines);
+          model = group;
+
+          mergedMeshes.forEach((mesh) => this.mergedMeshes.add(mesh));
+          mergedLines.forEach((line) => this.mergedLines.add(line));
         }
 
+        threeApp.bvhManager.setupBVH(model);
         //console.log(gltf, contents);
 
         threeApp.sceneManager.scene.add(model);
@@ -123,9 +131,9 @@ export class ModelLoader {
   }
 
   async loadJSON() {
-    //const response = await fetch('./assets/СЕ-00-00 - Сборка - A.1 (1).json'); // путь к вашему файлу
+    const response = await fetch('./assets/СЕ-00-00 - Сборка - A.1 (1).json'); // путь к вашему файлу
     //const response = await fetch('./assets/ТРР-1-000 - Транспортер - A.1 (5).json');
-    const response = await fetch('./assets/ТРДДФ-1-000 - Двигатель - A.1.json');
+    //const response = await fetch('./assets/ТРДДФ-1-000 - Двигатель - A.1.json');
 
     const jsonData = await response.json();
     console.log('Загруженный JSON:', jsonData);
@@ -133,5 +141,11 @@ export class ModelLoader {
     this.json2 = jsonData;
 
     return jsonData;
+  }
+
+  public dispose() {
+    this.mergedMeshes.clear();
+    this.mergedLines.clear();
+    //this.originalMaterials.clear();
   }
 }

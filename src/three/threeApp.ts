@@ -42,9 +42,9 @@ class ThreeApp {
       // this.effectsManager.init({ scene: this.sceneManager.scene, camera: this.sceneManager.camera, renderer: this.sceneManager.renderer, container });
       // this.outlineSelection.init({ outlinePass: this.effectsManager.outlinePass, composer: this.effectsManager.composer });
       this.mouseManager.init(this.sceneManager.scene, this.sceneManager.camera, this.sceneManager.renderer.domElement);
+      this.bvhManager.init();
 
       this.modelLoader.setMerge({ merge: true });
-      this.bvhManager.init();
     }
   }
 }

@@ -5,7 +5,10 @@ export class SelectedByData {
     let selectID = NaN;
 
     const targetUUID = obj.uuid;
+    const targetParentUUID = obj.parent.uuid;
     const structure = threeApp.modelLoader.initData.getStructure();
+
+    console.log('uuid: ', targetUUID, 'parentUuid: ', targetParentUUID);
 
     const getChildren = (children, arr) => {
       for (const child of children) {
@@ -35,8 +38,6 @@ export class SelectedByData {
         }
 
         if (obj.parent) {
-          const targetParentUUID = obj.parent.uuid;
-
           for (let item of structure.value) {
             if (item.uuid === targetParentUUID) {
               selectID = item.id;
@@ -56,6 +57,7 @@ export class SelectedByData {
       }
     }
 
+    console.log('structure', structure);
     console.log('selectID', selectID);
     let node = null;
 
@@ -68,7 +70,8 @@ export class SelectedByData {
       }
     }
 
-    const nodes = this.selectedObj3dFromScene({ node });
+    const nodes = [node]; // только выделенная группа
+    //const nodes = this.selectedObj3dFromScene({ node }); // свзанные группы объектов
     console.log('nodes', nodes);
 
     const groupNodes = this.cmd_api_selected3d(nodes);

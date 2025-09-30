@@ -14,6 +14,7 @@ export class MouseManager {
   private activedObj = { items: [] };
   private isDown = false;
   private isMove = false;
+  private originalMaterials: Map<string, THREE.Material> = new Map();
 
   public init(scene: THREE.Scene, camera: THREE.Camera, domElement: HTMLElement) {
     this.scene = scene;
@@ -64,7 +65,7 @@ export class MouseManager {
 
       let { obj, intersect } = await this.intersectObj({ event });
 
-      const mode = 'mege';
+      const mode = threeApp.modelLoader.getMerge() ? 'mege' : 'tflex';
 
       if (obj && mode === 'my') {
         await this.mySelect(obj);
@@ -206,10 +207,12 @@ export class MouseManager {
   }
 
   private tflexSelect(obj) {
-    const objs = SelectedByData.getSelectedNode({ obj });
+    let objs = SelectedByData.getSelectedNode({ obj });
     const color = 0x00ff00;
     const material = new THREE.MeshStandardMaterial({ color, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
     const baseMat2 = new THREE.LineBasicMaterial({ color, transparent: true, depthTest: false, opacity: 0.1 });
+
+    if (objs.length === 0) objs = [obj]; // если нет в структуре gltf
 
     objs.forEach((obj) => {
       obj.traverse((child) => {
@@ -246,7 +249,6 @@ export class MouseManager {
   private changeColor({ intersect }: { intersect: THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>> }) {
     if (!intersect || !intersect.object) return;
 
-    // Определяем тип объекта (Mesh или Line)
     const isMesh = intersect.object instanceof THREE.Mesh;
     const isLine = intersect.object instanceof THREE.Line || intersect.object instanceof THREE.LineSegments;
 
@@ -257,21 +259,24 @@ export class MouseManager {
     const geometry = intersect.object.geometry;
     const objectId = geometry.attributes.objectId.array[faceIndex];
     const clickedUuid = geometry.userData.uuids[objectId];
+    const parentUuid = geometry.userData.parentUuids[objectId];
 
-    console.log('Clicked object uuid:', clickedUuid);
+    console.log(objectId, 'Clicked object uuid:', clickedUuid, geometry.userData);
 
     // Сначала сбрасываем все выделения
     this.clearSelection();
 
+    // Выделяем объекты по UUID
     this.highlightObjectsWithUuid(clickedUuid);
     this.highlightLinesWithUuid(clickedUuid);
 
-    const objs = SelectedMergedByData.getSelectedNode({ uuid: clickedUuid });
+    const objs = SelectedMergedByData.getSelectedNode({ uuid: clickedUuid, parentUuid });
 
-    // Затем выделяем новые объекты
+    // Выделяем связанные объекты
     for (let i = 0; i < objs.length; i++) {
       const element = objs[i];
-
+      if (!element.uuid) continue;
+      console.log(element.uuid);
       this.highlightObjectsWithUuid(element.uuid);
       this.highlightLinesWithUuid(element.uuid);
     }
@@ -281,35 +286,36 @@ export class MouseManager {
   }
 
   private highlightObjectsWithUuid(targetUuid: string) {
-    this.scene.traverse((object) => {
-      if (object instanceof THREE.Mesh && object.geometry) {
-        const geometry = object.geometry;
-
-        if (geometry.userData?.uuids && geometry.userData?.vertexOffsets) {
-          this.highlightPartsWithUuidInGeometry(geometry, targetUuid);
-        }
+    // Используем Set для быстрого доступа вместо traverse
+    threeApp.modelLoader.mergedMeshes.forEach((mesh) => {
+      const geometry = mesh.geometry;
+      if (geometry.userData?.uuids && geometry.userData?.vertexOffsets) {
+        this.highlightPartsWithUuidInGeometry(geometry, targetUuid);
       }
     });
   }
 
   private highlightLinesWithUuid(targetUuid: string) {
-    this.scene.traverse((object) => {
-      if ((object instanceof THREE.Line || object instanceof THREE.LineSegments) && object.geometry) {
-        const geometry = object.geometry;
+    // Используем Set для быстрого доступа вместо traverse
+    threeApp.modelLoader.mergedLines.forEach((line) => {
+      const geometry = line.geometry;
+      if (geometry.userData?.uuids) {
+        const { uuids } = geometry.userData;
 
-        if (geometry.userData?.uuids) {
-          const { uuids } = geometry.userData;
-
-          // Проверяем, содержит ли эта линия нужный uuid
-          if (uuids.includes(targetUuid)) {
-            // Для линий просто меняем материал
-            if (!object.userData.originalMaterial) {
-              object.userData.originalMaterial = object.material;
-            }
-
-            const highlightMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, depthTest: false, opacity: 0.1 });
-            object.material = highlightMaterial;
+        if (uuids.includes(targetUuid)) {
+          // Сохраняем оригинальный материал если еще не сохранен
+          const lineKey = line.uuid;
+          if (!this.originalMaterials.has(lineKey)) {
+            this.originalMaterials.set(lineKey, line.material);
           }
+
+          const highlightMaterial = new THREE.LineBasicMaterial({
+            color: 0x00ff00,
+            transparent: true,
+            depthTest: false,
+            opacity: 0.1,
+          });
+          line.material = highlightMaterial;
         }
       }
     });
@@ -317,12 +323,12 @@ export class MouseManager {
 
   private highlightPartsWithUuidInGeometry(geometry: THREE.BufferGeometry, targetUuid: string) {
     const highlightAttr = geometry.attributes.highlight;
-    const { vertexOffsets, vertexCounts, uuids } = geometry.userData;
+    const { vertexOffsets, vertexCounts, uuids, parentUuids } = geometry.userData;
 
     if (!highlightAttr) return;
 
-    for (let objId = 0; objId < uuids.length; objId++) {
-      if (uuids[objId] === targetUuid) {
+    for (let objId = 0; objId < parentUuids.length; objId++) {
+      if (parentUuids[objId] === targetUuid) {
         const vertexStart = vertexOffsets[objId];
         const vertexCount = vertexCounts[objId];
 
@@ -332,47 +338,45 @@ export class MouseManager {
         }
 
         highlightAttr.needsUpdate = true;
-
-        // Помечаем, что этот меш нужно переключить на шейдерный материал
         geometry.userData.needsHighlightUpdate = true;
       }
     }
   }
 
   private clearAllHighlights() {
-    this.scene.traverse((object) => {
-      // Обрабатываем меши
-      if (object instanceof THREE.Mesh && object.geometry) {
-        const geometry = object.geometry;
-        const highlightAttr = geometry.attributes.highlight;
+    // Очищаем выделения в мешах
+    threeApp.modelLoader.mergedMeshes.forEach((mesh) => {
+      const geometry = mesh.geometry;
+      const highlightAttr = geometry.attributes.highlight;
 
-        if (highlightAttr) {
-          // Сбрасываем все выделения в атрибуте
-          for (let i = 0; i < highlightAttr.count; i++) {
-            highlightAttr.setX(i, 0); // 0 = не выделено
-          }
-          highlightAttr.needsUpdate = true;
-          geometry.userData.needsHighlightUpdate = true;
+      if (highlightAttr) {
+        // Сбрасываем все выделения в атрибуте
+        for (let i = 0; i < highlightAttr.count; i++) {
+          highlightAttr.setX(i, 0); // 0 = не выделено
         }
+        highlightAttr.needsUpdate = true;
+        geometry.userData.needsHighlightUpdate = true;
       }
+    });
 
-      // Обрабатываем линии - возвращаем оригинальные материалы
-      if ((object instanceof THREE.Line || object instanceof THREE.LineSegments) && object.userData.originalMaterial) {
-        object.material = object.userData.originalMaterial;
-        object.userData.originalMaterial = null;
+    // Восстанавливаем оригинальные материалы линий
+    threeApp.modelLoader.mergedLines.forEach((line) => {
+      const lineKey = line.uuid;
+      if (this.originalMaterials.has(lineKey)) {
+        line.material = this.originalMaterials.get(lineKey);
+        this.originalMaterials.delete(lineKey);
       }
     });
   }
 
   private updateHighlightMaterials() {
-    this.scene.traverse((object) => {
-      if (object instanceof THREE.Mesh && object.geometry) {
-        const geometry = object.geometry;
+    // Обновляем материалы только для мешей, которым это нужно
+    threeApp.modelLoader.mergedMeshes.forEach((mesh) => {
+      const geometry = mesh.geometry;
 
-        if (geometry.userData?.needsHighlightUpdate) {
-          this.applyHighlightMaterial(object);
-          geometry.userData.needsHighlightUpdate = false;
-        }
+      if (geometry.userData?.needsHighlightUpdate) {
+        this.applyHighlightMaterial(mesh);
+        geometry.userData.needsHighlightUpdate = false;
       }
     });
   }
@@ -392,27 +396,36 @@ export class MouseManager {
       }
     }
 
+    const meshKey = mesh.uuid;
+
     if (hasHighlight) {
-      // Переключаем на шейдерный материал для выделения
-      if (!mesh.userData.originalMaterial) {
-        mesh.userData.originalMaterial = mesh.material;
+      // Сохраняем оригинальный материал если еще не сохранен
+      if (!this.originalMaterials.has(meshKey)) {
+        this.originalMaterials.set(meshKey, mesh.material);
       }
 
-      if (!(mesh.material instanceof THREE.ShaderMaterial)) {
-        mesh.material = new THREE.MeshStandardMaterial({ color: 0x00ff00, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
+      // Применяем материал выделения
+      if (!(mesh.material instanceof THREE.MeshStandardMaterial) || (mesh.material as THREE.MeshStandardMaterial).emissive?.getHex() !== 0x00ff00) {
+        mesh.material = new THREE.MeshStandardMaterial({
+          color: 0x00ff00,
+          transparent: true,
+          emissive: 0x00ff00,
+          emissiveIntensity: 0.2,
+          opacity: 0.8,
+        });
       }
     } else {
       // Возвращаем оригинальный материал
-      if (mesh.userData.originalMaterial) {
-        mesh.material = mesh.userData.originalMaterial;
-        mesh.userData.originalMaterial = null;
+      if (this.originalMaterials.has(meshKey)) {
+        mesh.material = this.originalMaterials.get(meshKey);
+        this.originalMaterials.delete(meshKey);
       }
     }
   }
 
   public clearSelection() {
     this.clearAllHighlights();
-    this.updateHighlightMaterials(); // Добавьте этот вызов!
+    this.updateHighlightMaterials();
   }
 
   // ----
