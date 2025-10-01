@@ -57,6 +57,7 @@ export class MouseManager {
 
   private pointerUp = async (event: MouseEvent) => {
     if (!this.isMove) {
+      threeApp.selectionManager.clearSelection();
       this.clearSelection();
 
       this.resetActivedObj();

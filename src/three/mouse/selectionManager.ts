@@ -9,8 +9,8 @@ export class SelectionManager {
   public mergedMeshes: Map<string, THREE.Mesh[]> = new Map();
   public mergedLines: Map<string, (THREE.Line | THREE.LineSegments)[]> = new Map();
 
-  // Добавляем Map для быстрого поиска меша по uuid
-  private meshByUuid: Map<string, THREE.Mesh> = new Map();
+  // ИЗМЕНЕНО: Сохраняем все объекты (меши и линии)
+  private objectByUuid: Map<string, THREE.Object3D> = new Map();
 
   constructor(scene: THREE.Scene) {
     this.scene = scene;
@@ -19,12 +19,11 @@ export class SelectionManager {
   public setMergedObjects(meshes: THREE.Mesh[], lines: (THREE.Line | THREE.LineSegments)[]) {
     this.mergedMeshes.clear();
     this.mergedLines.clear();
-    this.meshByUuid.clear(); // Очищаем кэш
+    this.objectByUuid.clear(); // Очищаем кэш
 
-    // Группируем меши по parentUuid и сохраняем в кэш
+    // Сохраняем меши в кэш
     meshes.forEach((mesh) => {
-      // Сохраняем в кэш для быстрого поиска
-      this.meshByUuid.set(mesh.uuid, mesh);
+      this.objectByUuid.set(mesh.uuid, mesh);
 
       const geometry = mesh.geometry;
       if (geometry?.userData?.parentUuids) {
@@ -39,8 +38,10 @@ export class SelectionManager {
       }
     });
 
-    // Группируем линии по parentUuid
+    // Сохраняем линии в кэш
     lines.forEach((line) => {
+      this.objectByUuid.set(line.uuid, line);
+
       const geometry = line.geometry;
       if (geometry?.userData?.parentUuids) {
         const parentUuids = geometry.userData.parentUuids;
@@ -53,6 +54,9 @@ export class SelectionManager {
         });
       }
     });
+
+    console.log('Merged meshes:', this.mergedMeshes);
+    console.log('Merged lines:', this.mergedLines);
   }
 
   public handleObjectClick(intersect: THREE.Intersection<THREE.Object3D>) {
@@ -110,10 +114,13 @@ export class SelectionManager {
       opacity: 0.8,
     });
 
+    const baseMat2 = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, depthTest: false, opacity: 0.1 });
+
     // Получаем меши для targetUuid напрямую из Map
     const targetMeshes = this.mergedMeshes.get(targetUuid) || [];
+    const targetLines = this.mergedLines.get(targetUuid) || [];
 
-    targetMeshes.forEach((mesh) => {
+    [...targetMeshes, ...targetLines].forEach((mesh) => {
       const geometry = mesh.geometry;
 
       if (!geometry.userData?.groups) return;
@@ -142,7 +149,8 @@ export class SelectionManager {
       // Для каждой группы выбираем материал
       for (let i = 0; i < groups.length; i++) {
         if (highlightGroupIndices.includes(i)) {
-          materials.push(highlightMaterial);
+          const material = mesh.isLine ? baseMat2 : highlightMaterial;
+          materials.push(material);
         } else {
           const materialIndex = Math.min(i, originalMaterials.length - 1);
           materials.push(originalMaterials[materialIndex]);
@@ -158,10 +166,11 @@ export class SelectionManager {
 
   public clearSelection() {
     // Восстанавливаем оригинальные материалы используя кэш
-    this.originalMaterials.forEach((originalMaterial, meshUuid) => {
-      const mesh = this.meshByUuid.get(meshUuid);
-      if (mesh) {
-        mesh.material = originalMaterial;
+    this.originalMaterials.forEach((originalMaterial, objectUuid) => {
+      const object = this.objectByUuid.get(objectUuid);
+
+      if (object) {
+        object.material = originalMaterial;
       }
     });
 
