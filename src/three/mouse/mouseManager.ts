@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { threeApp } from '../threeApp';
 import { SelectedByData } from '../loaders/data/selectedByData';
 import { SelectedMergedByData } from '../loaders/data/selectedMergedByData';
+import { SelectionManager } from './selectionManager';
+//import { SelectionManager } from './selectionManagerMesh';
 
 export class MouseManager {
   private raycaster: THREE.Raycaster;
@@ -15,6 +17,7 @@ export class MouseManager {
   private isDown = false;
   private isMove = false;
   private originalMaterials: Map<string, THREE.Material> = new Map();
+  selectionManager: SelectionManager;
 
   public init(scene: THREE.Scene, camera: THREE.Camera, domElement: HTMLElement) {
     this.scene = scene;
@@ -28,6 +31,8 @@ export class MouseManager {
     this.raycaster.firstHitOnly = true;
 
     this.mouse = new THREE.Vector2();
+
+    this.selectionManager = new SelectionManager(scene);
 
     this.domElement.addEventListener('pointerdown', this.pointerDown);
     this.domElement.addEventListener('pointermove', this.pointerMove);
@@ -251,38 +256,26 @@ export class MouseManager {
 
     const isMesh = intersect.object instanceof THREE.Mesh;
     const isLine = intersect.object instanceof THREE.Line || intersect.object instanceof THREE.LineSegments;
-
+    console.log(999, intersect.object);
     if (!isMesh && !isLine) return;
-    if (!intersect.object.geometry || !intersect.object.geometry.attributes.objectId) return;
+    //if (!intersect.object.geometry || !intersect.object.geometry.attributes.objectId) return;
 
-    const faceIndex = intersect.faceIndex;
-    const geometry = intersect.object.geometry;
-    const objectId = geometry.attributes.objectId.array[faceIndex];
-    const clickedUuid = geometry.userData.uuids[objectId];
-    const parentUuid = geometry.userData.parentUuids[objectId];
+    // const faceIndex = intersect.faceIndex;
+    // const geometry = intersect.object.geometry;
+    // const objectId = geometry.attributes.objectId.array[faceIndex];
+    // const clickedUuid = geometry.userData.uuids[objectId];
+    // const parentUuid = geometry.userData.parentUuids[objectId];
 
-    console.log(objectId, 'Clicked object uuid:', clickedUuid, geometry.userData);
+    // console.log(objectId, 'Clicked object uuid:', clickedUuid, geometry.userData);
 
-    // Сначала сбрасываем все выделения
-    this.clearSelection();
+    // // Сначала сбрасываем все выделения
+    // this.clearSelection();
 
     // Выделяем объекты по UUID
-    this.highlightObjectsWithUuid(clickedUuid);
-    this.highlightLinesWithUuid(clickedUuid);
+    // this.highlightObjectsWithUuid(clickedUuid);
+    // this.highlightLinesWithUuid(clickedUuid);
 
-    const objs = SelectedMergedByData.getSelectedNode({ uuid: clickedUuid, parentUuid });
-
-    // Выделяем связанные объекты
-    for (let i = 0; i < objs.length; i++) {
-      const element = objs[i];
-      if (!element.uuid) continue;
-      console.log(element.uuid);
-      this.highlightObjectsWithUuid(element.uuid);
-      this.highlightLinesWithUuid(element.uuid);
-    }
-
-    // Обновляем материалы для отображения выделения
-    this.updateHighlightMaterials();
+    this.selectionManager.handleObjectClick(intersect);
   }
 
   private highlightObjectsWithUuid(targetUuid: string) {
