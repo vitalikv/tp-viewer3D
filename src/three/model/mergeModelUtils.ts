@@ -1,17 +1,21 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-export class MergeMeshes {
+export class MergeModelUtils {
   private static readonly tempVector = new THREE.Vector3(); // Переиспользуемый вектор
 
   public static processModelWithMerge(model) {
     const { mergedMeshes, mergedLines } = this.mergeGeometriesWithMaterials(model);
     this.disposeHierarchy(model);
 
-    // const group = new THREE.Group();
-    // group.add(...mergedMeshes, ...mergedLines);
+    const group = new THREE.Group();
+    const groupMeshes = new THREE.Group();
+    const groupLines = new THREE.Group();
+    groupMeshes.add(...mergedMeshes);
+    groupLines.add(...mergedLines);
+    group.add(groupMeshes, groupLines);
 
-    return { mergedMeshes, mergedLines };
+    return { group };
   }
 
   private static mergeGeometriesWithMaterials(model) {

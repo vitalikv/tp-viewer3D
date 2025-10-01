@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js';
-import { MergeMeshes } from './mergeMeshes';
-import { MergeEnvironmentUtils } from '../model/mergeEnvironmentUtils';
-import { GltfStructure } from '../model/gltfStructure';
+import { MergeModelUtils } from './mergeModelUtils';
+import { MergeEnvironmentUtils } from './mergeEnvironmentUtils';
+import { GltfStructure } from './gltfStructure';
 
 import { threeApp } from '../threeApp';
 
-import { InitData } from './data/InitData';
+import { InitData } from '../loaders/data/InitData';
 
 export class ModelLoader {
   private loader: GLTFLoader;
@@ -84,13 +84,16 @@ export class ModelLoader {
         //model = MergeEnvironmentUtils.mergeObj(model);
 
         if (merge) {
-          const { mergedMeshes, mergedLines } = MergeMeshes.processModelWithMerge(model);
-          const group = new THREE.Group();
-          group.add(...mergedMeshes, ...mergedLines);
+          const { group } = MergeModelUtils.processModelWithMerge(model);
+          // const group = new THREE.Group();
+          // group.add(...mergedMeshes, ...mergedLines);
           model = group;
+          console.log(77777, model);
+          const groupMeshes = group.children[0];
+          const groupLines = group.children[1];
 
-          mergedMeshes.forEach((mesh) => this.mergedMeshes.add(mesh));
-          mergedLines.forEach((line) => this.mergedLines.add(line));
+          groupMeshes.children.forEach((mesh) => this.mergedMeshes.add(mesh));
+          groupLines.children.forEach((line) => this.mergedLines.add(line));
         }
 
         threeApp.bvhManager.setupBVH(model);

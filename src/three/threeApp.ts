@@ -1,6 +1,6 @@
 import { SceneManager } from './core/sceneManager';
 import { ModelFileLoader } from './loaders/modelFileLoader';
-import { ModelLoader } from './loaders/modelLoader';
+import { ModelLoader } from './model/modelLoader';
 import { MouseManager } from './mouse/mouseManager';
 import { BVHManager } from './bvh/bvhManager';
 import { EffectsManager } from './core/effectsManager';
