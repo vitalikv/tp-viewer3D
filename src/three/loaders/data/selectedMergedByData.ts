@@ -141,6 +141,16 @@ export class SelectedMergedByData {
     return nodes;
   }
 
+  public static selectedObj3dByFragmentGuid({ fragment_guid }) {
+    const nodes = this.selectedObj3dFromScene({ node: { fragment_guid } });
+    console.log('nodes', nodes);
+
+    const groupNodes = this.cmd_api_selected3d(nodes);
+    console.log(9999, groupNodes);
+
+    return groupNodes;
+  }
+
   private static findInJsonDataByFragmentGuid(fragmentGuid: string, jsonData: any[]) {
     if (!Array.isArray(jsonData)) return null;
 

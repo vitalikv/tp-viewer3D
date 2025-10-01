@@ -39,7 +39,7 @@ export class MouseManager {
 
   private keyDown = (event) => {
     //if (event.code === 'Delete') this.deleteSelectedObj();
-    //if (event.code === 'Enter') this.addWindow();
+    if (event.code === 'Space') this.addWindow();
     if (event.code === 'Delete') this.hideModel();
   };
 
@@ -459,5 +459,19 @@ export class MouseManager {
   private hideModel() {
     console.log(this.scene, this.scene.children[3]);
     this.scene.children[3].visible = false;
+  }
+
+  private addWindow() {
+    // BF1718AF-ADC3-4D9A-882D-79064818655B двигатель
+    // 46963348-9A3E-47D8-B69A-72B18A288B7D приметивы
+    threeApp.selectionManager.clearSelection();
+    const nodes = SelectedMergedByData.selectedObj3dByFragmentGuid({ fragment_guid: 'BF1718AF-ADC3-4D9A-882D-79064818655B' });
+    for (const element of nodes) {
+      if (!element.uuid) continue;
+      threeApp.selectionManager.selectByUuid(element.uuid);
+    }
+    console.log('nodes333', nodes);
+
+    threeApp.sceneManager.render();
   }
 }

@@ -7,6 +7,7 @@ import { GltfStructure } from './gltfStructure';
 import { threeApp } from '../threeApp';
 
 import { InitData } from '../loaders/data/InitData';
+import { SelectedMergedByData } from '../loaders/data/selectedMergedByData';
 
 export class ModelLoader {
   private loader: GLTFLoader;
@@ -108,6 +109,8 @@ export class ModelLoader {
 
           // Передаем в SelectionManager
           threeApp.selectionManager.setMergedObjects(allMeshes, allLines);
+
+          SelectedMergedByData.initializeCache();
         }
 
         threeApp.bvhManager.setupBVH(model);
