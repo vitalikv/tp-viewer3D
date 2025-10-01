@@ -6,8 +6,53 @@ export class SelectionManager {
   private originalMaterials = new Map<string, THREE.Material | THREE.Material[]>();
   private scene: THREE.Scene;
 
+  public mergedMeshes: Map<string, THREE.Mesh[]> = new Map();
+  public mergedLines: Map<string, (THREE.Line | THREE.LineSegments)[]> = new Map();
+
+  // Добавляем Map для быстрого поиска меша по uuid
+  private meshByUuid: Map<string, THREE.Mesh> = new Map();
+
   constructor(scene: THREE.Scene) {
     this.scene = scene;
+  }
+
+  public setMergedObjects(meshes: THREE.Mesh[], lines: (THREE.Line | THREE.LineSegments)[]) {
+    this.mergedMeshes.clear();
+    this.mergedLines.clear();
+    this.meshByUuid.clear(); // Очищаем кэш
+
+    // Группируем меши по parentUuid и сохраняем в кэш
+    meshes.forEach((mesh) => {
+      // Сохраняем в кэш для быстрого поиска
+      this.meshByUuid.set(mesh.uuid, mesh);
+
+      const geometry = mesh.geometry;
+      if (geometry?.userData?.parentUuids) {
+        const parentUuids = geometry.userData.parentUuids;
+
+        parentUuids.forEach((parentUuid: string) => {
+          if (!this.mergedMeshes.has(parentUuid)) {
+            this.mergedMeshes.set(parentUuid, []);
+          }
+          this.mergedMeshes.get(parentUuid)!.push(mesh);
+        });
+      }
+    });
+
+    // Группируем линии по parentUuid
+    lines.forEach((line) => {
+      const geometry = line.geometry;
+      if (geometry?.userData?.parentUuids) {
+        const parentUuids = geometry.userData.parentUuids;
+
+        parentUuids.forEach((parentUuid: string) => {
+          if (!this.mergedLines.has(parentUuid)) {
+            this.mergedLines.set(parentUuid, []);
+          }
+          this.mergedLines.get(parentUuid)!.push(line);
+        });
+      }
+    });
   }
 
   public handleObjectClick(intersect: THREE.Intersection<THREE.Object3D>) {
@@ -28,18 +73,19 @@ export class SelectionManager {
 
     console.log('Clicked:', { clickedUuid, clickedParentUuid });
 
-    const objs = SelectedMergedByData.getSelectedNode({
-      uuid: clickedUuid,
-      parentUuid: clickedParentUuid,
-    });
+    console.time('getSelectedNode');
+    const objs = SelectedMergedByData.getSelectedNode({ uuid: clickedUuid, parentUuid: clickedParentUuid });
+    console.timeEnd('getSelectedNode');
 
+    console.time('setMergedObjects');
     this.clearSelection();
     this.selectByUuid(clickedParentUuid);
     // Выделяем связанные объекты
     for (const element of objs) {
       if (!element.uuid) continue;
-      //this.selectByUuid(element.uuid);
+      this.selectByUuid(element.uuid);
     }
+    console.timeEnd('setMergedObjects');
   }
 
   private findGroupByFaceIndex(groups: THREE.Group[], faceIndex: number): number {
@@ -56,7 +102,6 @@ export class SelectionManager {
   }
 
   public selectByUuid(targetUuid: string) {
-    // Создаем материал выделения
     const highlightMaterial = new THREE.MeshStandardMaterial({
       color: 0x00ff00,
       transparent: true,
@@ -65,57 +110,56 @@ export class SelectionManager {
       opacity: 0.8,
     });
 
-    this.scene.traverse((object) => {
-      if (object instanceof THREE.Mesh && object.geometry?.userData?.groups) {
-        const mesh = object;
-        const geometry = mesh.geometry;
-        const { groups, uuids, parentUuids } = geometry.userData;
+    // Получаем меши для targetUuid напрямую из Map
+    const targetMeshes = this.mergedMeshes.get(targetUuid) || [];
 
-        // Находим индексы групп для выделения
-        const highlightGroupIndices: number[] = [];
-        parentUuids.forEach((uuid: string, index: number) => {
-          if (uuid === targetUuid) {
-            console.log(666, mesh);
-            highlightGroupIndices.push(index);
-          }
-        });
+    targetMeshes.forEach((mesh) => {
+      const geometry = mesh.geometry;
 
-        if (highlightGroupIndices.length === 0) return;
+      if (!geometry.userData?.groups) return;
 
-        // Сохраняем оригинальный материал если еще не сохранили
-        if (!this.originalMaterials.has(mesh.uuid)) {
-          this.originalMaterials.set(mesh.uuid, mesh.material);
+      const { groups, parentUuids } = geometry.userData;
+
+      // Находим индексы групп для выделения
+      const highlightGroupIndices: number[] = [];
+      parentUuids.forEach((uuid: string, index: number) => {
+        if (uuid === targetUuid) {
+          highlightGroupIndices.push(index);
         }
+      });
 
-        // Создаем массив материалов для мульти-материала
-        const materials: THREE.Material[] = [];
-        const originalMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      if (highlightGroupIndices.length === 0) return;
 
-        // Для каждой группы выбираем материал
-        for (let i = 0; i < groups.length; i++) {
-          if (highlightGroupIndices.includes(i)) {
-            // Выделенный материал для этой группы
-            materials.push(highlightMaterial);
-          } else {
-            // Оригинальный материал для этой группы
-            const materialIndex = Math.min(i, originalMaterials.length - 1);
-            materials.push(originalMaterials[materialIndex]);
-          }
-        }
-
-        // Применяем мульти-материал
-        mesh.material = materials;
-        console.log(9999);
+      // Сохраняем оригинальный материал если еще не сохранили
+      if (!this.originalMaterials.has(mesh.uuid)) {
+        this.originalMaterials.set(mesh.uuid, mesh.material);
       }
+
+      // Создаем массив материалов для мульти-материала
+      const materials: THREE.Material[] = [];
+      const originalMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+
+      // Для каждой группы выбираем материал
+      for (let i = 0; i < groups.length; i++) {
+        if (highlightGroupIndices.includes(i)) {
+          materials.push(highlightMaterial);
+        } else {
+          const materialIndex = Math.min(i, originalMaterials.length - 1);
+          materials.push(originalMaterials[materialIndex]);
+        }
+      }
+
+      // Применяем мульти-материал
+      mesh.material = materials;
     });
 
     this.selectedUuid = targetUuid;
   }
 
   public clearSelection() {
-    // Восстанавливаем оригинальные материалы
+    // Восстанавливаем оригинальные материалы используя кэш
     this.originalMaterials.forEach((originalMaterial, meshUuid) => {
-      const mesh = this.scene.getObjectByProperty('uuid', meshUuid) as THREE.Mesh;
+      const mesh = this.meshByUuid.get(meshUuid);
       if (mesh) {
         mesh.material = originalMaterial;
       }

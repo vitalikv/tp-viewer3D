@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { threeApp } from '../threeApp';
 import { SelectedByData } from '../loaders/data/selectedByData';
 import { SelectedMergedByData } from '../loaders/data/selectedMergedByData';
-import { SelectionManager } from './selectionManager';
 //import { SelectionManager } from './selectionManagerMesh';
 
 export class MouseManager {
@@ -17,7 +16,6 @@ export class MouseManager {
   private isDown = false;
   private isMove = false;
   private originalMaterials: Map<string, THREE.Material> = new Map();
-  selectionManager: SelectionManager;
 
   public init(scene: THREE.Scene, camera: THREE.Camera, domElement: HTMLElement) {
     this.scene = scene;
@@ -31,8 +29,6 @@ export class MouseManager {
     this.raycaster.firstHitOnly = true;
 
     this.mouse = new THREE.Vector2();
-
-    this.selectionManager = new SelectionManager(scene);
 
     this.domElement.addEventListener('pointerdown', this.pointerDown);
     this.domElement.addEventListener('pointermove', this.pointerMove);
@@ -212,13 +208,15 @@ export class MouseManager {
   }
 
   private tflexSelect(obj) {
+    console.time('getSelectedNode');
     let objs = SelectedByData.getSelectedNode({ obj });
+    console.timeEnd('getSelectedNode');
     const color = 0x00ff00;
     const material = new THREE.MeshStandardMaterial({ color, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
     const baseMat2 = new THREE.LineBasicMaterial({ color, transparent: true, depthTest: false, opacity: 0.1 });
 
     if (objs.length === 0) objs = [obj]; // если нет в структуре gltf
-
+    console.time('setMergedObjects');
     objs.forEach((obj) => {
       obj.traverse((child) => {
         if (child.isMesh) {
@@ -231,6 +229,7 @@ export class MouseManager {
         }
       });
     });
+    console.timeEnd('setMergedObjects');
   }
 
   private async findNodeId(targetUuid) {
@@ -275,7 +274,7 @@ export class MouseManager {
     // this.highlightObjectsWithUuid(clickedUuid);
     // this.highlightLinesWithUuid(clickedUuid);
 
-    this.selectionManager.handleObjectClick(intersect);
+    threeApp.selectionManager.handleObjectClick(intersect);
   }
 
   private highlightObjectsWithUuid(targetUuid: string) {

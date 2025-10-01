@@ -1,77 +1,78 @@
 import { threeApp } from '../../threeApp';
 
 export class SelectedMergedByData {
-  public static getSelectedNode({ uuid, parentUuid }) {
+  private static structureCache: any[] = [];
+  private static uuidIndex: Map<string, any> = new Map();
+  private static fragmentGuidIndex: Map<string, any[]> = new Map();
+
+  public static initializeCache() {
+    const structure = threeApp.modelLoader.initData.getStructure();
+    this.structureCache = structure.value;
+    this.buildIndexes(this.structureCache);
+  }
+
+  private static buildIndexes(nodes: any[]) {
+    if (!nodes || !Array.isArray(nodes)) return;
+
+    for (const node of nodes) {
+      // Индексируем по UUID
+      if (node.uuid) {
+        this.uuidIndex.set(node.uuid, node);
+      }
+
+      // Индексируем по fragment_guid (может быть несколько узлов с одинаковым fragment_guid)
+      if (node.fragment_guid) {
+        const guid = node.fragment_guid.toUpperCase();
+        if (!this.fragmentGuidIndex.has(guid)) {
+          this.fragmentGuidIndex.set(guid, []);
+        }
+        this.fragmentGuidIndex.get(guid)!.push(node);
+      }
+
+      // Рекурсивно индексируем детей
+      if (node.children && Array.isArray(node.children)) {
+        this.buildIndexes(node.children);
+      }
+    }
+  }
+
+  public static getSelectedNode({ uuid, parentUuid }: { uuid: string; parentUuid?: string }) {
+    console.log('uuid: ', uuid, 'parentUuid: ', parentUuid);
+
+    // Инициализируем кэш при первом вызове
+    if (this.uuidIndex.size === 0) {
+      this.initializeCache();
+    }
+
     let selectID = NaN;
 
-    const targetUUID = uuid;
-    const targetParentUUID = parentUuid;
-    const structure = threeApp.modelLoader.initData.getStructure();
+    // Ищем узел по UUID (быстрая версия оригинального алгоритма)
+    const targetNode = this.findNodeByUuidWithParent(uuid);
 
-    console.log('uuid: ', uuid, 'parentUuid: ', targetParentUUID);
+    if (targetNode) {
+      // Находим корневой узел (родитель с idxtfxparent = null)
+      selectID = this.findRootNodeId(targetNode);
+    }
 
-    const getChildren = (children, arr) => {
-      for (const child of children) {
-        arr.push(child);
-
-        if (child.children?.length) {
-          getChildren(child.children, arr);
-        }
-      }
-      return arr;
-    };
-
-    for (let item of structure.value) {
-      if (item.uuid === targetUUID) {
-        selectID = item.id;
-        break;
-      } else {
-        if (item.children && item.children !== null && item.children.length > 0) {
-          const children = getChildren(item.children, []);
-
-          for (let ch of children) {
-            if (ch.uuid === targetUUID) {
-              selectID = item.id;
-              break;
-            }
-          }
-        }
-
-        if (targetParentUUID) {
-          for (let item of structure.value) {
-            if (item.uuid === targetParentUUID) {
-              selectID = item.id;
-              break;
-            } else if (item.children && item.children !== null && item.children.length > 0) {
-              const children = getChildren(item.children, []);
-
-              for (let ch of children) {
-                if (ch.uuid === targetParentUUID) {
-                  selectID = item.id;
-                  break;
-                }
-              }
-            }
-          }
-        }
+    // Если не нашли и есть parentUuid, ищем по parentUuid
+    if (isNaN(selectID) && parentUuid) {
+      const parentNode = this.findNodeByUuidWithParent(parentUuid);
+      if (parentNode) {
+        selectID = this.findRootNodeId(parentNode);
       }
     }
 
-    console.log('structure', structure);
     console.log('selectID', selectID);
-    let node = null;
 
-    for (let i = 0; i < structure.value.length; i++) {
-      const element = structure.value[i];
-      if (element.id === selectID) {
-        console.log('element', element);
-        node = element;
-        break;
-      }
+    let node = null;
+    if (!isNaN(selectID)) {
+      // Ищем корневой узел по ID (быстрая версия)
+      node = this.structureCache.find((item) => item.id === selectID);
     }
 
-    const nodes = [node]; // только выделенная группа
-    //const nodes = this.selectedObj3dFromScene({ node }); // свзанные группы объектов
+    console.log('node', node);
+
+    const nodes = this.selectedObj3dFromScene({ node });
     console.log('nodes', nodes);
 
     const groupNodes = this.cmd_api_selected3d(nodes);
@@ -80,67 +81,133 @@ export class SelectedMergedByData {
     return groupNodes;
   }
 
-  private static selectedObj3dFromScene({ node }) {
-    if (!node) return;
+  private static findNodeByUuidWithParent(uuid: string): any {
+    // Быстрый поиск через индекс
+    return this.uuidIndex.get(uuid) || null;
+  }
+
+  private static findRootNodeId(node: any): number {
+    // Поднимаемся вверх по иерархии до корневого узла
+    let current = node;
+    while (current && current.idxtfxparent !== null && current.idxtfxparent !== undefined) {
+      const parent = this.findNodeByIdx(current.idxtfxparent);
+      if (!parent) break;
+      current = parent;
+    }
+    return current?.id || NaN;
+  }
+
+  private static findNodeByIdx(idx: number): any {
+    // Ищем узел по idx во всей структуре
+    const stack = [...this.structureCache];
+    while (stack.length > 0) {
+      const node = stack.pop();
+      if (node?.idx === idx) return node;
+
+      if (node?.children && Array.isArray(node.children)) {
+        stack.push(...node.children);
+      }
+    }
+    return null;
+  }
+
+  private static selectedObj3dFromScene({ node }: { node: any }) {
+    if (!node) return [];
 
     const { fragment_guid } = node;
 
     if (!fragment_guid) {
-      throw new Error('Не передан fragment_guid для выбора');
+      console.warn('Не передан fragment_guid для выбора');
+      return [node]; // Возвращаем оригинальный узел, как в старом коде
     }
 
     const jsonData = threeApp.modelLoader.json2;
 
-    const itemJson = this.findsArrObjFromArrByProp(fragment_guid.toLowerCase(), 'fragment_guid', jsonData)[0];
+    // Быстрый поиск в jsonData по fragment_guid
+    const itemJson = this.findInJsonDataByFragmentGuid(fragment_guid.toLowerCase(), jsonData);
 
     console.log('jsonData', jsonData);
     console.log('itemJson', itemJson);
 
     let nodes = [];
     if (itemJson?.guid) {
+      // Используем оригинальную логику поиска связанных узлов
       nodes = this.getUIIDbyACIGuidandFragmentGuid('3d', jsonData, itemJson.guid);
+    } else {
+      // Если не нашли в jsonData, возвращаем оригинальный узел
+      nodes = [node];
     }
 
     return nodes;
   }
 
-  private static findsArrObjFromArrByProp(name: string, prop: string, arr: any[]) {
-    return arr.filter((item) => item[prop] == name);
+  private static findInJsonDataByFragmentGuid(fragmentGuid: string, jsonData: any[]) {
+    if (!Array.isArray(jsonData)) return null;
+
+    // Используем быстрое линейное сканирование, но только по jsonData
+    for (const item of jsonData) {
+      if (item.fragment_guid?.toLowerCase() === fragmentGuid) {
+        return item;
+      }
+    }
+    return null;
   }
 
-  private static getUIIDbyACIGuidandFragmentGuid(type = '3d', jsonData, aciguid: string) {
-    const structure = threeApp.modelLoader.initData.getStructure();
-
-    if (type === '3d') {
-      const objAss = this.findsArrObjFromArrByProp(aciguid, 'guid', jsonData);
-      return objAss.map((item) => this.findsArrObjFromArrByProp(item.fragment_guid.toUpperCase(), 'fragment_guid', structure.value)[0]);
-    } else {
-      // Для 2D
+  private static getUIIDbyACIGuidandFragmentGuid(type: string, jsonData: any[], aciguid: string) {
+    if (type !== '3d') {
       return this.findsArrObjFromArrByProp(aciguid, 'guid', jsonData);
     }
+
+    // Для 3D: находим все объекты в jsonData с этим guid
+    const objAss = this.findsArrObjFromArrByProp(aciguid, 'guid', jsonData);
+
+    // Находим соответствующие узлы в структуре по fragment_guid
+    const result: any[] = [];
+    for (const item of objAss) {
+      if (item.fragment_guid) {
+        const nodes = this.fragmentGuidIndex.get(item.fragment_guid.toUpperCase()) || [];
+        result.push(...nodes);
+      }
+    }
+
+    return result;
+  }
+
+  private static findsArrObjFromArrByProp(value: string, prop: string, arr: any[]) {
+    if (!Array.isArray(arr)) return [];
+    return arr.filter((item) => item[prop] === value);
   }
 
   private static cmd_api_selected3d(e: any) {
     const clickNode = Array.isArray(e) ? e : [e];
+    const groupNodes: any[] = [];
 
-    const getNodes = (clickNode: any[], arr: any[]) => {
-      for (const obj of clickNode) {
-        arr.push(obj);
+    // Используем стек вместо рекурсии
+    const stack = [...clickNode];
 
-        if (obj.childsGeom?.length) {
-          arr.push(...obj.childsGeom);
-        }
+    while (stack.length > 0) {
+      const obj = stack.pop();
+      if (!obj) continue;
 
-        if (obj.children?.length) {
-          getNodes(obj.children, arr);
-        }
+      groupNodes.push(obj);
+
+      // Добавляем дочерние элементы в стек (оригинальная логика)
+      if (obj.childsGeom && Array.isArray(obj.childsGeom)) {
+        stack.push(...obj.childsGeom);
       }
 
-      return arr;
-    };
-
-    const groupNodes = getNodes(clickNode, []);
+      if (obj.children && Array.isArray(obj.children)) {
+        stack.push(...obj.children);
+      }
+    }
 
     return groupNodes;
+  }
+
+  // Метод для очистки кэша
+  public static clearCache() {
+    this.structureCache = [];
+    this.uuidIndex.clear();
+    this.fragmentGuidIndex.clear();
   }
 }

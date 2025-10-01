@@ -86,12 +86,28 @@ export class ModelLoader {
         if (merge) {
           const { group } = MergeModelUtils.processModelWithMerge(model);
           model = group;
-          console.log(77777, model);
+
           const groupMeshes = group.children[0];
           const groupLines = group.children[1];
 
-          groupMeshes.children.forEach((mesh) => this.mergedMeshes.add(mesh));
-          groupLines.children.forEach((line) => this.mergedLines.add(line));
+          // Собираем все меши и линии в массивы
+          const allMeshes: THREE.Mesh[] = [];
+          const allLines: (THREE.Line | THREE.LineSegments)[] = [];
+
+          groupMeshes.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              allMeshes.push(child);
+            }
+          });
+
+          groupLines.traverse((child) => {
+            if (child instanceof THREE.Line || child instanceof THREE.LineSegments) {
+              allLines.push(child);
+            }
+          });
+
+          // Передаем в SelectionManager
+          threeApp.selectionManager.setMergedObjects(allMeshes, allLines);
         }
 
         threeApp.bvhManager.setupBVH(model);
@@ -133,8 +149,8 @@ export class ModelLoader {
 
   async loadJSON() {
     //const response = await fetch('./assets/СЕ-00-00 - Сборка - A.1 (1).json'); // путь к вашему файлу
-    const response = await fetch('./assets/ТРР-1-000 - Транспортер - A.1 (5).json');
-    //const response = await fetch('./assets/ТРДДФ-1-000 - Двигатель - A.1.json');
+    //const response = await fetch('./assets/ТРР-1-000 - Транспортер - A.1 (5).json');
+    const response = await fetch('./assets/ТРДДФ-1-000 - Двигатель - A.1.json');
 
     const jsonData = await response.json();
     console.log('Загруженный JSON:', jsonData);

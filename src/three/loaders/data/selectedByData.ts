@@ -70,8 +70,8 @@ export class SelectedByData {
       }
     }
 
-    const nodes = [node]; // только выделенная группа
-    //const nodes = this.selectedObj3dFromScene({ node }); // свзанные группы объектов
+    //const nodes = [node]; // только выделенная группа
+    const nodes = this.selectedObj3dFromScene({ node }); // свзанные группы объектов
     console.log('nodes', nodes);
 
     const groupNodes = this.cmd_api_selected3d(nodes);
