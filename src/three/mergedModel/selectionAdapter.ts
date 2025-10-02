@@ -1,6 +1,6 @@
-import { threeApp } from '../../threeApp';
+import { threeApp } from '../threeApp';
 
-export class SelectedMergedByData {
+export class SelectionAdapter {
   private static structureCache: any[] = [];
   private static uuidIndex: Map<string, any> = new Map();
   private static fragmentGuidIndex: Map<string, any[]> = new Map();
@@ -39,22 +39,17 @@ export class SelectedMergedByData {
   public static getSelectedNode({ uuid, parentUuid }: { uuid: string; parentUuid?: string }) {
     console.log('uuid: ', uuid, 'parentUuid: ', parentUuid);
 
-    // Инициализируем кэш при первом вызове
     if (this.uuidIndex.size === 0) {
       this.initializeCache();
     }
 
     let selectID = NaN;
-
-    // Ищем узел по UUID (быстрая версия оригинального алгоритма)
     const targetNode = this.findNodeByUuidWithParent(uuid);
 
     if (targetNode) {
-      // Находим корневой узел (родитель с idxtfxparent = null)
       selectID = this.findRootNodeId(targetNode);
     }
 
-    // Если не нашли и есть parentUuid, ищем по parentUuid
     if (isNaN(selectID) && parentUuid) {
       const parentNode = this.findNodeByUuidWithParent(parentUuid);
       if (parentNode) {
@@ -66,7 +61,6 @@ export class SelectedMergedByData {
 
     let node = null;
     if (!isNaN(selectID)) {
-      // Ищем корневой узел по ID (быстрая версия)
       node = this.structureCache.find((item) => item.id === selectID);
     }
 
@@ -82,12 +76,10 @@ export class SelectedMergedByData {
   }
 
   private static findNodeByUuidWithParent(uuid: string): any {
-    // Быстрый поиск через индекс
     return this.uuidIndex.get(uuid) || null;
   }
 
   private static findRootNodeId(node: any): number {
-    // Поднимаемся вверх по иерархии до корневого узла
     let current = node;
     while (current && current.idxtfxparent !== null && current.idxtfxparent !== undefined) {
       const parent = this.findNodeByIdx(current.idxtfxparent);
@@ -97,8 +89,7 @@ export class SelectedMergedByData {
     return current?.id || NaN;
   }
 
-  private static findNodeByIdx(idx: number): any {
-    // Ищем узел по idx во всей структуре
+  private static findNodeByIdx(idx: number) {
     const stack = [...this.structureCache];
     while (stack.length > 0) {
       const node = stack.pop();
@@ -117,13 +108,12 @@ export class SelectedMergedByData {
     const { fragment_guid } = node;
 
     if (!fragment_guid) {
-      console.warn('Не передан fragment_guid для выбора');
-      return [node]; // Возвращаем оригинальный узел, как в старом коде
+      console.log('Не передан fragment_guid для выбора');
+      return [node];
     }
 
     const jsonData = threeApp.modelLoader.json2;
 
-    // Быстрый поиск в jsonData по fragment_guid
     const itemJson = this.findInJsonDataByFragmentGuid(fragment_guid.toLowerCase(), jsonData);
 
     console.log('jsonData', jsonData);
@@ -131,10 +121,8 @@ export class SelectedMergedByData {
 
     let nodes = [];
     if (itemJson?.guid) {
-      // Используем оригинальную логику поиска связанных узлов
       nodes = this.getUIIDbyACIGuidandFragmentGuid('3d', jsonData, itemJson.guid);
     } else {
-      // Если не нашли в jsonData, возвращаем оригинальный узел
       nodes = [node];
     }
 
@@ -143,10 +131,7 @@ export class SelectedMergedByData {
 
   public static selectedObj3dByFragmentGuid({ fragment_guid }) {
     const nodes = this.selectedObj3dFromScene({ node: { fragment_guid } });
-    console.log('nodes', nodes);
-
     const groupNodes = this.cmd_api_selected3d(nodes);
-    console.log(9999, groupNodes);
 
     return groupNodes;
   }
@@ -214,7 +199,6 @@ export class SelectedMergedByData {
     return groupNodes;
   }
 
-  // Метод для очистки кэша
   public static clearCache() {
     this.structureCache = [];
     this.uuidIndex.clear();

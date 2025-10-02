@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-export class MergeModelUtils {
+export class MergeModel {
   private static readonly tempVector = new THREE.Vector3();
 
   public static processModelWithMerge(model) {

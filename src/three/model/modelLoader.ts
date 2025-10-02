@@ -1,13 +1,10 @@
 import * as THREE from 'three';
 import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js';
-import { MergeModelUtils } from './mergeModelUtils';
+import { threeApp } from '../threeApp';
+import { InitData } from '../loaders/data/InitData';
+import { InitMergedModel } from '../mergedModel/initMergedModel';
 import { MergeEnvironmentUtils } from './mergeEnvironmentUtils';
 import { GltfStructure } from './gltfStructure';
-
-import { threeApp } from '../threeApp';
-
-import { InitData } from '../loaders/data/InitData';
-import { SelectedMergedByData } from '../loaders/data/selectedMergedByData';
 
 export class ModelLoader {
   private loader: GLTFLoader;
@@ -85,35 +82,11 @@ export class ModelLoader {
         //model = MergeEnvironmentUtils.mergeObj(model);
 
         if (merge) {
-          const { group } = MergeModelUtils.processModelWithMerge(model);
-          model = group;
-
-          const groupMeshes = group.children[0];
-          const groupLines = group.children[1];
-
-          // Собираем все меши и линии в массивы
-          const allMeshes: THREE.Mesh[] = [];
-          const allLines: (THREE.Line | THREE.LineSegments)[] = [];
-
-          groupMeshes.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              allMeshes.push(child);
-            }
-          });
-
-          groupLines.traverse((child) => {
-            if (child instanceof THREE.Line || child instanceof THREE.LineSegments) {
-              allLines.push(child);
-            }
-          });
-
-          // Передаем в SelectionManager
-          threeApp.selectionManager.setMergedObjects(allMeshes, allLines);
-
-          SelectedMergedByData.initializeCache();
+          model = InitMergedModel.init({ model });
+        } else {
+          threeApp.bvhManager.setupBVH(model);
         }
 
-        threeApp.bvhManager.setupBVH(model);
         //console.log(gltf, contents);
 
         threeApp.sceneManager.scene.add(model);

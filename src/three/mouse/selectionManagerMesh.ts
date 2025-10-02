@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SelectedMergedByData } from '../loaders/data/selectedMergedByData';
+import { SelectionAdapter } from '../mergedModel/selectionAdapter';
 
 export class SelectionManager {
   private selectedUuid: string | null = null;
@@ -27,7 +27,7 @@ export class SelectionManager {
 
     console.log(geometry.userData);
 
-    const objs = SelectedMergedByData.getSelectedNode({ uuid: clickedUuid, parentUuid: clickedParentUuid });
+    const objs = SelectionAdapter.getSelectedNode({ uuid: clickedUuid, parentUuid: clickedParentUuid });
 
     // Выделяем связанные объекты
     for (let i = 0; i < objs.length; i++) {

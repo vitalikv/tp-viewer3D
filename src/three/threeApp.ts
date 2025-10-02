@@ -5,7 +5,6 @@ import { MouseManager } from './mouse/mouseManager';
 import { BVHManager } from './bvh/bvhManager';
 import { EffectsManager } from './core/effectsManager';
 import { OutlineSelection } from './mouse/outlineSelection';
-import { SelectionManager } from './mouse/selectionManager';
 
 import { ModelFileLoader2 } from './loaders/workers/modelFileLoader2';
 import { RenderWorker } from './render/initRenderWorker';
@@ -15,7 +14,6 @@ class ThreeApp {
   modelFileLoader: ModelFileLoader;
   modelLoader: ModelLoader;
   mouseManager: MouseManager;
-  selectionManager: SelectionManager;
   outlineSelection: OutlineSelection;
   bvhManager: BVHManager;
   renderWorker: RenderWorker;
@@ -47,7 +45,6 @@ class ThreeApp {
       this.bvhManager.init();
 
       this.modelLoader.setMerge({ merge: true });
-      this.selectionManager = new SelectionManager(this.sceneManager.scene);
     }
   }
 }
