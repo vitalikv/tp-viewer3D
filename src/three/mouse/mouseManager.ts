@@ -307,14 +307,6 @@ export class MouseManager {
   private addWindow() {
     // BF1718AF-ADC3-4D9A-882D-79064818655B двигатель
     // 46963348-9A3E-47D8-B69A-72B18A288B7D приметивы
-    SelectionManager.clearSelection();
-    const nodes = SelectionAdapter.selectedObj3dByFragmentGuid({ fragment_guid: 'BF1718AF-ADC3-4D9A-882D-79064818655B' });
-    for (const element of nodes) {
-      if (!element.uuid) continue;
-      SelectionManager.selectedByUuid(element.uuid);
-    }
-    console.log('nodes333', nodes);
-
-    threeApp.sceneManager.render();
+    SelectionManager.selectedByFragmentGuid({ fragment_guid: 'BF1718AF-ADC3-4D9A-882D-79064818655B' });
   }
 }

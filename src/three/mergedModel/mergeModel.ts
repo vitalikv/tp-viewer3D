@@ -4,7 +4,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 export class MergeModel {
   private static readonly tempVector = new THREE.Vector3();
 
-  public static processModelWithMerge(model) {
+  public static processModelWithMerge(model: THREE.Object3D) {
     const { mergedMeshes, mergedLines } = this.mergeGeometriesWithMaterials(model);
     this.disposeHierarchy(model);
 
@@ -18,12 +18,15 @@ export class MergeModel {
     return { group };
   }
 
-  private static mergeGeometriesWithMaterials(model) {
-    const meshEntries = [];
-    const lineEntries = [];
+  private static mergeGeometriesWithMaterials(model: THREE.Object3D): {
+    mergedMeshes: THREE.Mesh[];
+    mergedLines: (THREE.Line | THREE.LineSegments)[];
+  } {
+    const meshEntries: { mesh: THREE.Mesh; worldMatrix: THREE.Matrix4 }[] = [];
+    const lineEntries: { line: THREE.Line | THREE.LineSegments; worldMatrix: THREE.Matrix4; isLineSegments: boolean }[] = [];
 
     model.traverse((child) => {
-      if (child.isMesh && child.geometry) {
+      if (child instanceof THREE.Mesh && child.geometry) {
         child.updateWorldMatrix(true, false);
         meshEntries.push({
           mesh: child,
@@ -31,23 +34,23 @@ export class MergeModel {
         });
       }
 
-      if ((child.isLine || child.isLineSegments) && child.geometry) {
+      if ((child instanceof THREE.Line || child instanceof THREE.LineSegments) && child.geometry) {
         child.updateWorldMatrix(true, false);
         lineEntries.push({
           line: child,
           worldMatrix: child.matrixWorld.clone(),
-          isLineSegments: child.isLineSegments,
+          isLineSegments: child instanceof THREE.LineSegments,
         });
       }
     });
 
-    const mergedMeshes = [];
+    const mergedMeshes: THREE.Mesh[] = [];
     if (meshEntries.length > 0) {
       const meshResults = this.mergeMeshGeometries(meshEntries);
       mergedMeshes.push(...meshResults);
     }
 
-    const mergedLines = [];
+    const mergedLines: (THREE.Line | THREE.LineSegments)[] = [];
     if (lineEntries.length > 0) {
       const lineResults = this.mergeLineGeometries(lineEntries);
       mergedLines.push(...lineResults);
@@ -56,8 +59,8 @@ export class MergeModel {
     return { mergedMeshes, mergedLines };
   }
 
-  private static mergeMeshGeometries(meshEntries) {
-    const materialGroups = new Map();
+  private static mergeMeshGeometries(meshEntries: { mesh: THREE.Mesh; worldMatrix: THREE.Matrix4 }[]) {
+    const materialGroups = new Map<string, { material: THREE.Material; geometries: THREE.BufferGeometry[]; originalUuids: string[]; originalParentUuids: string[] }>();
 
     meshEntries.forEach(({ mesh, worldMatrix }) => {
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
@@ -70,44 +73,41 @@ export class MergeModel {
             material: material,
             geometries: [],
             originalUuids: [],
-            originalParentUuids: [], // ДОБАВЛЕНО: массив для parentUuid
+            originalParentUuids: [],
           });
         }
 
         const geometry = this.prepareGeometry(mesh.geometry, worldMatrix);
         const originalUuid = mesh.uuid;
-        const originalParentUuid = mesh.parent?.uuid || ''; // ДОБАВЛЕНО: получаем parentUuid
+        const originalParentUuid = mesh.parent?.uuid || '';
 
-        // Сохраняем UUID и parentUuid в userData каждой геометрии
         geometry.userData = {
           uuid: originalUuid,
-          parentUuid: originalParentUuid, // ДОБАВЛЕНО: сохраняем parentUuid
+          parentUuid: originalParentUuid,
           originalUserData: mesh.userData,
         };
 
-        materialGroups.get(key).geometries.push(geometry);
-        materialGroups.get(key).originalUuids.push(originalUuid);
-        materialGroups.get(key).originalParentUuids.push(originalParentUuid); // ДОБАВЛЕНО: сохраняем parentUuid
+        materialGroups.get(key)!.geometries.push(geometry);
+        materialGroups.get(key)!.originalUuids.push(originalUuid);
+        materialGroups.get(key)!.originalParentUuids.push(originalParentUuid);
       });
     });
 
-    const mergedMeshes = [];
+    const mergedMeshes: THREE.Mesh[] = [];
     materialGroups.forEach((group) => {
       if (group.geometries.length === 0) return;
 
-      // ВАЖНО: useGroups: true сохраняет группы геометрий
       const mergedGeometry = BufferGeometryUtils.mergeGeometries(group.geometries, true);
 
       if (mergedGeometry && mergedGeometry.attributes.position && mergedGeometry.attributes.position.count > 0) {
         const mergedMesh = new THREE.Mesh(mergedGeometry, group.material);
         mergedMeshes.push(mergedMesh);
 
-        // Сохраняем информацию о группах, UUID и parentUuid
         this.setGeomAttribute({
           geometries: group.geometries,
           mergedGeometry,
           originalUuids: group.originalUuids,
-          originalParentUuids: group.originalParentUuids, // ДОБАВЛЕНО: передаем parentUuid
+          originalParentUuids: group.originalParentUuids,
         });
 
         group.geometries.forEach((geom) => geom.dispose());
@@ -117,8 +117,8 @@ export class MergeModel {
     return mergedMeshes;
   }
 
-  private static mergeLineGeometries(lineEntries) {
-    const lineMaterialGroups = new Map();
+  private static mergeLineGeometries(lineEntries: { line: THREE.Line | THREE.LineSegments; worldMatrix: THREE.Matrix4; isLineSegments: boolean }[]): (THREE.Line | THREE.LineSegments)[] {
+    const lineMaterialGroups = new Map<string, { material: THREE.Material; geometries: THREE.BufferGeometry[]; isLineSegments: boolean; originalUuids: string[]; originalParentUuids: string[] }>();
 
     lineEntries.forEach(({ line, worldMatrix, isLineSegments }) => {
       const materials = Array.isArray(line.material) ? line.material : [line.material];
@@ -133,40 +133,39 @@ export class MergeModel {
             geometries: [],
             isLineSegments: isLineSegments,
             originalUuids: [],
-            originalParentUuids: [], // ДОБАВЛЕНО: массив для parentUuid
+            originalParentUuids: [],
           });
         }
 
         const geometry = this.prepareLineGeometry(line.geometry, worldMatrix);
         const originalUuid = line.uuid;
-        const originalParentUuid = line.parent?.uuid || ''; // ДОБАВЛЕНО: получаем parentUuid
+        const originalParentUuid = line.parent?.uuid || '';
 
         geometry.userData = {
           uuid: originalUuid,
-          parentUuid: originalParentUuid, // ДОБАВЛЕНО: сохраняем parentUuid
+          parentUuid: originalParentUuid,
           originalUserData: line.userData,
         };
 
-        lineMaterialGroups.get(key).geometries.push(geometry);
-        lineMaterialGroups.get(key).originalUuids.push(originalUuid);
-        lineMaterialGroups.get(key).originalParentUuids.push(originalParentUuid); // ДОБАВЛЕНО: сохраняем parentUuid
+        lineMaterialGroups.get(key)!.geometries.push(geometry);
+        lineMaterialGroups.get(key)!.originalUuids.push(originalUuid);
+        lineMaterialGroups.get(key)!.originalParentUuids.push(originalParentUuid);
       });
     });
 
-    const mergedLines = [];
+    const mergedLines: (THREE.Line | THREE.LineSegments)[] = [];
     lineMaterialGroups.forEach((group) => {
       if (group.geometries.length === 0) return;
 
-      // ВАЖНО: useGroups: true для линий тоже
       const mergedGeometry = BufferGeometryUtils.mergeGeometries(group.geometries, true);
 
       if (mergedGeometry && mergedGeometry.attributes.position && mergedGeometry.attributes.position.count > 0) {
         const lineMaterial = new THREE.LineBasicMaterial({
           vertexColors: true,
-          color: group.material.color || 0xffffff,
+          color: (group.material as any).color || 0xffffff,
         });
 
-        let mergedLine;
+        let mergedLine: THREE.Line | THREE.LineSegments;
         if (group.isLineSegments) {
           mergedLine = new THREE.LineSegments(mergedGeometry, lineMaterial);
         } else {
@@ -178,7 +177,7 @@ export class MergeModel {
           geometries: group.geometries,
           mergedGeometry,
           originalUuids: group.originalUuids,
-          originalParentUuids: group.originalParentUuids, // ДОБАВЛЕНО: передаем parentUuid
+          originalParentUuids: group.originalParentUuids,
         });
 
         group.geometries.forEach((geom) => geom.dispose());
@@ -188,7 +187,7 @@ export class MergeModel {
     return mergedLines;
   }
 
-  private static prepareGeometry(geometry, matrix) {
+  private static prepareGeometry(geometry: THREE.BufferGeometry, matrix: THREE.Matrix4) {
     const clonedGeo = geometry.clone();
     clonedGeo.applyMatrix4(matrix);
 
@@ -199,7 +198,7 @@ export class MergeModel {
     return clonedGeo;
   }
 
-  private static prepareLineGeometry(geometry, matrix) {
+  private static prepareLineGeometry(geometry: THREE.BufferGeometry, matrix: THREE.Matrix4) {
     const clonedGeo = geometry.clone();
 
     if (clonedGeo.attributes.position) {
@@ -223,23 +222,17 @@ export class MergeModel {
     return clonedGeo;
   }
 
-  // ДОБАВЛЕНО: параметр originalParentUuids
-  private static setGeomAttribute({ geometries, mergedGeometry, originalUuids = [], originalParentUuids = [] }) {
-    // Сохраняем информацию о группах, UUID и parentUuid
+  private static setGeomAttribute({ geometries, mergedGeometry, originalUuids = [], originalParentUuids = [] }: { geometries: THREE.BufferGeometry[]; mergedGeometry: THREE.BufferGeometry; originalUuids: string[]; originalParentUuids: string[] }) {
     mergedGeometry.userData = {
-      groups: mergedGeometry.groups, // Группы из Three.js
-      uuids: originalUuids, // UUID каждой исходной геометрии
-      parentUuids: originalParentUuids, // ДОБАВЛЕНО: parentUuid каждой исходной геометрии
+      groups: mergedGeometry.groups,
+      uuids: originalUuids,
+      parentUuids: originalParentUuids,
       objectCount: geometries.length,
     };
-
-    // console.log('Merged geometry groups:', mergedGeometry.groups);
-    // console.log('Merged geometry uuids:', originalUuids);
-    // console.log('Merged geometry parentUuids:', originalParentUuids); // ДОБАВЛЕНО: логируем parentUuid
   }
 
-  private static disposeHierarchy(node) {
-    if (node.isMesh || node.isLine || node.isLineSegments) {
+  private static disposeHierarchy(node: THREE.Object3D) {
+    if (node instanceof THREE.Mesh || node instanceof THREE.Line || node instanceof THREE.LineSegments) {
       if (node.geometry) node.geometry.dispose();
       if (node.material) {
         if (Array.isArray(node.material)) {

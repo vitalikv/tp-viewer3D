@@ -5,7 +5,7 @@ import { MergeModel } from '../mergedModel/mergeModel';
 import { SelectionManager } from './selectionManager';
 
 export class InitMergedModel {
-  public static init({ model }) {
+  public static init({ model }: { model: THREE.Group }) {
     const { group } = MergeModel.processModelWithMerge(model);
 
     const groupMeshes = group.children[0];

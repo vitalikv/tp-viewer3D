@@ -15,12 +15,10 @@ export class SelectionAdapter {
     if (!nodes || !Array.isArray(nodes)) return;
 
     for (const node of nodes) {
-      // Индексируем по UUID
       if (node.uuid) {
         this.uuidIndex.set(node.uuid, node);
       }
 
-      // Индексируем по fragment_guid (может быть несколько узлов с одинаковым fragment_guid)
       if (node.fragment_guid) {
         const guid = node.fragment_guid.toUpperCase();
         if (!this.fragmentGuidIndex.has(guid)) {
@@ -29,7 +27,6 @@ export class SelectionAdapter {
         this.fragmentGuidIndex.get(guid)!.push(node);
       }
 
-      // Рекурсивно индексируем детей
       if (node.children && Array.isArray(node.children)) {
         this.buildIndexes(node.children);
       }
@@ -37,8 +34,6 @@ export class SelectionAdapter {
   }
 
   public static getSelectedNode({ uuid, parentUuid }: { uuid: string; parentUuid?: string }) {
-    console.log('uuid: ', uuid, 'parentUuid: ', parentUuid);
-
     if (this.uuidIndex.size === 0) {
       this.initializeCache();
     }
@@ -57,29 +52,22 @@ export class SelectionAdapter {
       }
     }
 
-    console.log('selectID', selectID);
-
     let node = null;
     if (!isNaN(selectID)) {
       node = this.structureCache.find((item) => item.id === selectID);
     }
 
-    console.log('node', node);
-
     const nodes = this.selectedObj3dFromScene({ node });
-    console.log('nodes', nodes);
-
     const groupNodes = this.cmd_api_selected3d(nodes);
-    console.log(9999, groupNodes);
 
     return groupNodes;
   }
 
-  private static findNodeByUuidWithParent(uuid: string): any {
+  private static findNodeByUuidWithParent(uuid: string) {
     return this.uuidIndex.get(uuid) || null;
   }
 
-  private static findRootNodeId(node: any): number {
+  private static findRootNodeId(node: any) {
     let current = node;
     while (current && current.idxtfxparent !== null && current.idxtfxparent !== undefined) {
       const parent = this.findNodeByIdx(current.idxtfxparent);
@@ -108,7 +96,6 @@ export class SelectionAdapter {
     const { fragment_guid } = node;
 
     if (!fragment_guid) {
-      console.log('Не передан fragment_guid для выбора');
       return [node];
     }
 
@@ -116,10 +103,7 @@ export class SelectionAdapter {
 
     const itemJson = this.findInJsonDataByFragmentGuid(fragment_guid.toLowerCase(), jsonData);
 
-    console.log('jsonData', jsonData);
-    console.log('itemJson', itemJson);
-
-    let nodes = [];
+    let nodes: any[] = [];
     if (itemJson?.guid) {
       nodes = this.getUIIDbyACIGuidandFragmentGuid('3d', jsonData, itemJson.guid);
     } else {
@@ -129,7 +113,7 @@ export class SelectionAdapter {
     return nodes;
   }
 
-  public static selectedObj3dByFragmentGuid({ fragment_guid }) {
+  public static selectedObj3dByFragmentGuid({ fragment_guid }: { fragment_guid: string }) {
     const nodes = this.selectedObj3dFromScene({ node: { fragment_guid } });
     const groupNodes = this.cmd_api_selected3d(nodes);
 
@@ -139,7 +123,6 @@ export class SelectionAdapter {
   private static findInJsonDataByFragmentGuid(fragmentGuid: string, jsonData: any[]) {
     if (!Array.isArray(jsonData)) return null;
 
-    // Используем быстрое линейное сканирование, но только по jsonData
     for (const item of jsonData) {
       if (item.fragment_guid?.toLowerCase() === fragmentGuid) {
         return item;
@@ -153,10 +136,8 @@ export class SelectionAdapter {
       return this.findsArrObjFromArrByProp(aciguid, 'guid', jsonData);
     }
 
-    // Для 3D: находим все объекты в jsonData с этим guid
     const objAss = this.findsArrObjFromArrByProp(aciguid, 'guid', jsonData);
 
-    // Находим соответствующие узлы в структуре по fragment_guid
     const result: any[] = [];
     for (const item of objAss) {
       if (item.fragment_guid) {
@@ -173,11 +154,10 @@ export class SelectionAdapter {
     return arr.filter((item) => item[prop] === value);
   }
 
-  private static cmd_api_selected3d(e: any) {
+  private static cmd_api_selected3d(e: any): any[] {
     const clickNode = Array.isArray(e) ? e : [e];
     const groupNodes: any[] = [];
 
-    // Используем стек вместо рекурсии
     const stack = [...clickNode];
 
     while (stack.length > 0) {
@@ -186,7 +166,6 @@ export class SelectionAdapter {
 
       groupNodes.push(obj);
 
-      // Добавляем дочерние элементы в стек (оригинальная логика)
       if (obj.childsGeom && Array.isArray(obj.childsGeom)) {
         stack.push(...obj.childsGeom);
       }

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { threeApp } from '../threeApp';
 import { SelectionAdapter } from './selectionAdapter';
 
 export class SelectionManager {
@@ -56,7 +57,7 @@ export class SelectionManager {
     if (!geometry.userData?.groups) return;
 
     const faceIndex = intersect.faceIndex;
-    const groupIndex = this.findGroupByFaceIndex(geometry.groups, faceIndex);
+    const groupIndex = this.findGroupByFaceIndex(geometry.userData.groups, faceIndex);
 
     if (groupIndex === -1) return;
 
@@ -78,7 +79,7 @@ export class SelectionManager {
     console.timeEnd('setMergedObjects');
   }
 
-  private static findGroupByFaceIndex(groups: THREE.Group[], faceIndex: number): number {
+  private static findGroupByFaceIndex(groups: { start: number; count: number }[], faceIndex: number) {
     for (let i = 0; i < groups.length; i++) {
       const group = groups[i];
       const startFace = group.start / 3;
@@ -120,7 +121,7 @@ export class SelectionManager {
 
       for (let i = 0; i < groups.length; i++) {
         if (highlightGroupIndices.includes(i)) {
-          const material = mesh.isLine ? this.lineMaterial : this.meshMaterial;
+          const material = mesh instanceof THREE.Line || mesh instanceof THREE.LineSegments ? this.lineMaterial : this.meshMaterial;
           materials.push(material);
         } else {
           const materialIndex = Math.min(i, originalMaterials.length - 1);
@@ -132,11 +133,23 @@ export class SelectionManager {
     });
   }
 
+  public static selectedByFragmentGuid({ fragment_guid }: { fragment_guid: string }) {
+    this.clearSelection();
+    const nodes = SelectionAdapter.selectedObj3dByFragmentGuid({ fragment_guid });
+
+    for (const element of nodes) {
+      if (!element.uuid) continue;
+      this.selectedByUuid(element.uuid);
+    }
+
+    threeApp.sceneManager.render();
+  }
+
   public static clearSelection() {
     this.originalMaterials.forEach((originalMaterial, objectUuid) => {
       const object = this.objectByUuid.get(objectUuid);
 
-      if (object) {
+      if (object && (object instanceof THREE.Mesh || object instanceof THREE.Line || object instanceof THREE.LineSegments)) {
         object.material = originalMaterial;
       }
     });
