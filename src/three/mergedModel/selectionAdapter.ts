@@ -6,9 +6,45 @@ export class SelectionAdapter {
   private static fragmentGuidIndex: Map<string, any[]> = new Map();
 
   public static initializeCache() {
-    const structure = threeApp.modelLoader.initData.getStructure();
-    this.structureCache = structure.value;
+    const structure = threeApp.modelLoader.initData.getTree();
+    this.structureCache = this.convertGroups(structure);
     this.buildIndexes(this.structureCache);
+
+    console.log(333355, this.structureCache, this.uuidIndex, structure);
+  }
+
+  private static convertGroups(val: any[]) {
+    let arr: any[] = [];
+    const set = new Set<any>();
+
+    for (let item of val) {
+      if ('children' in item && item.children !== null && item.children.length > 0) {
+        const obj = {
+          ...item,
+        };
+        obj.children = [...item.children];
+      }
+
+      if (Number.isNaN(item.idxtfxparent)) {
+        set.add({ ...item });
+      }
+    }
+
+    arr = Array.from(set);
+
+    if (arr.length > 0) {
+      for (let objCopy of arr) {
+        if (objCopy.childsGeom) {
+          if (objCopy.children == null) {
+            objCopy.children = [...objCopy.childsGeom];
+          } else {
+            objCopy.children = objCopy.children.concat(objCopy.childsGeom);
+          }
+        }
+      }
+    }
+
+    return arr;
   }
 
   private static buildIndexes(nodes: any[]) {

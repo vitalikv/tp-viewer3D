@@ -5,6 +5,7 @@ import DataTransformStructure from './DataTransformStructure';
 
 export class InitData {
   private structure = { value: [] };
+  private tree = [];
 
   constructor({ structure, gltf }) {
     const transform: DataTransformStructure = new DataTransformStructure(structure, gltf, new TransformActionIdx(), new Transform3DRefs(), new TransToTree());
@@ -12,13 +13,18 @@ export class InitData {
     transform.findsChildrens();
     const tree: any = transform.tree();
 
+    this.tree = tree;
     this.structure.value = this.groups(tree);
 
-    console.log(555, transform, this.structure);
+    console.log(555, tree, this.structure.value);
   }
 
   public getStructure() {
     return this.structure;
+  }
+
+  public getTree() {
+    return this.tree;
   }
 
   // группируем nodes
