@@ -18,7 +18,7 @@ export class BVHManager {
     obj.traverse((child) => {
       if (child.geometry && child.isMesh) {
         child.geometry.computeBoundsTree({ indirect: true });
-        //child.geometry.boundsTree = new MeshBVH(mesh.geometry);
+        //child.geometry.boundsTree = new MeshBVH(mesh.geometry, { maxLeafTris: 3, indirect: true });
       }
     });
 

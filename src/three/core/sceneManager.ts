@@ -168,9 +168,10 @@ export class SceneManager {
   private initRenderer() {
     const rect = this.getClientRect();
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, stencil: true });
     this.renderer.setSize(rect.width, rect.height);
     this.renderer.shadowMap.enabled = true;
+    this.renderer.localClippingEnabled = true;
     document.getElementById('container').appendChild(this.renderer.domElement);
   }
 
