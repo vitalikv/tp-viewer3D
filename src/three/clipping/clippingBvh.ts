@@ -316,20 +316,16 @@ export class ClippingBvh {
       line.visible = true;
     });
 
-    if (this.wireframeModel) {
-      this.wireframeModel.removeFromParent();
-      this.disposeObj(this.wireframeModel);
-    }
-
     this.lines = [];
 
+    this.params.animate = false;
     threeApp.sceneManager.render();
   }
 
   private disableClipping() {
     // Удаляем плоскость отсечения из сцены
     if (this.planeMesh) {
-      this.disposeObj(this.wireframeModel);
+      this.disposeObj(this.planeMesh);
       this.planeMesh.removeFromParent();
       this.planeMesh = null;
     }
@@ -339,6 +335,12 @@ export class ClippingBvh {
       this.disposeObj(this.outlineLines);
       this.outlineLines.removeFromParent();
       this.outlineLines = null;
+    }
+
+    if (this.wireframeModel) {
+      this.wireframeModel.removeFromParent();
+      this.disposeObj(this.wireframeModel);
+      this.wireframeModel = null;
     }
 
     // Удаляем BVH хелперы из сцены
@@ -351,9 +353,6 @@ export class ClippingBvh {
 
     // Очищаем плоскости отсечения у всех материалов
     this.removeClippingFromMaterials();
-
-    // Останавливаем анимацию (опционально)
-    this.params.animate = false;
   }
 
   // Вспомогательный метод для удаления clipping planes из материалов
