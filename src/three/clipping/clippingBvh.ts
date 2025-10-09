@@ -12,9 +12,11 @@ export class ClippingBvh {
   private clock: THREE.Clock | null = null;
 
   private meshBvhs: MeshBVHEntry[] = [];
+  private clippingPlanes: THREE.Plane[] | [] = [];
   private planeMesh: THREE.Mesh | null = null;
-  private clippingPlanes: THREE.Plane[] | null = null;
   private outlineLines: THREE.LineSegments | null = null;
+  private lines: THREE.LineSegments[] | [] = [];
+  private wireframeModel: THREE.Object3D;
 
   private outputElement: HTMLElement | null = null;
   private time = 0;
@@ -40,6 +42,7 @@ export class ClippingBvh {
   public initClipping({ model }) {
     this.params.animate = true;
     this.clock = new THREE.Clock();
+    this.lines = [];
 
     this.clippingPlanes = [new THREE.Plane()];
 
@@ -47,6 +50,41 @@ export class ClippingBvh {
     this.createOutlineLines();
 
     this.compositeModelBvh(model);
+    this.createWireframe(model);
+  }
+
+  private createWireframe(model: THREE.Object3D) {
+    const materialMesh = new THREE.MeshBasicMaterial({ color: 0x0000ff, wireframe: true, transparent: true, opacity: 0.01, depthWrite: false });
+
+    const cloneModel = (obj: THREE.Object3D) => {
+      let clone: THREE.Object3D;
+
+      if (obj instanceof THREE.Mesh) {
+        clone = new THREE.Mesh(obj.geometry, materialMesh);
+      } else if (obj instanceof THREE.LineSegments || obj instanceof THREE.Line) {
+        return new THREE.Group();
+      } else {
+        clone = new THREE.Group();
+      }
+
+      clone.name = obj.name + '_wireframe';
+      clone.position.copy(obj.position);
+      clone.rotation.copy(obj.rotation);
+      clone.scale.copy(obj.scale);
+      clone.visible = obj.visible;
+
+      obj.children.forEach((child) => {
+        const childClone = cloneModel(child);
+        if (childClone) {
+          clone.add(childClone);
+        }
+      });
+
+      return clone;
+    };
+
+    this.wireframeModel = cloneModel(model);
+    threeApp.sceneManager.scene.add(this.wireframeModel);
   }
 
   private createPlaneMesh() {
@@ -89,6 +127,10 @@ export class ClippingBvh {
     // найдем все меши
     const meshes: THREE.Mesh[] = [];
     modelRoot.traverse((c) => {
+      if ((c as THREE.LineSegments).isLineSegments && c.visible) {
+        c.visible = false;
+        this.lines.push(c);
+      }
       if ((c as THREE.Mesh).isMesh) meshes.push(c as THREE.Mesh);
     });
 
@@ -260,23 +302,50 @@ export class ClippingBvh {
   }
 
   //---
-  public disableClipping() {
+
+  // Метод для полного уничтожения (если нужно пересоздать)
+  public destroy() {
+    this.disableClipping();
+
+    // Дополнительная очистка
+    this.meshBvhs = [];
+    this.clippingPlanes = [];
+    this.clock = null;
+
+    this.lines.forEach((line) => {
+      line.visible = true;
+    });
+
+    if (this.wireframeModel) {
+      this.wireframeModel.removeFromParent();
+      this.disposeObj(this.wireframeModel);
+    }
+
+    this.lines = [];
+
+    threeApp.sceneManager.render();
+  }
+
+  private disableClipping() {
     // Удаляем плоскость отсечения из сцены
     if (this.planeMesh) {
-      threeApp.sceneManager.scene.remove(this.planeMesh);
+      this.disposeObj(this.wireframeModel);
+      this.planeMesh.removeFromParent();
       this.planeMesh = null;
     }
 
     // Удаляем контуры из сцены
     if (this.outlineLines) {
-      threeApp.sceneManager.scene.remove(this.outlineLines);
+      this.disposeObj(this.outlineLines);
+      this.outlineLines.removeFromParent();
       this.outlineLines = null;
     }
 
     // Удаляем BVH хелперы из сцены
     this.meshBvhs.forEach((entry) => {
       if (entry.helper) {
-        threeApp.sceneManager.scene.remove(entry.helper);
+        this.disposeObj(entry.helper);
+        entry.helper.removeFromParent();
       }
     });
 
@@ -285,9 +354,6 @@ export class ClippingBvh {
 
     // Останавливаем анимацию (опционально)
     this.params.animate = false;
-
-    // Рендерим сцену без отсечения
-    threeApp.sceneManager.render();
   }
 
   // Вспомогательный метод для удаления clipping planes из материалов
@@ -309,36 +375,32 @@ export class ClippingBvh {
     });
   }
 
-  // Метод для полного уничтожения (если нужно пересоздать)
-  public destroy() {
-    this.disableClipping();
-
-    // Дополнительная очистка
-    this.meshBvhs = [];
-    this.clippingPlanes = [];
-    this.clock = null;
-
-    // Удаляем обработчики событий если они есть
-    // (если у вас есть UI элементы, их тоже нужно очистить)
-  }
-
   //----
 
-  // Временное скрытие отсечения
-  public hideClipping() {
-    if (this.planeMesh) this.planeMesh.visible = false;
-    if (this.outlineLines) this.outlineLines.visible = false;
-    this.meshBvhs.forEach((entry) => {
-      if (entry.helper) entry.helper.visible = false;
+  private disposeObj(obj: THREE.Object3D) {
+    obj.traverse((child: THREE.Object3D | THREE.LineSegments | THREE.Line) => {
+      if ((child instanceof THREE.Mesh || child instanceof THREE.LineSegments || child instanceof THREE.Line) && child.geometry) {
+        child.geometry.dispose();
+
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach((m: THREE.Material) => this.disposeMaterial(m));
+          } else {
+            this.disposeMaterial(child.material);
+          }
+        }
+      }
     });
   }
 
-  // Показать отсечение
-  public showClipping() {
-    if (this.planeMesh) this.planeMesh.visible = true;
-    if (this.outlineLines) this.outlineLines.visible = true;
-    this.meshBvhs.forEach((entry) => {
-      if (entry.helper) entry.helper.visible = this.params.helperDisplay;
+  private disposeMaterial(material: THREE.Material) {
+    material.dispose();
+
+    Object.keys(material).forEach((key: string) => {
+      const value = (material as any)[key];
+      if (value?.isTexture) {
+        value.dispose();
+      }
     });
   }
 }
