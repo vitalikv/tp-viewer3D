@@ -3,6 +3,7 @@ import { ModelFileLoader } from './loaders/modelFileLoader';
 import { ModelLoader } from './model/modelLoader';
 import { MouseManager } from './mouse/mouseManager';
 import { BVHManager } from './bvh/bvhManager';
+import { ClippingBvh } from './clipping/clippingBvh';
 import { EffectsManager } from './core/effectsManager';
 import { OutlineSelection } from './mouse/outlineSelection';
 
@@ -16,6 +17,7 @@ class ThreeApp {
   mouseManager: MouseManager;
   outlineSelection: OutlineSelection;
   bvhManager: BVHManager;
+  clippingBvh: ClippingBvh;
   renderWorker: RenderWorker;
   effectsManager: EffectsManager;
 
@@ -37,6 +39,7 @@ class ThreeApp {
       this.mouseManager = new MouseManager();
       this.outlineSelection = new OutlineSelection();
       this.bvhManager = new BVHManager();
+      this.clippingBvh = new ClippingBvh();
 
       // this.effectsManager = new EffectsManager();
       // this.effectsManager.init({ scene: this.sceneManager.scene, camera: this.sceneManager.camera, renderer: this.sceneManager.renderer, container });

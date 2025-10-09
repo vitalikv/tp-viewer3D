@@ -5,7 +5,6 @@ import { InitData } from '../loaders/data/InitData';
 import { InitMergedModel } from '../mergedModel/initMergedModel';
 import { MergeEnvironmentUtils } from './mergeEnvironmentUtils';
 import { GltfStructure } from './gltfStructure';
-import { ClippingBvh } from '../clipping/clippingBvh';
 
 export class ModelLoader {
   private loader: GLTFLoader;
@@ -28,11 +27,11 @@ export class ModelLoader {
     this.loadJSON();
   }
 
-  getJsonGltf() {
+  public getJsonGltf() {
     return this.jsonGltf;
   }
 
-  getModel() {
+  public getModel() {
     return this.model;
   }
 
@@ -93,10 +92,6 @@ export class ModelLoader {
         threeApp.sceneManager.scene.add(model);
         this.model = model;
         this.jsonGltf = gltf;
-
-        const clippingBvh = new ClippingBvh();
-        clippingBvh.initClipping({ model });
-        clippingBvh.render();
 
         if (1 === 2) {
           const gltfStructure = new GltfStructure();

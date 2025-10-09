@@ -34,11 +34,11 @@ export class ClippingBvh {
     wireframeDisplay: false,
     displayModel: true,
     animate: true,
-    animation: 'OSCILLATE' as 'SPIN' | 'OSCILLATE',
     invert: false,
   };
 
   public initClipping({ model }) {
+    this.params.animate = true;
     this.clock = new THREE.Clock();
 
     this.clippingPlanes = [new THREE.Plane()];
@@ -46,7 +46,7 @@ export class ClippingBvh {
     this.createPlaneMesh();
     this.createOutlineLines();
 
-    this.loadModel(model);
+    this.compositeModelBvh(model);
   }
 
   private createPlaneMesh() {
@@ -80,14 +80,6 @@ export class ClippingBvh {
 
     // Добавим в сцену сразу в мировом пространстве (чтобы писать туда мировые координаты)
     threeApp.sceneManager.scene.add(this.outlineLines);
-  }
-
-  private loadModel(modelRoot) {
-    const box = new THREE.Box3().setFromObject(modelRoot);
-    const center = box.getCenter(new THREE.Vector3());
-    modelRoot.position.sub(center);
-
-    this.compositeModelBvh(modelRoot);
   }
 
   //Строим BVH для каждого Mesh.
@@ -168,15 +160,10 @@ export class ClippingBvh {
 
   private animatePlane() {
     if (!this.planeMesh) return;
-    if (this.params.animation === 'SPIN') {
-      this.planeMesh.rotation.x = 0.25 * this.time;
-      this.planeMesh.rotation.y = 0.25 * this.time;
-      this.planeMesh.rotation.z = 0.25 * this.time;
-      this.planeMesh.position.set(0, 0, 0);
-    } else {
-      this.planeMesh.position.set(Math.sin(0.25 * this.time) * 0.325, 0, 0);
-      this.planeMesh.rotation.set(0, Math.PI / 2, 0);
-    }
+
+    this.planeMesh.position.set(Math.sin(0.25 * this.time) * 0.525, 0, 0);
+    this.planeMesh.rotation.set(0, Math.PI / 2, 0);
+
     this.planeMesh.updateMatrixWorld();
   }
 
@@ -270,5 +257,88 @@ export class ClippingBvh {
 
     const delta = performance.now() - startTime;
     if (this.outputElement) this.outputElement.innerText = `${delta.toFixed(3)}ms`;
+  }
+
+  //---
+  public disableClipping() {
+    // Удаляем плоскость отсечения из сцены
+    if (this.planeMesh) {
+      threeApp.sceneManager.scene.remove(this.planeMesh);
+      this.planeMesh = null;
+    }
+
+    // Удаляем контуры из сцены
+    if (this.outlineLines) {
+      threeApp.sceneManager.scene.remove(this.outlineLines);
+      this.outlineLines = null;
+    }
+
+    // Удаляем BVH хелперы из сцены
+    this.meshBvhs.forEach((entry) => {
+      if (entry.helper) {
+        threeApp.sceneManager.scene.remove(entry.helper);
+      }
+    });
+
+    // Очищаем плоскости отсечения у всех материалов
+    this.removeClippingFromMaterials();
+
+    // Останавливаем анимацию (опционально)
+    this.params.animate = false;
+
+    // Рендерим сцену без отсечения
+    threeApp.sceneManager.render();
+  }
+
+  // Вспомогательный метод для удаления clipping planes из материалов
+  private removeClippingFromMaterials() {
+    // Проходим по всем мешам и убираем clipping planes
+    this.meshBvhs.forEach((entry) => {
+      const mesh = entry.mesh;
+      const mat = mesh.material;
+
+      if (Array.isArray(mat)) {
+        mat.forEach((m) => {
+          (m as any).clippingPlanes = [];
+          (m as any).needsUpdate = true;
+        });
+      } else {
+        (mat as any).clippingPlanes = [];
+        (mat as any).needsUpdate = true;
+      }
+    });
+  }
+
+  // Метод для полного уничтожения (если нужно пересоздать)
+  public destroy() {
+    this.disableClipping();
+
+    // Дополнительная очистка
+    this.meshBvhs = [];
+    this.clippingPlanes = [];
+    this.clock = null;
+
+    // Удаляем обработчики событий если они есть
+    // (если у вас есть UI элементы, их тоже нужно очистить)
+  }
+
+  //----
+
+  // Временное скрытие отсечения
+  public hideClipping() {
+    if (this.planeMesh) this.planeMesh.visible = false;
+    if (this.outlineLines) this.outlineLines.visible = false;
+    this.meshBvhs.forEach((entry) => {
+      if (entry.helper) entry.helper.visible = false;
+    });
+  }
+
+  // Показать отсечение
+  public showClipping() {
+    if (this.planeMesh) this.planeMesh.visible = true;
+    if (this.outlineLines) this.outlineLines.visible = true;
+    this.meshBvhs.forEach((entry) => {
+      if (entry.helper) entry.helper.visible = this.params.helperDisplay;
+    });
   }
 }
