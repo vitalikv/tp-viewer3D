@@ -1,4 +1,5 @@
 import { UiClippingButton } from './uiClippingButton';
+import { UiClippingSlider } from './uiClippingSlider';
 
 class MainUi {
   public init() {
@@ -6,6 +7,8 @@ class MainUi {
     console.log(3223, container);
 
     new UiClippingButton('btn-clipping');
+    const uiClippingSlider = new UiClippingSlider();
+    uiClippingSlider.init(document.body);
   }
 }
 
