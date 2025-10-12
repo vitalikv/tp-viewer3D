@@ -8,7 +8,8 @@ export class UiClippingSlider {
     wrapContainer.append(this.container);
 
     this.eventStop({ div: this.container });
-    this.event();
+    this.eventSlider();
+    this.eventBtn();
   }
 
   private crDivSlider() {
@@ -30,64 +31,79 @@ export class UiClippingSlider {
     const buttonsStyle = `display: flex; gap: 8px; margin-top: 15px;`;
     const buttonStyle = `flex: 1; padding: 8px; border: none; border-radius: 4px; background: #4361ee; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1); font-size: 0.9rem;`;
 
-    const html = `<div class="controls" style="${controlsStyle}">
-        <div class="control-group" style="${controlGroupStyle}">
-            <h3 class="control-title" style="${controlTitleStyle}">Позиция плоскостей сечения</h3>
+    const html = `<div style="${controlsStyle}">
+        <div style="${controlGroupStyle}">
+            <h3 style="${controlTitleStyle}">Позиция</h3>
             
-            <div class="slider-container" style="${sliderContainerStyle}">
-                <div class="slider-label" style="${sliderLabelStyle}">
+            <div style="${sliderContainerStyle}">
+                <div style="${sliderLabelStyle}">
                     <span>Ось X:</span>
-                    <span class="slider-value" style="${sliderValueStyle}" id="x-position-value">50</span>
+                    <span style="${sliderValueStyle}" id="x-position-value">50</span>
                 </div>
-                <input type="range" min="0" max="100" value="50" class="slider" style="${sliderStyle}" id="x-position">
+                <input type="range" min="0" max="100" value="50" style="${sliderStyle}" id="x-position">
             </div>
             
-            <div class="slider-container" style="${sliderContainerStyle}">
-                <div class="slider-label" style="${sliderLabelStyle}">
+            <div style="${sliderContainerStyle}">
+                <div style="${sliderLabelStyle}">
                     <span>Ось Y:</span>
-                    <span class="slider-value" style="${sliderValueStyle}" id="y-position-value">50</span>
+                    <span style="${sliderValueStyle}" id="y-position-value">50</span>
                 </div>
-                <input type="range" min="0" max="100" value="50" class="slider" style="${sliderStyle}" id="y-position">
+                <input type="range" min="0" max="100" value="50" style="${sliderStyle}" id="y-position">
             </div>
             
-            <div class="slider-container" style="${sliderContainerStyle}">
-                <div class="slider-label" style="${sliderLabelStyle}">
+            <div style="${sliderContainerStyle}">
+                <div style="${sliderLabelStyle}">
                     <span>Ось Z:</span>
-                    <span class="slider-value" style="${sliderValueStyle}" id="z-position-value">50</span>
+                    <span style="${sliderValueStyle}" id="z-position-value">50</span>
                 </div>
-                <input type="range" min="0" max="100" value="50" class="slider" style="${sliderStyle}" id="z-position">
+                <input type="range" min="0" max="100" value="50" style="${sliderStyle}" id="z-position">
             </div>
         </div>
         
-        <div class="control-group" style="${controlGroupStyle}">
-            <h3 class="control-title" style="${controlTitleStyle}">Вращение плоскостей сечения</h3>
+        <div style="${controlGroupStyle}">
+            <h3 style="${controlTitleStyle}">Вращение</h3>
             
-            <div class="slider-container" style="${sliderContainerStyle}">
-                <div class="slider-label" style="${sliderLabelStyle}">
+            <div style="${sliderContainerStyle}">
+                <div style="${sliderLabelStyle}">
                     <span>Вращение X:</span>
-                    <span class="slider-value" style="${sliderValueStyle}" id="x-rotation-value">0°</span>
+                    <span style="${sliderValueStyle}" id="x-rotation-value">0°</span>
                 </div>
-                <input type="range" min="0" max="360" value="0" class="slider" style="${sliderStyle}" id="x-rotation">
+                <input type="range" min="0" max="360" value="0" style="${sliderStyle}" id="x-rotation">
             </div>
             
-            <div class="slider-container" style="${sliderContainerStyle}">
-                <div class="slider-label" style="${sliderLabelStyle}">
+            <div style="${sliderContainerStyle}">
+                <div style="${sliderLabelStyle}">
                     <span>Вращение Y:</span>
-                    <span class="slider-value" style="${sliderValueStyle}" id="y-rotation-value">0°</span>
+                    <span style="${sliderValueStyle}" id="y-rotation-value">0°</span>
                 </div>
-                <input type="range" min="0" max="360" value="0" class="slider" style="${sliderStyle}" id="y-rotation">
+                <input type="range" min="0" max="360" value="0" style="${sliderStyle}" id="y-rotation">
             </div>
             
-            <div class="slider-container" style="${sliderContainerStyle}">
-                <div class="slider-label" style="${sliderLabelStyle}">
+            <div style="${sliderContainerStyle}">
+                <div style="${sliderLabelStyle}">
                     <span>Вращение Z:</span>
-                    <span class="slider-value" style="${sliderValueStyle}" id="z-rotation-value">0°</span>
+                    <span style="${sliderValueStyle}" id="z-rotation-value">0°</span>
                 </div>
-                <input type="range" min="0" max="360" value="0" class="slider" style="${sliderStyle}" id="z-rotation">
+                <input type="range" min="0" max="360" value="0" style="${sliderStyle}" id="z-rotation">
             </div>
         </div>
         
-        <div class="buttons" style="${buttonsStyle}">
+        <div style="${buttonsStyle}">
+            <button id="useBVH" style="${buttonStyle}">useBVH</button>
+            <button id="helperBVH" style="${buttonStyle}">helperBVH</button>
+        </div>
+
+        <div style="${buttonsStyle}">
+            <button id="model" style="${buttonStyle}">model</button>
+            <button id="wireframe" style="${buttonStyle}">wireframe</button>
+        </div>
+
+        <div style="${buttonsStyle}">
+            <button id="invert" style="${buttonStyle}">invert</button>
+            <button id="showPlane" style="${buttonStyle}">showPlane</button>
+        </div>
+
+        <div style="${buttonsStyle}">
             <button id="reset-btn" style="${buttonStyle}">Сбросить</button>
         </div>
     </div>`;
@@ -106,7 +122,7 @@ export class UiClippingSlider {
     });
   }
 
-  private event() {
+  private eventSlider() {
     const xPositionSlider = this.container.querySelector('#x-position') as HTMLInputElement;
     const yPositionSlider = this.container.querySelector('#y-position') as HTMLInputElement;
     const zPositionSlider = this.container.querySelector('#z-position') as HTMLInputElement;
@@ -131,7 +147,7 @@ export class UiClippingSlider {
       const z = parseInt(zPositionSlider.value);
 
       threeApp.clippingBvh.setPlanePosition(x, y, z);
-      threeApp.clippingBvh.setAnimationEnabled(false); // Отключаем анимацию при ручном управлении
+      threeApp.sceneManager.render();
     };
 
     const updatePlaneRotation = () => {
@@ -142,7 +158,7 @@ export class UiClippingSlider {
       const z = parseInt(zRotationSlider.value);
 
       threeApp.clippingBvh.setPlaneRotation(x, y, z);
-      threeApp.clippingBvh.setAnimationEnabled(false); // Отключаем анимацию при ручном управлении
+      threeApp.sceneManager.render();
     };
 
     xPositionSlider.addEventListener('input', function () {
@@ -192,7 +208,47 @@ export class UiClippingSlider {
 
       if (threeApp.clippingBvh) {
         threeApp.clippingBvh.resetPlane();
+        threeApp.sceneManager.render();
       }
     });
+  }
+
+  private eventBtn() {
+    const useBVH = this.container.querySelector('#useBVH') as HTMLDivElement;
+    const helperBVH = this.container.querySelector('#helperBVH') as HTMLDivElement;
+    const model = this.container.querySelector('#model') as HTMLDivElement;
+    const wireframe = this.container.querySelector('#wireframe') as HTMLDivElement;
+    const invert = this.container.querySelector('#invert') as HTMLDivElement;
+    const showPlane = this.container.querySelector('#showPlane') as HTMLDivElement;
+
+    useBVH.onmousedown = () => {
+      const act = !threeApp.clippingBvh.getUseBVH();
+      threeApp.clippingBvh.setUseBVH(act);
+    };
+
+    helperBVH.onmousedown = () => {
+      const act = !threeApp.clippingBvh.getHelperBVH();
+      threeApp.clippingBvh.setHelperBVH(act);
+    };
+
+    model.onmousedown = () => {
+      const act = !threeApp.clippingBvh.getModel();
+      threeApp.clippingBvh.setModel(act);
+    };
+
+    wireframe.onmousedown = () => {
+      const act = !threeApp.clippingBvh.getWireframe();
+      threeApp.clippingBvh.setWireframe(act);
+    };
+
+    invert.onmousedown = () => {
+      const act = !threeApp.clippingBvh.getInvertPlane();
+      threeApp.clippingBvh.setInvertPlane(act);
+    };
+
+    showPlane.onmousedown = () => {
+      const act = !threeApp.clippingBvh.getShowPlane();
+      threeApp.clippingBvh.setShowPlane(act);
+    };
   }
 }

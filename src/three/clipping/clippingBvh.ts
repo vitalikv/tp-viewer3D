@@ -9,17 +9,16 @@ type MeshBVHEntry = {
 };
 
 export class ClippingBvh {
-  private clock: THREE.Clock | null = null;
-
+  private model: THREE.Object3D;
   private meshBvhs: MeshBVHEntry[] = [];
   private clippingPlanes: THREE.Plane[] | [] = [];
   private planeMesh: THREE.Mesh | null = null;
   private outlineLines: THREE.LineSegments | null = null;
   private lines: THREE.LineSegments[] | [] = [];
   private wireframeModel: THREE.Object3D;
+  private actHelperBVH: boolean;
 
   private outputElement: HTMLElement | null = null;
-  private time = 0;
 
   private tempVector = new THREE.Vector3();
   private tempVector1 = new THREE.Vector3();
@@ -30,20 +29,21 @@ export class ClippingBvh {
   private localPlane = new THREE.Plane();
 
   private modelBoundingBox: THREE.Box3 | null = null;
+  private matPlane1 = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true, opacity: 0.3, color: 0x80deea, depthWrite: false });
+  private matPlane2 = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, stencilWrite: true, stencilFunc: THREE.NotEqualStencilFunc, stencilFail: THREE.ZeroStencilOp, stencilZFail: THREE.ZeroStencilOp, stencilZPass: THREE.ZeroStencilOp });
 
   private params = {
     useBVH: true,
-    helperDisplay: false,
+    helperBVH: false,
     helperDepth: 10,
     wireframeDisplay: false,
     displayModel: true,
-    animate: true,
-    invert: false,
+    invertPlane: false,
+    showPlane: true,
   };
 
   public initClipping({ model }) {
-    this.params.animate = true;
-    this.clock = new THREE.Clock();
+    this.model = model;
     this.lines = [];
 
     this.clippingPlanes = [new THREE.Plane()];
@@ -55,7 +55,8 @@ export class ClippingBvh {
     this.createOutlineLines();
 
     this.compositeModelBvh(model);
-    //this.createWireframe(model);
+    if (this.params.wireframeDisplay) this.createWireframe(model);
+    if (this.params.helperBVH) this.createHelperBvh();
   }
 
   private calculateModelBounds(model: THREE.Object3D) {
@@ -69,6 +70,8 @@ export class ClippingBvh {
   }
 
   private createWireframe(model: THREE.Object3D) {
+    if (this.wireframeModel) return;
+
     const materialMesh = new THREE.MeshBasicMaterial({ color: 0x0000ff, wireframe: true, transparent: true, opacity: 0.01, depthWrite: false });
 
     const cloneModel = (obj: THREE.Object3D) => {
@@ -103,8 +106,7 @@ export class ClippingBvh {
   }
 
   private createPlaneMesh() {
-    const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true, opacity: 0.3, color: 0x80deea, depthWrite: false });
-    //const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, stencilWrite: true, stencilFunc: THREE.NotEqualStencilFunc, stencilFail: THREE.ZeroStencilOp, stencilZFail: THREE.ZeroStencilOp, stencilZPass: THREE.ZeroStencilOp });
+    const material = this.params.showPlane ? this.matPlane1 : this.matPlane2;
 
     this.planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(), material);
     this.planeMesh.scale.setScalar(1.5);
@@ -156,8 +158,6 @@ export class ClippingBvh {
         (geom as any).boundsTree = bvh;
       }
 
-      //const helper = this.crBvhHelper(mesh);
-
       // назначаем плоскости обрезки на материалы, чтобы модель реально резалась
       this.assignClippingToMaterial(mesh.material);
 
@@ -165,14 +165,21 @@ export class ClippingBvh {
     }
   }
 
-  private crBvhHelper(mesh) {
-    const helper = new MeshBVHHelper(mesh, parseInt(String(this.params.helperDepth)));
-    helper.visible = false;
-    helper.depth = parseInt(String(this.params.helperDepth));
-    helper.update();
-    threeApp.sceneManager.scene.add(helper);
+  private createHelperBvh() {
+    if (this.actHelperBVH) return;
 
-    return helper;
+    this.actHelperBVH = true;
+
+    this.meshBvhs.forEach((item) => {
+      const helper = new MeshBVHHelper(item.mesh, parseInt(String(this.params.helperDepth)));
+      helper.visible = true;
+      helper.depth = parseInt(String(this.params.helperDepth));
+      helper.update();
+
+      item.helper = helper; // обновляем значение в массиве
+
+      threeApp.sceneManager.scene.add(helper);
+    });
   }
 
   /** Поддержка массива материалов и одиночного материала */
@@ -191,36 +198,12 @@ export class ClippingBvh {
     }
   }
 
-  public render = () => {
-    requestAnimationFrame(this.render);
-    if (!this.clock) return;
-
-    const delta = Math.min(this.clock.getDelta(), 0.03);
-    if (this.params.animate) {
-      this.time += delta;
-      this.animatePlane();
-    }
-
-    this.performClipping();
-
-    threeApp.sceneManager.render();
-  };
-
-  private animatePlane() {
-    if (!this.planeMesh) return;
-
-    this.planeMesh.position.set(Math.sin(0.25 * this.time) * 0.525, 0, 0);
-    this.planeMesh.rotation.set(0, Math.PI / 2, 0);
-
-    this.planeMesh.updateMatrixWorld();
-  }
-
-  private performClipping() {
+  public performClipping() {
     if (!this.meshBvhs.length || !this.outlineLines || !this.clippingPlanes || !this.planeMesh) return;
 
     // вычисляем мировую плоскость
     const clippingPlaneWorld = this.clippingPlanes[0];
-    clippingPlaneWorld.normal.set(0, 0, this.params.invert ? 1 : -1);
+    clippingPlaneWorld.normal.set(0, 0, this.params.invertPlane ? 1 : -1);
     clippingPlaneWorld.constant = 0;
     clippingPlaneWorld.applyMatrix4(this.planeMesh.matrixWorld);
 
@@ -232,7 +215,7 @@ export class ClippingBvh {
     const maxVerts = posAttr.count;
 
     const startTime = performance.now();
-
+    console.log(this.params.useBVH);
     for (const entry of this.meshBvhs) {
       const mesh = entry.mesh;
       const bvh = entry.bvh;
@@ -316,7 +299,6 @@ export class ClippingBvh {
     // Дополнительная очистка
     this.meshBvhs = [];
     this.clippingPlanes = [];
-    this.clock = null;
 
     this.lines.forEach((line) => {
       line.visible = true;
@@ -324,7 +306,6 @@ export class ClippingBvh {
 
     this.lines = [];
 
-    this.params.animate = false;
     threeApp.sceneManager.render();
   }
 
@@ -420,8 +401,7 @@ export class ClippingBvh {
     const size = new THREE.Vector3();
     this.modelBoundingBox.getSize(size);
 
-    // Преобразуем 0-100 в -1 до 1 относительно центра
-    const normalizedX = x / 50 - 1; // 0 -> -1, 50 -> 0, 100 -> 1
+    const normalizedX = x / 50 - 1;
     const normalizedY = y / 50 - 1;
     const normalizedZ = z / 50 - 1;
 
@@ -446,11 +426,6 @@ export class ClippingBvh {
     this.planeMesh.updateMatrixWorld();
   }
 
-  // Отключить анимацию при ручном управлении
-  public setAnimationEnabled(enabled: boolean) {
-    this.params.animate = enabled;
-  }
-
   public resetPlane() {
     if (!this.planeMesh || !this.modelBoundingBox) return;
 
@@ -461,5 +436,98 @@ export class ClippingBvh {
     this.planeMesh.position.copy(center);
     this.planeMesh.rotation.set(0, 0, 0);
     this.planeMesh.updateMatrixWorld();
+  }
+
+  //----
+
+  public getUseBVH() {
+    return this.params.useBVH;
+  }
+
+  public setUseBVH(enabled: boolean) {
+    this.params.useBVH = enabled;
+    this.performClipping();
+    threeApp.sceneManager.render();
+  }
+
+  public getHelperBVH() {
+    return this.params.helperBVH;
+  }
+
+  public setHelperBVH(enabled: boolean) {
+    this.params.helperBVH = enabled;
+
+    if (this.params.helperBVH) {
+      this.createHelperBvh();
+
+      this.meshBvhs.forEach((item) => {
+        item.helper.visible = true;
+      });
+    } else {
+      this.meshBvhs.forEach((item) => {
+        if (item.helper) item.helper.visible = false;
+      });
+    }
+
+    this.performClipping();
+    threeApp.sceneManager.render();
+  }
+
+  public getModel() {
+    return this.params.displayModel;
+  }
+
+  public setModel(enabled: boolean) {
+    this.params.displayModel = enabled;
+
+    this.meshBvhs.forEach((item) => {
+      item.mesh.visible = this.params.displayModel;
+    });
+
+    this.performClipping();
+    threeApp.sceneManager.render();
+  }
+
+  public getWireframe() {
+    return this.params.wireframeDisplay;
+  }
+
+  public setWireframe(enabled: boolean) {
+    this.params.wireframeDisplay = enabled;
+
+    if (this.params.wireframeDisplay) {
+      this.createWireframe(this.model);
+    }
+
+    this.wireframeModel.traverse((obj) => {
+      obj.visible = this.params.wireframeDisplay;
+    });
+
+    this.performClipping();
+    threeApp.sceneManager.render();
+  }
+
+  public getInvertPlane() {
+    return this.params.invertPlane;
+  }
+
+  public setInvertPlane(enabled: boolean) {
+    this.params.invertPlane = enabled;
+    this.performClipping();
+    threeApp.sceneManager.render();
+  }
+
+  public getShowPlane() {
+    return this.params.showPlane;
+  }
+
+  public setShowPlane(enabled: boolean) {
+    this.params.showPlane = enabled;
+
+    const material = this.params.showPlane ? this.matPlane1 : this.matPlane2;
+    this.planeMesh.material = material;
+
+    this.performClipping();
+    threeApp.sceneManager.render();
   }
 }

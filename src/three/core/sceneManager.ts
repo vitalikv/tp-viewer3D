@@ -222,6 +222,7 @@ export class SceneManager {
     if (!this.renderer) return;
     this.stats.begin();
 
+    if (threeApp.clippingBvh) threeApp.clippingBvh.performClipping();
     // не работает при вкл renderWorker
     if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
       threeApp.effectsManager.render();

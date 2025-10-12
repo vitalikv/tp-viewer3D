@@ -17,7 +17,7 @@ export class UiClippingButton {
     if (this.isEnabled) {
       const model = threeApp.modelLoader.getModel();
       threeApp.clippingBvh.initClipping({ model });
-      threeApp.clippingBvh.render();
+      threeApp.sceneManager.render();
     } else {
       //threeApp.clippingBvh.disableClipping();
       threeApp.clippingBvh.destroy(); // Полное уничтожение (если нужно освободить память)
