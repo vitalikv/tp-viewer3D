@@ -7,7 +7,7 @@ export class UiClippingSlider {
     this.container = this.crDivSlider();
     wrapContainer.append(this.container);
 
-    //this.eventStop({ div: this.container });
+    this.eventStop({ div: this.container });
     this.event();
   }
 
@@ -107,13 +107,12 @@ export class UiClippingSlider {
   }
 
   private event() {
-    console.log(this.container, 222);
-    const xPositionSlider = this.container.querySelector('#x-position');
-    const yPositionSlider = this.container.querySelector('#y-position');
-    const zPositionSlider = this.container.querySelector('#z-position');
-    const xRotationSlider = this.container.querySelector('#x-rotation');
-    const yRotationSlider = this.container.querySelector('#y-rotation');
-    const zRotationSlider = this.container.querySelector('#z-rotation');
+    const xPositionSlider = this.container.querySelector('#x-position') as HTMLInputElement;
+    const yPositionSlider = this.container.querySelector('#y-position') as HTMLInputElement;
+    const zPositionSlider = this.container.querySelector('#z-position') as HTMLInputElement;
+    const xRotationSlider = this.container.querySelector('#x-rotation') as HTMLInputElement;
+    const yRotationSlider = this.container.querySelector('#y-rotation') as HTMLInputElement;
+    const zRotationSlider = this.container.querySelector('#z-rotation') as HTMLInputElement;
 
     const xPositionValue = this.container.querySelector('#x-position-value');
     const yPositionValue = this.container.querySelector('#y-position-value');
@@ -124,42 +123,65 @@ export class UiClippingSlider {
 
     const resetBtn = this.container.querySelector('#reset-btn');
 
-    const eventSlider = (slider, divInfo) => {
-      console.log(slider.value);
-      divInfo.textContent = slider.value;
+    const updatePlanePosition = () => {
+      if (!threeApp.clippingBvh) return;
+
+      const x = parseInt(xPositionSlider.value);
+      const y = parseInt(yPositionSlider.value);
+      const z = parseInt(zPositionSlider.value);
+
+      threeApp.clippingBvh.setPlanePosition(x, y, z);
+      threeApp.clippingBvh.setAnimationEnabled(false); // Отключаем анимацию при ручном управлении
+    };
+
+    const updatePlaneRotation = () => {
+      if (!threeApp.clippingBvh) return;
+
+      const x = parseInt(xRotationSlider.value);
+      const y = parseInt(yRotationSlider.value);
+      const z = parseInt(zRotationSlider.value);
+
+      threeApp.clippingBvh.setPlaneRotation(x, y, z);
+      threeApp.clippingBvh.setAnimationEnabled(false); // Отключаем анимацию при ручном управлении
     };
 
     xPositionSlider.addEventListener('input', function () {
-      eventSlider(this, xPositionValue);
+      xPositionValue.textContent = this.value;
+      updatePlanePosition();
     });
 
     yPositionSlider.addEventListener('input', function () {
-      eventSlider(this, yPositionValue);
+      yPositionValue.textContent = this.value;
+      updatePlanePosition();
     });
 
     zPositionSlider.addEventListener('input', function () {
-      eventSlider(this, zPositionValue);
+      zPositionValue.textContent = this.value;
+      updatePlanePosition();
     });
 
     xRotationSlider.addEventListener('input', function () {
-      eventSlider(this, xRotationValue);
+      xRotationValue.textContent = this.value + '°';
+      updatePlaneRotation();
     });
 
     yRotationSlider.addEventListener('input', function () {
-      eventSlider(this, yRotationValue);
+      yRotationValue.textContent = this.value + '°';
+      updatePlaneRotation();
     });
 
     zRotationSlider.addEventListener('input', function () {
-      eventSlider(this, zRotationValue);
+      zRotationValue.textContent = this.value + '°';
+      updatePlaneRotation();
     });
 
-    resetBtn.addEventListener('click', function () {
-      xPositionSlider.value = 50;
-      yPositionSlider.value = 50;
-      zPositionSlider.value = 50;
-      xRotationSlider.value = 0;
-      yRotationSlider.value = 0;
-      zRotationSlider.value = 0;
+    resetBtn.addEventListener('click', () => {
+      xPositionSlider.value = '50';
+      yPositionSlider.value = '50';
+      zPositionSlider.value = '50';
+      xRotationSlider.value = '0';
+      yRotationSlider.value = '0';
+      zRotationSlider.value = '0';
 
       xPositionValue.textContent = '50';
       yPositionValue.textContent = '50';
@@ -167,6 +189,10 @@ export class UiClippingSlider {
       xRotationValue.textContent = '0°';
       yRotationValue.textContent = '0°';
       zRotationValue.textContent = '0°';
+
+      if (threeApp.clippingBvh) {
+        threeApp.clippingBvh.resetPlane();
+      }
     });
   }
 }

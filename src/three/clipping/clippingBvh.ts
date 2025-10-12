@@ -29,6 +29,8 @@ export class ClippingBvh {
   private inverseMatrix = new THREE.Matrix4();
   private localPlane = new THREE.Plane();
 
+  private modelBoundingBox: THREE.Box3 | null = null;
+
   private params = {
     useBVH: true,
     helperDisplay: false,
@@ -46,11 +48,24 @@ export class ClippingBvh {
 
     this.clippingPlanes = [new THREE.Plane()];
 
+    // Вычисляем ограничивающую рамку модели
+    this.calculateModelBounds(model);
+
     this.createPlaneMesh();
     this.createOutlineLines();
 
     this.compositeModelBvh(model);
-    this.createWireframe(model);
+    //this.createWireframe(model);
+  }
+
+  private calculateModelBounds(model: THREE.Object3D) {
+    this.modelBoundingBox = new THREE.Box3();
+    this.modelBoundingBox.setFromObject(model);
+
+    console.log('Model bounds:', {
+      min: this.modelBoundingBox.min,
+      max: this.modelBoundingBox.max,
+    });
   }
 
   private createWireframe(model: THREE.Object3D) {
@@ -88,17 +103,10 @@ export class ClippingBvh {
   }
 
   private createPlaneMesh() {
-    this.planeMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(),
-      new THREE.MeshBasicMaterial({
-        side: THREE.DoubleSide,
-        stencilWrite: true,
-        stencilFunc: THREE.NotEqualStencilFunc,
-        stencilFail: THREE.ZeroStencilOp,
-        stencilZFail: THREE.ZeroStencilOp,
-        stencilZPass: THREE.ZeroStencilOp,
-      })
-    );
+    const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true, opacity: 0.3, color: 0x80deea, depthWrite: false });
+    //const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, stencilWrite: true, stencilFunc: THREE.NotEqualStencilFunc, stencilFail: THREE.ZeroStencilOp, stencilZFail: THREE.ZeroStencilOp, stencilZPass: THREE.ZeroStencilOp });
+
+    this.planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(), material);
     this.planeMesh.scale.setScalar(1.5);
     (this.planeMesh.material as THREE.MeshBasicMaterial).color.set(0x80deea);
     this.planeMesh.renderOrder = 2;
@@ -144,18 +152,16 @@ export class ClippingBvh {
       if (geom.boundsTree) {
         bvh = geom.boundsTree;
       } else {
-        // строим BVH
-        const bvh = new MeshBVH(geom, { maxLeafTris: 3 });
+        bvh = new MeshBVH(geom, { maxLeafTris: 3, indirect: true });
         (geom as any).boundsTree = bvh;
       }
 
-      const helper = this.crBvhHelper(mesh);
+      //const helper = this.crBvhHelper(mesh);
 
       // назначаем плоскости обрезки на материалы, чтобы модель реально резалась
       this.assignClippingToMaterial(mesh.material);
 
-      // store
-      if (bvh) this.meshBvhs.push({ mesh, bvh, helper });
+      if (bvh) this.meshBvhs.push({ mesh, bvh, helper: null });
     }
   }
 
@@ -401,5 +407,59 @@ export class ClippingBvh {
         value.dispose();
       }
     });
+  }
+
+  //----
+
+  // Добавьте эти методы для управления плоскостью
+  public setPlanePosition(x: number, y: number, z: number) {
+    if (!this.planeMesh || !this.modelBoundingBox) return;
+
+    const center = new THREE.Vector3();
+    this.modelBoundingBox.getCenter(center);
+    const size = new THREE.Vector3();
+    this.modelBoundingBox.getSize(size);
+
+    // Преобразуем 0-100 в -1 до 1 относительно центра
+    const normalizedX = x / 50 - 1; // 0 -> -1, 50 -> 0, 100 -> 1
+    const normalizedY = y / 50 - 1;
+    const normalizedZ = z / 50 - 1;
+
+    // Вычисляем позицию с учетом размера объекта
+    const posX = center.x + normalizedX * (size.x / 2);
+    const posY = center.y + normalizedY * (size.y / 2);
+    const posZ = center.z + normalizedZ * (size.z / 2);
+
+    this.planeMesh.position.set(posX, posY, posZ);
+    this.planeMesh.updateMatrixWorld();
+  }
+
+  public setPlaneRotation(x: number, y: number, z: number) {
+    if (!this.planeMesh) return;
+
+    // Преобразуем градусы в радианы
+    const radX = (x * Math.PI) / 180;
+    const radY = (y * Math.PI) / 180;
+    const radZ = (z * Math.PI) / 180;
+
+    this.planeMesh.rotation.set(radX, radY, radZ);
+    this.planeMesh.updateMatrixWorld();
+  }
+
+  // Отключить анимацию при ручном управлении
+  public setAnimationEnabled(enabled: boolean) {
+    this.params.animate = enabled;
+  }
+
+  public resetPlane() {
+    if (!this.planeMesh || !this.modelBoundingBox) return;
+
+    const center = new THREE.Vector3();
+    this.modelBoundingBox.getCenter(center);
+
+    // Устанавливаем плоскость в центр объекта
+    this.planeMesh.position.copy(center);
+    this.planeMesh.rotation.set(0, 0, 0);
+    this.planeMesh.updateMatrixWorld();
   }
 }
