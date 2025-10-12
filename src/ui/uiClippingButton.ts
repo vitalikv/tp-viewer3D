@@ -1,4 +1,5 @@
 import { threeApp } from '../three/threeApp';
+import { uiMain } from './uiMain';
 
 export class UiClippingButton {
   private button: HTMLButtonElement;
@@ -18,9 +19,13 @@ export class UiClippingButton {
       const model = threeApp.modelLoader.getModel();
       threeApp.clippingBvh.initClipping({ model });
       threeApp.sceneManager.render();
+
+      uiMain.uiClippingSlider.init(document.body);
+      uiMain.uiClippingSlider.showSlider();
     } else {
-      //threeApp.clippingBvh.disableClipping();
-      threeApp.clippingBvh.destroy(); // Полное уничтожение (если нужно освободить память)
+      threeApp.clippingBvh.destroy();
+
+      uiMain.uiClippingSlider.hideSlider();
     }
   }
 

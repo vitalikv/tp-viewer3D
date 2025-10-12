@@ -1,15 +1,29 @@
 import { threeApp } from '../three/threeApp';
 
 export class UiClippingSlider {
+  private act = false;
   private container: HTMLElement;
+  private useBVH: HTMLDivElement;
+  private helperBVH: HTMLDivElement;
+  private model: HTMLDivElement;
+  private wireframe: HTMLDivElement;
+  private invert: HTMLDivElement;
+  private showPlane: HTMLDivElement;
+
+  private actBtnColor = '#4361ee';
+  private deActBtnColor = 'rgba(94, 98, 118, 1)';
 
   public init(wrapContainer) {
+    if (this.act) return;
+    this.act = true;
+
     this.container = this.crDivSlider();
     wrapContainer.append(this.container);
 
     this.eventStop({ div: this.container });
     this.eventSlider();
     this.eventBtn();
+    this.setStartColorBtns();
   }
 
   private crDivSlider() {
@@ -29,7 +43,7 @@ export class UiClippingSlider {
     const sliderValueStyle = `font-weight: bold; background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 3px; font-size: 0.8rem; color: #fff;`;
     const sliderStyle = `-webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); outline: none;`;
     const buttonsStyle = `display: flex; gap: 8px; margin-top: 15px;`;
-    const buttonStyle = `flex: 1; padding: 8px; border: none; border-radius: 4px; background: #4361ee; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1); font-size: 0.9rem;`;
+    const buttonStyle = `flex: 1; padding: 8px; border: none; border-radius: 4px; background: ${this.actBtnColor}; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1); font-size: 0.9rem;`;
 
     const html = `<div style="${controlsStyle}">
         <div style="${controlGroupStyle}">
@@ -214,41 +228,69 @@ export class UiClippingSlider {
   }
 
   private eventBtn() {
-    const useBVH = this.container.querySelector('#useBVH') as HTMLDivElement;
-    const helperBVH = this.container.querySelector('#helperBVH') as HTMLDivElement;
-    const model = this.container.querySelector('#model') as HTMLDivElement;
-    const wireframe = this.container.querySelector('#wireframe') as HTMLDivElement;
-    const invert = this.container.querySelector('#invert') as HTMLDivElement;
-    const showPlane = this.container.querySelector('#showPlane') as HTMLDivElement;
+    this.useBVH = this.container.querySelector('#useBVH') as HTMLDivElement;
+    this.helperBVH = this.container.querySelector('#helperBVH') as HTMLDivElement;
+    this.model = this.container.querySelector('#model') as HTMLDivElement;
+    this.wireframe = this.container.querySelector('#wireframe') as HTMLDivElement;
+    this.invert = this.container.querySelector('#invert') as HTMLDivElement;
+    this.showPlane = this.container.querySelector('#showPlane') as HTMLDivElement;
 
-    useBVH.onmousedown = () => {
+    this.useBVH.onmousedown = () => {
       const act = !threeApp.clippingBvh.getUseBVH();
       threeApp.clippingBvh.setUseBVH(act);
+
+      this.useBVH.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
-    helperBVH.onmousedown = () => {
+    this.helperBVH.onmousedown = () => {
       const act = !threeApp.clippingBvh.getHelperBVH();
       threeApp.clippingBvh.setHelperBVH(act);
+
+      this.helperBVH.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
-    model.onmousedown = () => {
+    this.model.onmousedown = () => {
       const act = !threeApp.clippingBvh.getModel();
       threeApp.clippingBvh.setModel(act);
+
+      this.model.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
-    wireframe.onmousedown = () => {
+    this.wireframe.onmousedown = () => {
       const act = !threeApp.clippingBvh.getWireframe();
       threeApp.clippingBvh.setWireframe(act);
+
+      this.wireframe.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
-    invert.onmousedown = () => {
+    this.invert.onmousedown = () => {
       const act = !threeApp.clippingBvh.getInvertPlane();
       threeApp.clippingBvh.setInvertPlane(act);
+
+      this.invert.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
-    showPlane.onmousedown = () => {
+    this.showPlane.onmousedown = () => {
       const act = !threeApp.clippingBvh.getShowPlane();
       threeApp.clippingBvh.setShowPlane(act);
+
+      this.showPlane.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
+  }
+
+  private setStartColorBtns() {
+    this.useBVH.style.background = threeApp.clippingBvh.getUseBVH() ? this.actBtnColor : this.deActBtnColor;
+    this.helperBVH.style.background = threeApp.clippingBvh.getHelperBVH() ? this.actBtnColor : this.deActBtnColor;
+    this.model.style.background = threeApp.clippingBvh.getModel() ? this.actBtnColor : this.deActBtnColor;
+    this.wireframe.style.background = threeApp.clippingBvh.getWireframe() ? this.actBtnColor : this.deActBtnColor;
+    this.showPlane.style.background = threeApp.clippingBvh.getShowPlane() ? this.actBtnColor : this.deActBtnColor;
+  }
+
+  public showSlider() {
+    this.container.style.display = '';
+  }
+
+  public hideSlider() {
+    this.container.style.display = 'none';
   }
 }

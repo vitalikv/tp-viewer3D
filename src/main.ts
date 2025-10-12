@@ -1,5 +1,5 @@
 import { threeApp } from './three/threeApp';
-import { mainUi } from './ui/mainUi';
+import { uiMain } from './ui/uiMain';
 
 // export class ViewerApp {
 //   constructor() {
@@ -10,4 +10,4 @@ import { mainUi } from './ui/mainUi';
 // new ViewerApp();
 
 threeApp;
-mainUi.init();
+uiMain.init();
