@@ -9,16 +9,14 @@ type MeshBVHEntry = {
 };
 
 export class ClippingBvh {
-  private model: THREE.Object3D;
+  private model: THREE.Object3D | null = null;
   private meshBvhs: MeshBVHEntry[] = [];
-  private clippingPlanes: THREE.Plane[] | [] = [];
+  private clippingPlanes: THREE.Plane[] = [];
   private planeMesh: THREE.Mesh | null = null;
   private outlineLines: THREE.LineSegments | null = null;
-  private lines: THREE.LineSegments[] | [] = [];
-  private wireframeModel: THREE.Object3D;
-  private actHelperBVH: boolean;
-
-  private outputElement: HTMLElement | null = null;
+  private lines: THREE.LineSegments[] = [];
+  private wireframeModel: THREE.Object3D | null = null;
+  private actHelperBVH: boolean = false;
 
   private tempVector = new THREE.Vector3();
   private tempVector1 = new THREE.Vector3();
@@ -42,13 +40,13 @@ export class ClippingBvh {
     showPlane: true,
   };
 
-  public initClipping({ model }) {
+  public initClipping({ model }: { model: THREE.Object3D }) {
+    this.destroy();
+
     this.model = model;
-    this.lines = [];
 
     this.clippingPlanes = [new THREE.Plane()];
 
-    // Вычисляем ограничивающую рамку модели
     this.calculateModelBounds(model);
 
     this.createPlaneMesh();
@@ -62,11 +60,6 @@ export class ClippingBvh {
   private calculateModelBounds(model: THREE.Object3D) {
     this.modelBoundingBox = new THREE.Box3();
     this.modelBoundingBox.setFromObject(model);
-
-    console.log('Model bounds:', {
-      min: this.modelBoundingBox.min,
-      max: this.modelBoundingBox.max,
-    });
   }
 
   private createWireframe(model: THREE.Object3D) {
@@ -126,22 +119,23 @@ export class ClippingBvh {
     this.outlineLines.frustumCulled = false;
     this.outlineLines.renderOrder = 3;
 
-    // Добавим в сцену сразу в мировом пространстве (чтобы писать туда мировые координаты)
     threeApp.sceneManager.scene.add(this.outlineLines);
   }
 
-  //Строим BVH для каждого Mesh.
-  private compositeModelBvh(modelRoot) {
+  private compositeModelBvh(modelRoot: THREE.Object3D) {
     modelRoot.updateMatrixWorld(true);
 
-    // найдем все меши
     const meshes: THREE.Mesh[] = [];
-    modelRoot.traverse((c) => {
-      if ((c as THREE.LineSegments).isLineSegments && c.visible) {
-        c.visible = false;
-        this.lines.push(c);
+    this.lines = [];
+
+    modelRoot.traverse((child) => {
+      if (child instanceof THREE.LineSegments && child.visible) {
+        child.visible = false;
+        this.lines.push(child);
       }
-      if ((c as THREE.Mesh).isMesh) meshes.push(c as THREE.Mesh);
+      if (child instanceof THREE.Mesh && child.visible) {
+        meshes.push(child);
+      }
     });
 
     this.meshBvhs = [];
@@ -158,7 +152,6 @@ export class ClippingBvh {
         (geom as any).boundsTree = bvh;
       }
 
-      // назначаем плоскости обрезки на материалы, чтобы модель реально резалась
       this.assignClippingToMaterial(mesh.material);
 
       if (bvh) this.meshBvhs.push({ mesh, bvh, helper: null });
@@ -176,72 +169,60 @@ export class ClippingBvh {
       helper.depth = parseInt(String(this.params.helperDepth));
       helper.update();
 
-      item.helper = helper; // обновляем значение в массиве
+      item.helper = helper;
 
       threeApp.sceneManager.scene.add(helper);
     });
   }
 
-  /** Поддержка массива материалов и одиночного материала */
   private assignClippingToMaterial(mat: THREE.Material | THREE.Material[]) {
-    if (!this.clippingPlanes) return;
-    const apply = (m: any) => {
-      // Material не имеет в типе clippingPlanes, поэтому cast to any
-      m.clippingPlanes = this.clippingPlanes;
-      m.needsUpdate = true;
-    };
+    if (!this.clippingPlanes.length) return;
 
-    if (Array.isArray(mat)) {
-      for (const m of mat) apply(m);
-    } else {
-      apply(mat as any);
-    }
+    const materials = Array.isArray(mat) ? mat : [mat];
+
+    materials.forEach((material) => {
+      if ('clippingPlanes' in material) {
+        (material as any).clippingPlanes = this.clippingPlanes;
+        (material as any).needsUpdate = true;
+      }
+    });
   }
 
   public performClipping() {
     if (!this.meshBvhs.length || !this.outlineLines || !this.clippingPlanes || !this.planeMesh) return;
 
-    // вычисляем мировую плоскость
     const clippingPlaneWorld = this.clippingPlanes[0];
     clippingPlaneWorld.normal.set(0, 0, this.params.invertPlane ? 1 : -1);
     clippingPlaneWorld.constant = 0;
     clippingPlaneWorld.applyMatrix4(this.planeMesh.matrixWorld);
 
-    // общая позиция для чуть-сдвига линий (чтобы не z-fight)
     this.outlineLines.position.copy(clippingPlaneWorld.normal).multiplyScalar(-0.00001);
 
     const posAttr = this.outlineLines.geometry.attributes.position as THREE.BufferAttribute;
     let index = 0;
     const maxVerts = posAttr.count;
 
-    const startTime = performance.now();
-    console.log(this.params.useBVH);
     for (const entry of this.meshBvhs) {
       const mesh = entry.mesh;
       const bvh = entry.bvh;
 
-      // переводим плоскость в локальное пространство меша для shapecast
       this.inverseMatrix.copy(mesh.matrixWorld).invert();
       this.localPlane.copy(clippingPlaneWorld).applyMatrix4(this.inverseMatrix);
 
-      // shapecast по BVH меша
       bvh.shapecast({
-        intersectsBounds: (box) => (this.params.useBVH ? this.localPlane.intersectsBox(box) : CONTAINED),
-        intersectsTriangle: (tri) => {
+        intersectsBounds: (box: THREE.Box3) => (this.params.useBVH ? this.localPlane.intersectsBox(box) : CONTAINED),
+        intersectsTriangle: (tri: any) => {
           let count = 0;
 
-          // AB
           this.tempLine.start.copy(tri.a);
           this.tempLine.end.copy(tri.b);
           if (this.localPlane.intersectLine(this.tempLine, this.tempVector)) {
-            // !!!!! ВАЖНО: преобразовать точку в мировые координаты перед записью
             this.tempVector.applyMatrix4(mesh.matrixWorld);
             if (index < maxVerts) posAttr.setXYZ(index, this.tempVector.x, this.tempVector.y, this.tempVector.z);
             index++;
             count++;
           }
 
-          // BC
           this.tempLine.start.copy(tri.b);
           this.tempLine.end.copy(tri.c);
           if (this.localPlane.intersectLine(this.tempLine, this.tempVector)) {
@@ -251,7 +232,6 @@ export class ClippingBvh {
             count++;
           }
 
-          // CA
           this.tempLine.start.copy(tri.c);
           this.tempLine.end.copy(tri.a);
           if (this.localPlane.intersectLine(this.tempLine, this.tempVector)) {
@@ -261,7 +241,6 @@ export class ClippingBvh {
             count++;
           }
 
-          // корректировка трёх пересечений (как в оригинале)
           if (count === 3) {
             this.tempVector1.fromBufferAttribute(posAttr as any, index - 3);
             this.tempVector2.fromBufferAttribute(posAttr as any, index - 2);
@@ -282,21 +261,14 @@ export class ClippingBvh {
       });
     }
 
-    // выставляем диапазон отрисовки
     this.outlineLines.geometry.setDrawRange(0, index);
     posAttr.needsUpdate = true;
-
-    const delta = performance.now() - startTime;
-    if (this.outputElement) this.outputElement.innerText = `${delta.toFixed(3)}ms`;
   }
 
-  //---
-
-  // Метод для полного уничтожения (если нужно пересоздать)
   public destroy() {
     this.disableClipping();
 
-    // Дополнительная очистка
+    this.model = null;
     this.meshBvhs = [];
     this.clippingPlanes = [];
 
@@ -310,14 +282,12 @@ export class ClippingBvh {
   }
 
   private disableClipping() {
-    // Удаляем плоскость отсечения из сцены
     if (this.planeMesh) {
       this.disposeObj(this.planeMesh);
       this.planeMesh.removeFromParent();
       this.planeMesh = null;
     }
 
-    // Удаляем контуры из сцены
     if (this.outlineLines) {
       this.disposeObj(this.outlineLines);
       this.outlineLines.removeFromParent();
@@ -330,7 +300,6 @@ export class ClippingBvh {
       this.wireframeModel = null;
     }
 
-    // Удаляем BVH хелперы из сцены
     this.meshBvhs.forEach((entry) => {
       if (entry.helper) {
         this.disposeObj(entry.helper);
@@ -338,13 +307,10 @@ export class ClippingBvh {
       }
     });
 
-    // Очищаем плоскости отсечения у всех материалов
     this.removeClippingFromMaterials();
   }
 
-  // Вспомогательный метод для удаления clipping planes из материалов
   private removeClippingFromMaterials() {
-    // Проходим по всем мешам и убираем clipping planes
     this.meshBvhs.forEach((entry) => {
       const mesh = entry.mesh;
       const mat = mesh.material;
@@ -361,19 +327,15 @@ export class ClippingBvh {
     });
   }
 
-  //----
-
-  private disposeObj(obj: THREE.Object3D) {
-    obj.traverse((child: THREE.Object3D | THREE.LineSegments | THREE.Line) => {
+  private disposeObj(obj: THREE.Object3D): void {
+    obj.traverse((child) => {
       if ((child instanceof THREE.Mesh || child instanceof THREE.LineSegments || child instanceof THREE.Line) && child.geometry) {
         child.geometry.dispose();
 
         if (child.material) {
-          if (Array.isArray(child.material)) {
-            child.material.forEach((m: THREE.Material) => this.disposeMaterial(m));
-          } else {
-            this.disposeMaterial(child.material);
-          }
+          const materials = Array.isArray(child.material) ? child.material : [child.material];
+
+          materials.forEach((material) => this.disposeMaterial(material));
         }
       }
     });
@@ -390,9 +352,6 @@ export class ClippingBvh {
     });
   }
 
-  //----
-
-  // Добавьте эти методы для управления плоскостью
   public setPlanePosition(x: number, y: number, z: number) {
     if (!this.planeMesh || !this.modelBoundingBox) return;
 
@@ -405,7 +364,6 @@ export class ClippingBvh {
     const normalizedY = y / 50 - 1;
     const normalizedZ = z / 50 - 1;
 
-    // Вычисляем позицию с учетом размера объекта
     const posX = center.x + normalizedX * (size.x / 2);
     const posY = center.y + normalizedY * (size.y / 2);
     const posZ = center.z + normalizedZ * (size.z / 2);
@@ -417,7 +375,6 @@ export class ClippingBvh {
   public setPlaneRotation(x: number, y: number, z: number) {
     if (!this.planeMesh) return;
 
-    // Преобразуем градусы в радианы
     const radX = (x * Math.PI) / 180;
     const radY = (y * Math.PI) / 180;
     const radZ = (z * Math.PI) / 180;
@@ -432,13 +389,10 @@ export class ClippingBvh {
     const center = new THREE.Vector3();
     this.modelBoundingBox.getCenter(center);
 
-    // Устанавливаем плоскость в центр объекта
     this.planeMesh.position.copy(center);
     this.planeMesh.rotation.set(0, 0, 0);
     this.planeMesh.updateMatrixWorld();
   }
-
-  //----
 
   public getUseBVH() {
     return this.params.useBVH;
@@ -461,7 +415,7 @@ export class ClippingBvh {
       this.createHelperBvh();
 
       this.meshBvhs.forEach((item) => {
-        item.helper.visible = true;
+        if (item.helper) item.helper.visible = true;
       });
     } else {
       this.meshBvhs.forEach((item) => {
@@ -499,9 +453,11 @@ export class ClippingBvh {
       this.createWireframe(this.model);
     }
 
-    this.wireframeModel.traverse((obj) => {
-      obj.visible = this.params.wireframeDisplay;
-    });
+    if (this.wireframeModel) {
+      this.wireframeModel.traverse((obj) => {
+        obj.visible = this.params.wireframeDisplay;
+      });
+    }
 
     this.performClipping();
     threeApp.sceneManager.render();
@@ -525,7 +481,9 @@ export class ClippingBvh {
     this.params.showPlane = enabled;
 
     const material = this.params.showPlane ? this.matPlane1 : this.matPlane2;
-    this.planeMesh.material = material;
+    if (this.planeMesh) {
+      this.planeMesh.material = material;
+    }
 
     this.performClipping();
     threeApp.sceneManager.render();
