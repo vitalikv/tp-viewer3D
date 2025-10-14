@@ -11,6 +11,9 @@ export class SelectionManager {
   private static lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, depthTest: false, opacity: 0.1 });
 
   public static setMergedObjects(meshes: THREE.Mesh[], lines: (THREE.Line | THREE.LineSegments)[]) {
+    this.meshMaterial.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
+    this.meshMaterial.needsUpdate = true;
+
     this.mergedMeshes.clear();
     this.mergedLines.clear();
     this.objectByUuid.clear();

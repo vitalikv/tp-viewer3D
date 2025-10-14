@@ -84,6 +84,19 @@ export class ModelLoader {
         if (merge) {
           model = InitMergedModel.init({ model });
         } else {
+          model.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              const material = child.material;
+
+              if (material) {
+                const materials = Array.isArray(material) ? material : [material];
+                materials.forEach((material) => {
+                  material.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
+                });
+              }
+            }
+          });
+
           threeApp.bvhManager.setupBVH(model);
         }
 

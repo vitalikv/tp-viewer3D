@@ -45,7 +45,7 @@ export class ClippingBvh {
 
     this.model = model;
 
-    this.clippingPlanes = [new THREE.Plane()];
+    this.clippingPlanes.push(new THREE.Plane());
 
     this.calculateModelBounds(model);
 
@@ -108,6 +108,10 @@ export class ClippingBvh {
     threeApp.sceneManager.scene.add(this.planeMesh);
   }
 
+  public getClippingPlanes() {
+    return this.clippingPlanes;
+  }
+
   private createOutlineLines() {
     const lineGeometry = new THREE.BufferGeometry();
     const positionAttr = new THREE.BufferAttribute(new Float32Array(300000), 3);
@@ -126,7 +130,7 @@ export class ClippingBvh {
     modelRoot.updateMatrixWorld(true);
 
     const meshes: THREE.Mesh[] = [];
-    this.lines = [];
+    this.lines.length = 0;
 
     modelRoot.traverse((child) => {
       if (child instanceof THREE.LineSegments && child.visible) {
@@ -266,22 +270,10 @@ export class ClippingBvh {
   }
 
   public destroy() {
-    this.disableClipping();
-
     this.model = null;
-    this.meshBvhs = [];
-    this.clippingPlanes = [];
 
-    this.lines.forEach((line) => {
-      line.visible = true;
-    });
+    this.clippingPlanes.length = 0;
 
-    this.lines = [];
-
-    threeApp.sceneManager.render();
-  }
-
-  private disableClipping() {
     if (this.planeMesh) {
       this.disposeObj(this.planeMesh);
       this.planeMesh.removeFromParent();
@@ -301,30 +293,28 @@ export class ClippingBvh {
     }
 
     this.meshBvhs.forEach((entry) => {
-      if (entry.helper) {
-        this.disposeObj(entry.helper);
-        entry.helper.removeFromParent();
-      }
-    });
+      const material = entry.mesh.material;
+      const helper = entry.helper;
 
-    this.removeClippingFromMaterials();
-  }
-
-  private removeClippingFromMaterials() {
-    this.meshBvhs.forEach((entry) => {
-      const mesh = entry.mesh;
-      const mat = mesh.material;
-
-      if (Array.isArray(mat)) {
-        mat.forEach((m) => {
-          (m as any).clippingPlanes = [];
-          (m as any).needsUpdate = true;
+      if (material) {
+        const materials = Array.isArray(material) ? material : [material];
+        materials.forEach((material) => {
+          this.disposeMaterial(material);
         });
-      } else {
-        (mat as any).clippingPlanes = [];
-        (mat as any).needsUpdate = true;
+      }
+      if (helper) {
+        this.disposeObj(helper);
+        helper.removeFromParent();
       }
     });
+    this.meshBvhs.length = 0;
+
+    this.lines.forEach((line) => {
+      line.visible = true;
+    });
+    this.lines.length = 0;
+
+    threeApp.sceneManager.render();
   }
 
   private disposeObj(obj: THREE.Object3D): void {

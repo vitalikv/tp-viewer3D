@@ -216,6 +216,8 @@ export class MouseManager {
     const material = new THREE.MeshStandardMaterial({ color, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
     const baseMat2 = new THREE.LineBasicMaterial({ color, transparent: true, depthTest: false, opacity: 0.1 });
 
+    material.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
+
     if (objs.length === 0) objs = [obj]; // если нет в структуре gltf
     console.time('setMergedObjects');
     objs.forEach((obj) => {

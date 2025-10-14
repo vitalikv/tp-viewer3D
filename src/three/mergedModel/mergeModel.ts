@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { threeApp } from '../threeApp';
 
 export class MergeModel {
   private static readonly tempVector = new THREE.Vector3();
@@ -66,6 +67,8 @@ export class MergeModel {
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
 
       materials.forEach((material, idx) => {
+        material.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
+
         const key = material.uuid || `mat_${idx}`;
 
         if (!materialGroups.has(key)) {
