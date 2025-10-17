@@ -313,8 +313,6 @@ export class ClippingBvh {
       line.visible = true;
     });
     this.lines.length = 0;
-
-    threeApp.sceneManager.render();
   }
 
   private disposeObj(obj: THREE.Object3D): void {

@@ -24,6 +24,7 @@ export class UiClippingButton {
       uiMain.uiClippingSlider.showSlider();
     } else {
       threeApp.clippingBvh.destroy();
+      threeApp.sceneManager.render();
 
       uiMain.uiClippingSlider.hideSlider();
     }
