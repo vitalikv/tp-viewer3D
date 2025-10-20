@@ -41,9 +41,9 @@ class ThreeApp {
       this.bvhManager = new BVHManager();
       this.clippingBvh = new ClippingBvh();
 
-      // this.effectsManager = new EffectsManager();
-      // this.effectsManager.init({ scene: this.sceneManager.scene, camera: this.sceneManager.camera, renderer: this.sceneManager.renderer, container });
-      // this.outlineSelection.init({ outlinePass: this.effectsManager.outlinePass, composer: this.effectsManager.composer });
+      this.effectsManager = new EffectsManager();
+      this.effectsManager.init({ scene: this.sceneManager.scene, camera: this.sceneManager.camera, renderer: this.sceneManager.renderer, container });
+      this.outlineSelection.init({ outlinePass: this.effectsManager.outlinePass, composer: this.effectsManager.composer });
       this.mouseManager.init(this.sceneManager.scene, this.sceneManager.camera, this.sceneManager.renderer.domElement);
       this.bvhManager.init();
 

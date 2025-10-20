@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { threeApp } from '../threeApp';
 import { SelectionAdapter } from './selectionAdapter';
+import { OutlineSelection } from './outlineSelection';
 
 export class SelectionManager {
   private static originalMaterials = new Map<string, THREE.Material | THREE.Material[]>();
@@ -99,6 +100,8 @@ export class SelectionManager {
     const targetMeshes = this.mergedMeshes.get(targetUuid) || [];
     const targetLines = this.mergedLines.get(targetUuid) || [];
 
+    OutlineSelection.createOutlineMeshes(targetUuid, this.mergedMeshes);
+
     [...targetMeshes, ...targetLines].forEach((mesh) => {
       const geometry = mesh.geometry;
 
@@ -158,5 +161,8 @@ export class SelectionManager {
     });
 
     this.originalMaterials.clear();
+
+    OutlineSelection.clearOutlineMeshes();
+    console.log('----------');
   }
 }

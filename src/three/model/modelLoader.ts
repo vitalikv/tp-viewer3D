@@ -137,8 +137,8 @@ export class ModelLoader {
   }
 
   async loadJSON() {
-    const response = await fetch('./assets/СЕ-00-00 - Сборка - A.1 (1).json'); // путь к вашему файлу
-    //const response = await fetch('./assets/ТРР-1-000 - Транспортер - A.1 (5).json');
+    //const response = await fetch('./assets/СЕ-00-00 - Сборка - A.1 (1).json'); // путь к вашему файлу
+    const response = await fetch('./assets/ТРР-1-000 - Транспортер - A.1 (5).json');
     //const response = await fetch('./assets/ТРДДФ-1-000 - Двигатель - A.1.json');
 
     const jsonData = await response.json();
