@@ -29,7 +29,7 @@ export class UiClippingSlider {
   private crDivSlider() {
     let div = document.createElement('div');
     div.innerHTML = this.html();
-    div = div.children[0] as HTMLElement;
+    div = div.children[0] as HTMLDivElement;
 
     return div;
   }

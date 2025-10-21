@@ -5,6 +5,7 @@ import Stats from 'stats.js';
 import { threeApp } from '../threeApp';
 import { CameraManager } from './cameraManager';
 import { ViewCube } from './viewCube';
+import { uiMain } from '../../ui/uiMain';
 
 export class SceneManager {
   stats = null;
@@ -225,15 +226,17 @@ export class SceneManager {
     if (threeApp.clippingBvh) threeApp.clippingBvh.performClipping();
     // не работает при вкл renderWorker
     if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
-      threeApp.effectsManager.render();
+      const renderCalls = threeApp.effectsManager.render();
+
+      uiMain.uiDrawCallsDiv?.updateText(renderCalls);
     } else {
       const camera = this.cameraManager.getActiveCamera();
       this.renderer.render(this.scene, camera);
+
+      uiMain.uiDrawCallsDiv?.updateText(this.renderer.info.render.calls);
     }
 
     this.controls.update();
-
-    console.log(this.renderer.info.render.calls);
 
     this.stats.end();
   }

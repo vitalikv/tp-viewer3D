@@ -1,13 +1,19 @@
 import { UiClippingButton } from './uiClippingButton';
 import { UiClippingSlider } from './uiClippingSlider';
+import { UiDrawCallsDiv } from './uiDrawCallsDiv';
 
 class MainUi {
   public uiClippingSlider: UiClippingSlider;
+  public uiDrawCallsDiv: UiDrawCallsDiv;
 
   public init() {
-    new UiClippingButton('btn-clipping');
+    const container = document.body.querySelector('#container') as HTMLDivElement;
 
+    new UiClippingButton('btn-clipping');
     this.uiClippingSlider = new UiClippingSlider();
+
+    this.uiDrawCallsDiv = new UiDrawCallsDiv();
+    this.uiDrawCallsDiv.init(container);
   }
 }
 

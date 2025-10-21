@@ -142,8 +142,19 @@ export class EffectsManager {
     }
   }
 
-  public render() {
+  public render(): number {
+    let totalCalls = 0;
+
+    const originalRender = this.renderer.render;
+    this.renderer.render = (scene: THREE.Scene, camera: THREE.Camera, ...args: any[]) => {
+      originalRender.call(this.renderer, scene, camera, ...args);
+      totalCalls += this.renderer.info.render.calls;
+      this.renderer.info.reset();
+    };
     this.composer.render();
+    this.renderer.render = originalRender;
+
+    return totalCalls;
   }
 
   public dispose() {
