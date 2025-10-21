@@ -25,10 +25,12 @@ export class ClippingBvh {
   private tempLine = new THREE.Line3();
   private inverseMatrix = new THREE.Matrix4();
   private localPlane = new THREE.Plane();
+  private posPlane = new THREE.Vector3(50, 50, 50);
+  private rotPlane = new THREE.Vector3(0, 0, 0);
 
   private modelBoundingBox: THREE.Box3 | null = null;
   private matPlane1 = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true, opacity: 0.3, color: 0x80deea, depthWrite: false });
-  private matPlane2 = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, stencilWrite: true, stencilFunc: THREE.NotEqualStencilFunc, stencilFail: THREE.ZeroStencilOp, stencilZFail: THREE.ZeroStencilOp, stencilZPass: THREE.ZeroStencilOp });
+  private matPlane2 = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, stencilWrite: true, stencilFunc: THREE.NotEqualStencilFunc, stencilFail: THREE.ZeroStencilOp, stencilZFail: THREE.ZeroStencilOp, stencilZPass: THREE.ZeroStencilOp, transparent: true, opacity: 0.0 });
 
   private params = {
     useBVH: true,
@@ -106,6 +108,9 @@ export class ClippingBvh {
     (this.planeMesh.material as THREE.MeshBasicMaterial).color.set(0x80deea);
     this.planeMesh.renderOrder = 2;
     threeApp.sceneManager.scene.add(this.planeMesh);
+
+    this.setPlanePosition(this.posPlane.x, this.posPlane.y, this.posPlane.z);
+    this.setPlaneRotation(this.rotPlane.x, this.rotPlane.y, this.rotPlane.z);
   }
 
   public getClippingPlanes() {
@@ -315,7 +320,7 @@ export class ClippingBvh {
     this.lines.length = 0;
   }
 
-  private disposeObj(obj: THREE.Object3D): void {
+  private disposeObj(obj: THREE.Object3D) {
     obj.traverse((child) => {
       if ((child instanceof THREE.Mesh || child instanceof THREE.LineSegments || child instanceof THREE.Line) && child.geometry) {
         child.geometry.dispose();
@@ -341,6 +346,8 @@ export class ClippingBvh {
   }
 
   public setPlanePosition(x: number, y: number, z: number) {
+    this.posPlane.set(x, y, z);
+
     if (!this.planeMesh || !this.modelBoundingBox) return;
 
     const center = new THREE.Vector3();
@@ -361,25 +368,23 @@ export class ClippingBvh {
   }
 
   public setPlaneRotation(x: number, y: number, z: number) {
+    this.rotPlane.set(x, y, z);
+
     if (!this.planeMesh) return;
 
-    const radX = (x * Math.PI) / 180;
-    const radY = (y * Math.PI) / 180;
-    const radZ = (z * Math.PI) / 180;
+    const rotX = (x * Math.PI) / 180;
+    const rotY = (y * Math.PI) / 180;
+    const rotZ = (z * Math.PI) / 180;
 
-    this.planeMesh.rotation.set(radX, radY, radZ);
+    this.planeMesh.rotation.set(rotX, rotY, rotZ);
     this.planeMesh.updateMatrixWorld();
   }
 
   public resetPlane() {
     if (!this.planeMesh || !this.modelBoundingBox) return;
 
-    const center = new THREE.Vector3();
-    this.modelBoundingBox.getCenter(center);
-
-    this.planeMesh.position.copy(center);
-    this.planeMesh.rotation.set(0, 0, 0);
-    this.planeMesh.updateMatrixWorld();
+    this.setPlanePosition(50, 50, 50);
+    this.setPlaneRotation(0, 0, 0);
   }
 
   public getUseBVH() {
