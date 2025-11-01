@@ -12,8 +12,10 @@ export class MergeModel {
     const group = new THREE.Group();
     const groupMeshes = new THREE.Group();
     const groupLines = new THREE.Group();
-    groupMeshes.add(...mergedMeshes);
-    groupLines.add(...mergedLines);
+
+    if (mergedMeshes.length > 0) groupMeshes.add(...mergedMeshes);
+    if (mergedLines.length > 0) groupLines.add(...mergedLines);
+
     group.add(groupMeshes, groupLines);
 
     return { group };

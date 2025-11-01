@@ -75,7 +75,7 @@ export class ModelLoader {
       async (gltf) => {
         let model = gltf.scene;
 
-        this.initData = new InitData({ structure: gltf.parser.json.extras.tflex.structure, gltf });
+        this.initData = new InitData({ structure: gltf.parser.json.extras?.tflex.structure, gltf });
 
         this.centerModel(model);
 
@@ -136,17 +136,16 @@ export class ModelLoader {
     threeApp.sceneManager.controls.update();
   }
 
-  async loadJSON() {
-    //const response = await fetch('./assets/СЕ-00-00 - Сборка - A.1 (1).json'); // путь к вашему файлу
+  private async loadJSON() {
+    //const response = await fetch('./assets/СЕ-00-00 - Сборка - A.1 (1).json');
     const response = await fetch('./assets/ТРР-1-000 - Транспортер - A.1 (5).json');
     //const response = await fetch('./assets/ТРДДФ-1-000 - Двигатель - A.1.json');
+    //const response = await fetch('./assets/РП.00.00 - Редуктор планетарный  - A.1.json');
 
     const jsonData = await response.json();
     console.log('Загруженный JSON:', jsonData);
 
     this.json2 = jsonData;
-
-    return jsonData;
   }
 
   public dispose() {

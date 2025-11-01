@@ -8,6 +8,8 @@ export class InitData {
   private tree = [];
 
   constructor({ structure, gltf }) {
+    if (!structure) return;
+
     const transform: DataTransformStructure = new DataTransformStructure(structure, gltf, new TransformActionIdx(), new Transform3DRefs(), new TransToTree());
 
     transform.findsChildrens();

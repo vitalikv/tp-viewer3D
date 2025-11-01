@@ -99,9 +99,11 @@ export class SelectedByData {
     console.log('jsonData', jsonData);
     console.log('itemJson', itemJson);
 
-    let nodes = [];
+    let nodes: any[] = [];
     if (itemJson?.guid) {
       nodes = this.getUIIDbyACIGuidandFragmentGuid('3d', jsonData, itemJson.guid);
+    } else {
+      nodes = [node];
     }
 
     return nodes;
