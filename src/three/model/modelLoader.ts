@@ -6,6 +6,9 @@ import { InitMergedModel } from '../mergedModel/initMergedModel';
 import { MergeEnvironmentUtils } from './mergeEnvironmentUtils';
 import { GltfStructure } from './gltfStructure';
 
+import { SelectionManager } from '../mergedModel/selectionManager';
+import { SelectionAdapter } from '../mergedModel/selectionAdapter';
+
 export class ModelLoader {
   private loader: GLTFLoader;
   private dracoLoader: DRACOLoader;
@@ -51,17 +54,47 @@ export class ModelLoader {
     return this.isWorker;
   }
 
-  public handleFileLoad = (e) => {
+  private findDuplicateGeometries(scene) {
+    const geometryMap = new Map();
+
+    scene.traverse((object) => {
+      if (object.isMesh && object.geometry) {
+        const geometry = object.geometry;
+        const geometryId = geometry.uuid;
+
+        if (!geometryMap.has(geometryId)) {
+          geometryMap.set(geometryId, {
+            geometry: geometry,
+            meshes: [],
+            type: geometry.type,
+            vertexCount: geometry.attributes.position?.count || 0,
+          });
+        }
+
+        geometryMap.get(geometryId).meshes.push(object);
+      }
+    });
+
+    // Фильтруем только дублирующиеся геометрии
+    const duplicates = Array.from(geometryMap.values())
+      .filter((entry) => entry.meshes.length > 1)
+      .sort((a, b) => b.meshes.length - a.meshes.length);
+
+    return duplicates;
+  }
+
+  public handleFileLoad = async (e) => {
     const contents = e.target.result;
 
-    // Конвертируем ArrayBuffer в строку
     const decoder = new TextDecoder('utf-8');
     const jsonString = decoder.decode(contents);
 
-    // Парсим JSON
+    let generator = '';
+
     try {
       const jsonData = JSON.parse(jsonString);
-      console.log('Распарсенный JSON:', jsonData);
+      generator = jsonData.asset.generator;
+      console.log('Распарсенный JSON:', generator, jsonData);
     } catch (err) {
       console.error('Ошибка парсинга JSON:', err);
     }
@@ -69,58 +102,47 @@ export class ModelLoader {
     const merge = this.getMerge();
     console.log('merge', merge);
 
-    this.loader.parse(
-      contents,
-      '',
-      async (gltf) => {
-        let model = gltf.scene;
+    const gltf = await this.loader.parseAsync(contents, './public/assets/opt/');
 
-        this.initData = new InitData({ structure: gltf.parser.json.extras?.tflex.structure, gltf });
+    let model = gltf.scene;
 
-        this.centerModel(model);
+    // Использование
+    const duplicateGeoms = this.findDuplicateGeometries(model);
+    console.log('Дублирующиеся геометрии:', duplicateGeoms);
 
-        //model = MergeEnvironmentUtils.mergeObj(model);
+    this.initData = new InitData({ structure: gltf.parser.json.extras?.tflex.structure, gltf });
 
-        if (merge) {
-          model = InitMergedModel.init({ model });
-        } else {
-          model.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              const material = child.material;
+    this.centerModel(model);
 
-              if (material) {
-                const materials = Array.isArray(material) ? material : [material];
-                materials.forEach((material) => {
-                  material.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
-                });
-              }
-            }
-          });
+    //model = MergeEnvironmentUtils.mergeObj(model);
 
-          threeApp.bvhManager.setupBVH(model);
-        }
+    const typeGenerator = /Optimized/.test(generator);
 
-        //console.log(gltf, contents);
+    if (typeGenerator) {
+      this.modelOptimized({ model });
+      console.log('модель оптимизированная на nodejs');
+    } else if (merge) {
+      model = this.modelMerged({ model });
+      console.log('модель смержена на клиенте');
+    } else {
+      this.simpleModel({ model });
+      console.log('модель без мержа');
+    }
 
-        threeApp.sceneManager.scene.add(model);
-        this.model = model;
-        this.jsonGltf = gltf;
+    threeApp.sceneManager.scene.add(model);
+    this.model = model;
+    this.jsonGltf = gltf;
 
-        if (1 === 2) {
-          const gltfStructure = new GltfStructure();
-          gltfStructure.initStructure({ gltf });
-          //await gltfStructure.selectedNode({ gltf, model, nodeId: 759 });
-        }
+    // if (1 === 2) {
+    //   const gltfStructure = new GltfStructure();
+    //   gltfStructure.initStructure({ gltf });
+    //   //await gltfStructure.selectedNode({ gltf, model, nodeId: 759 });
+    // }
 
-        threeApp.sceneManager.renderer.render(threeApp.sceneManager.scene, threeApp.sceneManager.camera);
-        // console.log(threeApp.sceneManager.renderer.info.programs);
-        // console.log(threeApp.sceneManager.renderer.info.render);
-        // console.log(threeApp.sceneManager.renderer.info.memory);
-      },
-      (error) => {
-        console.error('ошибка загрузки:', error);
-      }
-    );
+    threeApp.sceneManager.renderer.render(threeApp.sceneManager.scene, threeApp.sceneManager.camera);
+    // console.log(threeApp.sceneManager.renderer.info.programs);
+    // console.log(threeApp.sceneManager.renderer.info.render);
+    // console.log(threeApp.sceneManager.renderer.info.memory);
   };
 
   private centerModel(model) {
@@ -129,14 +151,86 @@ export class ModelLoader {
     model.position.sub(center);
 
     // Настраиваем камеру под размер модели
-    const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    threeApp.sceneManager.camera.position.z = maxDim * 1.5;
-    threeApp.sceneManager.controls.target.copy(center);
-    threeApp.sceneManager.controls.update();
+    // const size = box.getSize(new THREE.Vector3());
+    // const maxDim = Math.max(size.x, size.y, size.z);
+    // threeApp.sceneManager.camera.position.z = maxDim * 1.5;
+    // threeApp.sceneManager.controls.target.copy(center);
+    // threeApp.sceneManager.controls.update();
+  }
+
+  private modelOptimized({ model }) {
+    threeApp.bvhManager.setupBVH(model);
+
+    const group = model.children[0];
+    const groupMeshes = group.children[0];
+    const groupLines = group.children[1];
+    const allMeshes: THREE.Mesh[] = [];
+    const allLines: (THREE.Line | THREE.LineSegments)[] = [];
+
+    model.updateMatrixWorld(true);
+
+    groupMeshes.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        allMeshes.push(child);
+
+        const geometry = child.geometry;
+        if (geometry.userData.groups) {
+          const { groups } = geometry.userData;
+          geometry.groups = groups;
+        }
+      }
+    });
+
+    groupLines.traverse((child) => {
+      if (child instanceof THREE.Line || child instanceof THREE.LineSegments) {
+        allLines.push(child);
+
+        const geometry = child.geometry;
+        if (geometry.userData.groups) {
+          const { groups } = geometry.userData;
+          geometry.groups = groups;
+        }
+      }
+    });
+
+    allMeshes.forEach((mesh) => {
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+
+      materials.forEach((material) => {
+        material.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
+      });
+    });
+
+    SelectionManager.setMergedObjects(allMeshes, allLines);
+
+    SelectionAdapter.initializeCache();
+  }
+
+  private modelMerged({ model }) {
+    model = InitMergedModel.init({ model });
+
+    return model;
+  }
+
+  private simpleModel({ model }) {
+    model.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const material = child.material;
+
+        if (material) {
+          const materials = Array.isArray(material) ? material : [material];
+          materials.forEach((material) => {
+            material.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
+          });
+        }
+      }
+    });
+
+    threeApp.bvhManager.setupBVH(model);
   }
 
   private async loadJSON() {
+    //return;
     //const response = await fetch('./assets/СЕ-00-00 - Сборка - A.1 (1).json');
     const response = await fetch('./assets/ТРР-1-000 - Транспортер - A.1 (5).json');
     //const response = await fetch('./assets/ТРДДФ-1-000 - Двигатель - A.1.json');

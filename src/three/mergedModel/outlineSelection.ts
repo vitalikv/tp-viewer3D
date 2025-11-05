@@ -35,11 +35,15 @@ export class OutlineSelection {
 
         if (outlineGeometry) {
           const outlineMesh = new THREE.Mesh(outlineGeometry, this.outlineMaterial);
-          outlineMesh.position.copy(originalObject.position);
-          outlineMesh.rotation.copy(originalObject.rotation);
-          outlineMesh.scale.copy(originalObject.scale);
-          outlineMesh.matrix.copy(originalObject.matrix);
-          outlineMesh.matrixWorld.copy(originalObject.matrixWorld);
+          // outlineMesh.position.copy(originalObject.position);
+          // outlineMesh.rotation.copy(originalObject.rotation);
+          // outlineMesh.scale.copy(originalObject.scale);
+          // outlineMesh.matrix.copy(originalObject.matrix);
+          // outlineMesh.matrixWorld.copy(originalObject.matrixWorld);
+
+          const worldMatrix = originalObject.matrixWorld.clone();
+          outlineMesh.applyMatrix4(worldMatrix);
+          outlineMesh.matrixAutoUpdate = false;
 
           this.outlineMeshes.push(outlineMesh);
 

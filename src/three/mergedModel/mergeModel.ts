@@ -21,10 +21,7 @@ export class MergeModel {
     return { group };
   }
 
-  private static mergeGeometriesWithMaterials(model: THREE.Object3D): {
-    mergedMeshes: THREE.Mesh[];
-    mergedLines: (THREE.Line | THREE.LineSegments)[];
-  } {
+  private static mergeGeometriesWithMaterials(model: THREE.Object3D) {
     const meshEntries: { mesh: THREE.Mesh; worldMatrix: THREE.Matrix4 }[] = [];
     const lineEntries: { line: THREE.Line | THREE.LineSegments; worldMatrix: THREE.Matrix4; isLineSegments: boolean }[] = [];
 

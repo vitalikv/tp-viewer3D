@@ -204,21 +204,6 @@ export class SceneManager {
     this.scene.add(gridHelper);
   }
 
-  private startAnimationLoop() {
-    const animate = () => {
-      requestAnimationFrame(animate);
-      this.stats.begin();
-
-      const camera = this.cameraManager.getActiveCamera();
-      this.controls.update();
-      this.renderer.render(this.scene, camera);
-
-      this.stats.end();
-    };
-
-    animate();
-  }
-
   public render() {
     if (!this.renderer) return;
     this.stats.begin();
