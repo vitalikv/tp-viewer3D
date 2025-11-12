@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 //import { uiMain, sceneManager, effectsManager, controls, mouseManager } from '../../../index';
 import { threeApp } from '../threeApp';
+import { WatermarkFront } from '../render/watermark/watermarkFront';
 
 export class CameraManager {
   private container: HTMLElement;
@@ -69,6 +70,8 @@ export class CameraManager {
   }
 
   private handleResize = () => {
+    WatermarkFront.renderWatermark();
+
     const rect = threeApp.sceneManager.getClientRect();
 
     this.cam3D.aspect = rect.width / rect.height;

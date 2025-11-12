@@ -7,6 +7,8 @@ import { CameraManager } from './cameraManager';
 import { ViewCube } from './viewCube';
 import { uiMain } from '../../ui/uiMain';
 
+import { WatermarkFront } from '../render/watermark/watermarkFront';
+
 export class SceneManager {
   stats = null;
   container: HTMLElement | any;
@@ -26,6 +28,10 @@ export class SceneManager {
     this.initControls();
     this.initLights();
     this.initHelpers();
+
+    WatermarkFront.init(this.scene, this.container);
+
+    //watermark.init();
 
     // setInterval(() => {
     //   const start = performance.now();
@@ -68,7 +74,8 @@ export class SceneManager {
 
     const texture = this.createAdvancedGradient({
       color1: '#ffffff',
-      color2: '#c0c0c0',
+      color2: '#ffffff',
+      // color2: '#c0c0c0',
       direction: 'radial',
       transitionSharpness: 0.7, // Очень плавный
       transitionPoint: 0.4, // Центр
