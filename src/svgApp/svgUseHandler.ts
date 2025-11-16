@@ -15,7 +15,6 @@ export class SvgUseHandler {
     this.svg = svgElement;
     const drawingGroup = this.svg.querySelector<SVGGElement>('g#Drawing');
 
-    console.log(44444444, this.svg);
     if (!drawingGroup) {
       throw new Error('нету g#Drawing');
     }

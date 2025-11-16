@@ -1,4 +1,5 @@
 import { SvgUseHandler } from './svgUseHandler';
+import { WatermarkSvg } from './watermarkSvg';
 
 export class SvgApp {
   public createSvgPage(svgHTML: string) {
@@ -13,5 +14,8 @@ export class SvgApp {
     divSvgContainer.innerHTML = svgHTML;
 
     new SvgUseHandler(divSvgContainer.children[0] as SVGElement);
+
+    const watermarkSvg = new WatermarkSvg();
+    watermarkSvg.addWatermark(divSvgContainer);
   }
 }
