@@ -2,7 +2,7 @@ import { SvgUseHandler } from './svgUseHandler';
 import { WatermarkSvg } from './watermarkSvg';
 
 export class SvgApp {
-  public createSvgPage(svgHTML: string) {
+  public async createSvgPage(svgHTML: string) {
     const divSvgContainer = document.createElement('div');
     document.getElementById('container')?.append(divSvgContainer);
 
@@ -13,9 +13,15 @@ export class SvgApp {
     divSvgContainer.style.background = '#ffffff';
     divSvgContainer.innerHTML = svgHTML;
 
-    new SvgUseHandler(divSvgContainer.children[0] as SVGElement);
+    const svg = divSvgContainer.children[0] as SVGElement;
+    svg.style.position = 'absolute';
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+    svg.style.top = '0';
+    svg.style.background = '#ffffff';
 
-    const watermarkSvg = new WatermarkSvg();
-    watermarkSvg.addWatermark(divSvgContainer);
+    new SvgUseHandler(svg);
+
+    WatermarkSvg.addWatermark(divSvgContainer);
   }
 }

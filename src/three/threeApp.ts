@@ -6,6 +6,7 @@ import { BVHManager } from './bvh/bvhManager';
 import { ClippingBvh } from './clipping/clippingBvh';
 import { EffectsManager } from './core/effectsManager';
 import { OutlineSelection } from './mouse/outlineSelection';
+import { WatermarkCanvas, IWatermarkParams } from '../watermark/watermarkCanvas';
 
 import { ModelFileLoader2 } from './loaders/workers/modelFileLoader2';
 import { RenderWorker } from './render/initRenderWorker';
@@ -23,10 +24,12 @@ class ThreeApp {
 
   constructor() {}
 
-  init() {
+  async init() {
     let isRenderWorker = false;
 
     const container = document.getElementById('container');
+
+    await this.initWatermark();
 
     if (isRenderWorker) {
       new ModelFileLoader2();
@@ -49,6 +52,26 @@ class ThreeApp {
 
       this.modelLoader.setMerge({ merge: true });
     }
+  }
+
+  private initWatermark() {
+    const params: IWatermarkParams = {
+      contentType: 'datetime', // 'datetime' | 'text' показывать время или текст
+      text: '', // если указанно в contentType: 'text', то можно задать свой текст
+      textColor: '#000000', // цвет текста
+      opacityText: 0.7, // прозрачность текста
+      opacityLogo: 0.3, // прозрачность логотипа
+      fontSize: 16, // размер текста
+      width: 150,
+      height: 100,
+      urlLogo: './assets/watermark/application.svg', // ссылка на логотип
+      //urlLogo: 'https://static.tildacdn.com/tild6339-3233-4234-a137-643165663664/logo_rosatom.png',
+      scaleLogo: 2, // насколько увеличить логотип (масштаб)
+      padding: 0,
+      spacing: 100, // отступы логотипов друг от друга
+    };
+
+    WatermarkCanvas.setParams(params);
   }
 }
 

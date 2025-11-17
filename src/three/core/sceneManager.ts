@@ -7,6 +7,7 @@ import { CameraManager } from './cameraManager';
 import { ViewCube } from './viewCube';
 import { uiMain } from '../../ui/uiMain';
 
+import { WatermarkCanvas } from '../../watermark/watermarkCanvas';
 import { WatermarkFront } from '../render/watermark/watermarkFront';
 
 export class SceneManager {
@@ -18,7 +19,7 @@ export class SceneManager {
   controls: ArcballControls;
   cameraManager: CameraManager;
 
-  public init({ container }) {
+  public async init({ container }) {
     this.container = container;
 
     this.initStats();
@@ -29,17 +30,9 @@ export class SceneManager {
     this.initLights();
     this.initHelpers();
 
-    WatermarkFront.init(this.scene, this.container);
+    await WatermarkCanvas.init(this.container);
+    WatermarkFront.init(this.scene);
 
-    //watermark.init();
-
-    // setInterval(() => {
-    //   const start = performance.now();
-    //   while (performance.now() - start < 1000) {} // Блокируем поток на 100мс
-    //   console.log('Main thread busy');
-    // }, 1000);
-
-    //this.startAnimationLoop();
     this.render();
 
     //new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.render() });

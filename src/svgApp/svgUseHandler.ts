@@ -1,5 +1,6 @@
 import { SelectedByData } from '../three/loaders/data/selectedByData';
 import { SvgGroupAssembler } from './svgGroupAssembler';
+import { WatermarkSvg } from './watermarkSvg';
 
 export class SvgUseHandler {
   private enabled = false;
@@ -10,6 +11,7 @@ export class SvgUseHandler {
   private groupMatcher: SvgGroupAssembler;
   private isDown = false;
   private isMove = false;
+  isRenderingWatermark = false;
 
   constructor(svgElement: SVGElement) {
     this.svg = svgElement;
@@ -31,9 +33,9 @@ export class SvgUseHandler {
   }
 
   private initEvent() {
-    this.svg.addEventListener('mousedown', this.mouseDown);
-    this.svg.addEventListener('mousemove', this.mouseMove);
-    this.svg.addEventListener('mouseup', this.mouseUp);
+    this.svg.parentElement.addEventListener('mousedown', this.mouseDown);
+    this.svg.parentElement.addEventListener('mousemove', this.mouseMove);
+    this.svg.parentElement.addEventListener('mouseup', this.mouseUp);
   }
 
   //получение массива для выделения
@@ -57,6 +59,14 @@ export class SvgUseHandler {
 
     const selectedElem = this.findSelectedElem(event);
     this.selectedGroupByElemId(selectedElem, 'highlighted');
+
+    if (!this.isRenderingWatermark) {
+      this.isRenderingWatermark = true;
+      requestAnimationFrame(() => {
+        WatermarkSvg.addWatermark();
+        this.isRenderingWatermark = false;
+      });
+    }
   };
 
   private mouseUp = (event: MouseEvent) => {
@@ -69,6 +79,9 @@ export class SvgUseHandler {
 
     this.isDown = false;
     this.isMove = false;
+
+    console.log(555);
+    WatermarkSvg.addWatermark();
   };
 
   private findSelectedElem(event: MouseEvent) {

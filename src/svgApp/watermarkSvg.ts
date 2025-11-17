@@ -1,30 +1,61 @@
+import { WatermarkCanvas } from '../watermark/watermarkCanvas';
+
 export class WatermarkSvg {
-  private currentSVGElement;
-  private currentCanvas;
+  private static currentCanvas: HTMLCanvasElement | null = null;
+  private static divSvgContainer: HTMLElement | null = null;
+  private static currentSVGElement: SVGElement | null = null;
+  private static ctx: CanvasRenderingContext2D | null = null;
 
-  public async addWatermark(divSvgContainer) {
-    const currentSVGElement = divSvgContainer.children[0] as SVGElement;
+  public static async addWatermark(divSvgContainer?: HTMLElement): Promise<void> {
+    if (!divSvgContainer && !this.divSvgContainer) {
+      console.error('No container provided');
+      return;
+    }
 
-    const watermarkText = 'WATERMARK';
+    if (divSvgContainer) {
+      this.divSvgContainer = divSvgContainer;
+      this.currentSVGElement = divSvgContainer.children[0] as SVGElement;
+    }
+
+    if (!this.currentSVGElement) {
+      console.error('No SVG element found');
+      return;
+    }
 
     try {
-      // Создаем canvas
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      // Создаем canvas только один раз
+      if (!this.currentCanvas) {
+        this.currentCanvas = document.createElement('canvas');
+        this.ctx = this.currentCanvas.getContext('2d');
+        this.currentCanvas.style.pointerEvents = 'none';
+
+        this.currentCanvas.style.position = 'absolute';
+        this.currentCanvas.style.width = '100%';
+        this.currentCanvas.style.height = '100%';
+        this.currentCanvas.style.top = '0';
+        this.currentCanvas.style.zIndex = '999';
+        this.currentCanvas.style.background = '#ffffff';
+
+        // Добавляем canvas в контейнер
+        if (this.divSvgContainer) {
+          this.divSvgContainer.appendChild(this.currentCanvas);
+        }
+      }
 
       // Получаем размеры SVG
-      const svgRect = currentSVGElement.getBoundingClientRect();
-      canvas.width = svgRect.width || 800;
-      canvas.height = svgRect.height || 600;
+      const svgRect = this.currentSVGElement.getBoundingClientRect();
+      const width = svgRect.width || 800;
+      const height = svgRect.height || 600;
 
-      // Если SVG не имеет размеров, устанавливаем разумные значения по умолчанию
-      if (canvas.width === 0 || canvas.height === 0) {
-        canvas.width = 800;
-        canvas.height = 600;
+      // Обновляем размеры canvas если нужно
+      if (this.currentCanvas.width !== width || this.currentCanvas.height !== height) {
+        console.log(4444);
+        this.currentCanvas.width = width;
+        this.currentCanvas.height = height;
       }
 
       // Конвертируем SVG в data URL
-      const svgString = new XMLSerializer().serializeToString(currentSVGElement);
+      const svgString = new XMLSerializer().serializeToString(this.currentSVGElement);
       const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
       const svgUrl = URL.createObjectURL(svgBlob);
 
@@ -36,53 +67,50 @@ export class WatermarkSvg {
         img.src = svgUrl;
       });
 
-      // Рисуем SVG на canvas
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      // Очищаем canvas перед перерисовкой
+      this.ctx.clearRect(0, 0, width, height);
 
-      // Добавляем водяной знак
-      this.addWatermarkToCanvas(ctx, canvas.width, canvas.height, watermarkText);
+      // Рисуем SVG на canvas
+      this.ctx.drawImage(img, 0, 0, width, height);
 
       // Очищаем URL
       URL.revokeObjectURL(svgUrl);
 
-      // Отображаем canvas
-      divSvgContainer.innerHTML = '';
-      divSvgContainer.appendChild(canvas);
-      this.currentCanvas = canvas;
+      // Используем WatermarkCanvas для добавления водяного знака
+      const watermarkCanvas = WatermarkCanvas.getWatermarkCanvas();
+      this.ctx.drawImage(watermarkCanvas, 0, 0, width, height);
     } catch (error) {
       console.error('Error adding watermark:', error);
     }
   }
 
-  private addWatermarkToCanvas(ctx, width, height, text) {
-    ctx.save();
+  // Метод для обновления водяного знака (например, при изменении размера)
+  public static async updateWatermark(): Promise<void> {
+    if (this.currentCanvas && this.divSvgContainer && this.currentSVGElement) {
+      await this.addWatermark();
+    }
+  }
 
-    // Настройки стиля водяного знака
-    ctx.font = 'bold 48px Arial';
-    ctx.fillStyle = 'rgba(128, 128, 128, 0.3)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.lineWidth = 2;
+  // Дополнительный статический метод для получения текущего canvas
+  public static getCurrentCanvas(): HTMLCanvasElement | null {
+    return this.currentCanvas;
+  }
 
-    // Поворачиваем текст
-    ctx.translate(width / 2, height / 2);
-    ctx.rotate((-45 * Math.PI) / 180);
+  // Дополнительный статический метод для очистки
+  public static clear(): void {
+    if (this.currentCanvas) {
+      this.ctx.clearRect(0, 0, this.currentCanvas.width, this.currentCanvas.height);
+    }
+  }
 
-    // Рисуем текст
-    ctx.strokeText(text, 0, 0);
-    ctx.fillText(text, 0, 0);
-
-    // Добавляем дополнительный водяной знак в углу
-    ctx.restore();
-    ctx.save();
-
-    ctx.font = 'bold 24px Arial';
-    ctx.fillStyle = 'rgba(128, 128, 128, 0.5)';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(text, width - 20, height - 20);
-
-    ctx.restore();
+  // Полная очистка и удаление canvas
+  public static destroy(): void {
+    if (this.currentCanvas) {
+      this.currentCanvas.remove();
+      this.currentCanvas = null;
+      this.ctx = null;
+      this.divSvgContainer = null;
+      this.currentSVGElement = null;
+    }
   }
 }
