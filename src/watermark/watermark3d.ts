@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { WatermarkCanvas } from '../../../watermark/watermarkCanvas';
+import { WatermarkCanvas } from './watermarkCanvas';
 
-export class WatermarkFront {
+export class Watermark3d {
   private static watermarkMesh: THREE.Mesh;
 
   public static async init(scene: THREE.Scene) {

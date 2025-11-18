@@ -1,6 +1,6 @@
 import { SelectedByData } from '../three/loaders/data/selectedByData';
 import { SvgGroupAssembler } from './svgGroupAssembler';
-import { WatermarkSvg } from './watermarkSvg';
+import { WatermarkSvg } from '../watermark/watermarkSvg';
 
 export class SvgUseHandler {
   private enabled = false;

@@ -8,7 +8,7 @@ import { ViewCube } from './viewCube';
 import { uiMain } from '../../ui/uiMain';
 
 import { WatermarkCanvas } from '../../watermark/watermarkCanvas';
-import { WatermarkFront } from '../render/watermark/watermarkFront';
+import { Watermark3d } from '../../watermark/watermark3d';
 
 export class SceneManager {
   stats = null;
@@ -31,7 +31,7 @@ export class SceneManager {
     this.initHelpers();
 
     await WatermarkCanvas.init(this.container);
-    WatermarkFront.init(this.scene);
+    Watermark3d.init(this.scene);
 
     this.render();
 

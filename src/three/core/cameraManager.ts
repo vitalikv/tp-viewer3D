@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 //import { uiMain, sceneManager, effectsManager, controls, mouseManager } from '../../../index';
 import { threeApp } from '../threeApp';
-import { WatermarkFront } from '../render/watermark/watermarkFront';
+import { Watermark3d } from '../../watermark/watermark3d';
 
 export class CameraManager {
   private container: HTMLElement;
@@ -70,7 +70,7 @@ export class CameraManager {
   }
 
   private handleResize = () => {
-    WatermarkFront.renderWatermark();
+    Watermark3d.renderWatermark();
 
     const rect = threeApp.sceneManager.getClientRect();
 

@@ -1,4 +1,4 @@
-import { WatermarkCanvas } from '../watermark/watermarkCanvas';
+import { WatermarkCanvas } from './watermarkCanvas';
 
 export class WatermarkSvg {
   private static currentCanvas: HTMLCanvasElement | null = null;

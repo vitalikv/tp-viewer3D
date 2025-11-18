@@ -1,5 +1,5 @@
 import { SvgUseHandler } from './svgUseHandler';
-import { WatermarkSvg } from './watermarkSvg';
+import { WatermarkSvg } from '../watermark/watermarkSvg';
 
 export class SvgApp {
   public async createSvgPage(svgHTML: string) {
