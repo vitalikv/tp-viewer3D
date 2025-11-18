@@ -1,4 +1,5 @@
 export interface IWatermarkParams {
+  activated?: boolean;
   contentType?: 'datetime' | 'text';
   text?: string;
   textColor?: string;
@@ -20,6 +21,7 @@ export class WatermarkCanvas {
   private static imgLogo: HTMLImageElement | null = null;
 
   private static params: Required<IWatermarkParams> = {
+    activated: false,
     contentType: 'datetime',
     text: '',
     textColor: '#000000',
@@ -39,6 +41,8 @@ export class WatermarkCanvas {
   }
 
   public static async init(container: HTMLElement) {
+    if (!this.params.activated) return;
+
     this.container = container;
 
     this.createCanvas();
@@ -100,10 +104,8 @@ export class WatermarkCanvas {
     const effectiveWidth = this.params.width + this.params.spacing;
     const effectiveHeight = this.params.height + this.params.spacing;
 
-    const repeatX = Math.floor(workAreaWidth / effectiveWidth);
-    const repeatY = Math.floor(workAreaHeight / effectiveHeight);
-
-    if (repeatX <= 0 || repeatY <= 0) return;
+    const repeatX = Math.max(1, Math.floor(workAreaWidth / effectiveWidth));
+    const repeatY = Math.max(1, Math.floor(workAreaHeight / effectiveHeight));
 
     const totalGridWidth = repeatX * this.params.width + (repeatX - 1) * this.params.spacing;
     const totalGridHeight = repeatY * this.params.height + (repeatY - 1) * this.params.spacing;
@@ -121,13 +123,33 @@ export class WatermarkCanvas {
         }
       }
     }
+
+    if (repeatX === 1 || repeatY === 1) {
+      let scale = 1;
+
+      if (this.params.width <= this.canvas.width && this.params.height <= this.canvas.height) {
+        scale = 1;
+      } else {
+        scale = Math.min(this.canvas.width / this.params.width, this.canvas.height / this.params.height) * 0.9;
+      }
+
+      const scaledWidth = this.params.width * scale;
+      const scaledHeight = this.params.height * scale;
+      const scaledX = (this.canvas.width - scaledWidth) / 2;
+      const scaledY = (this.canvas.height - scaledHeight) / 2;
+
+      this.drawSingleWatermark(scaledX, scaledY, scaledWidth, scaledHeight);
+    }
   }
 
-  private static drawSingleWatermark(x: number, y: number) {
+  private static drawSingleWatermark(x: number, y: number, width?: number, height?: number) {
     this.ctx.save();
 
+    const drawWidth = width || this.params.width;
+    const drawHeight = height || this.params.height;
+
     if (this.imgLogo) {
-      this.drawLogo(x, y);
+      this.drawLogo(x, y, drawWidth, drawHeight);
     }
 
     let displayText: string | string[];
@@ -138,31 +160,36 @@ export class WatermarkCanvas {
     }
 
     this.ctx.fillStyle = this.hexToRgba(this.params.textColor, this.params.opacityText);
-    this.ctx.font = `bold ${this.params.fontSize}px Arial`;
+
+    const fontSize = this.params.fontSize;
+    this.ctx.font = `bold ${fontSize}px Arial`;
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
 
     if (this.params.contentType === 'datetime') {
       const [time, date] = this.getCurrentDateTime();
 
-      const centerX = x + this.params.width / 2;
-      const centerY = y + this.params.height / 2;
-      const lineHeight = this.params.fontSize * 1.2;
+      const centerX = x + drawWidth / 2;
+      const centerY = y + drawHeight / 2;
+      const lineHeight = fontSize * 1.2;
 
       this.ctx.fillText(time, centerX, centerY - lineHeight / 2);
       this.ctx.fillText(date, centerX, centerY + lineHeight / 2);
     } else {
-      this.ctx.fillText(displayText as string, x + this.params.width / 2, y + this.params.height / 2);
+      this.ctx.fillText(displayText as string, x + drawWidth / 2, y + drawHeight / 2);
     }
 
     this.ctx.restore();
   }
 
-  private static drawLogo(x: number, y: number) {
+  private static drawLogo(x: number, y: number, width?: number, height?: number) {
     if (!this.imgLogo) return;
 
+    const drawWidth = width || this.params.width;
+    const drawHeight = height || this.params.height;
+
     this.ctx.globalAlpha = this.params.opacityLogo;
-    this.ctx.drawImage(this.imgLogo, x, y, this.params.width, this.params.height);
+    this.ctx.drawImage(this.imgLogo, x, y, drawWidth, drawHeight);
     this.ctx.globalAlpha = 1.0;
   }
 

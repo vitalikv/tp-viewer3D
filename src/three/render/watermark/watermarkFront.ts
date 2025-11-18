@@ -1,11 +1,13 @@
 import * as THREE from 'three';
-import { threeApp } from '../../threeApp';
 import { WatermarkCanvas } from '../../../watermark/watermarkCanvas';
 
 export class WatermarkFront {
   private static watermarkMesh: THREE.Mesh;
 
   public static async init(scene: THREE.Scene) {
+    const canvas = WatermarkCanvas.getWatermarkCanvas();
+    if (!canvas) return;
+
     this.createFullscreenWatermark(scene);
     this.renderWatermark();
   }
@@ -67,10 +69,11 @@ export class WatermarkFront {
       depthWrite: false,
     });
 
-    this.watermarkMesh.material = material;
+    if (this.watermarkMesh) this.watermarkMesh.material = material;
   }
 
   private static disposeMaterial() {
+    if (!this.watermarkMesh) return;
     const material = this.watermarkMesh.material as THREE.ShaderMaterial;
     material.dispose();
 

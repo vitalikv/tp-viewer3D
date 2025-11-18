@@ -56,6 +56,7 @@ class ThreeApp {
 
   private initWatermark() {
     const params: IWatermarkParams = {
+      activated: true, // вкл/выкл watermark
       contentType: 'datetime', // 'datetime' | 'text' показывать время или текст
       text: '', // если указанно в contentType: 'text', то можно задать свой текст
       textColor: '#000000', // цвет текста
