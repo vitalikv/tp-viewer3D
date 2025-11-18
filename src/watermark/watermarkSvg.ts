@@ -2,114 +2,101 @@ import { WatermarkCanvas } from './watermarkCanvas';
 
 export class WatermarkSvg {
   private static currentCanvas: HTMLCanvasElement | null = null;
-  private static divSvgContainer: HTMLElement | null = null;
   private static currentSVGElement: SVGElement | null = null;
   private static ctx: CanvasRenderingContext2D | null = null;
+  private static watermarkCanvas: HTMLCanvasElement | null = null;
+  private static divSvgContainer: HTMLElement | null = null;
 
-  public static async addWatermark(divSvgContainer?: HTMLElement): Promise<void> {
-    if (!divSvgContainer && !this.divSvgContainer) {
-      console.error('No container provided');
-      return;
-    }
+  public static init(divSvgContainer: HTMLElement, svg: SVGElement) {
+    this.watermarkCanvas = WatermarkCanvas.getWatermarkCanvas();
+    if (!this.watermarkCanvas) return;
 
-    if (divSvgContainer) {
-      this.divSvgContainer = divSvgContainer;
-      this.currentSVGElement = divSvgContainer.children[0] as SVGElement;
-    }
+    this.clear();
 
-    if (!this.currentSVGElement) {
-      console.error('No SVG element found');
-      return;
-    }
+    this.currentSVGElement = svg;
+    this.divSvgContainer = divSvgContainer;
 
-    try {
-      // Создаем canvas только один раз
-      if (!this.currentCanvas) {
-        this.currentCanvas = document.createElement('canvas');
-        this.ctx = this.currentCanvas.getContext('2d');
-        this.currentCanvas.style.pointerEvents = 'none';
+    this.currentCanvas = document.createElement('canvas');
+    this.ctx = this.currentCanvas.getContext('2d');
 
-        this.currentCanvas.style.position = 'absolute';
-        this.currentCanvas.style.width = '100%';
-        this.currentCanvas.style.height = '100%';
-        this.currentCanvas.style.top = '0';
-        this.currentCanvas.style.zIndex = '999';
-        this.currentCanvas.style.background = '#ffffff';
+    const svgRect = divSvgContainer.getBoundingClientRect();
+    const width = svgRect.width;
+    const height = svgRect.height;
+    this.currentCanvas.width = width;
+    this.currentCanvas.height = height;
 
-        // Добавляем canvas в контейнер
-        if (this.divSvgContainer) {
-          this.divSvgContainer.appendChild(this.currentCanvas);
-        }
-      }
+    this.currentCanvas.style.pointerEvents = 'none';
+    this.currentCanvas.style.position = 'absolute';
+    this.currentCanvas.style.width = '100%';
+    this.currentCanvas.style.height = '100%';
+    this.currentCanvas.style.top = '0';
+    this.currentCanvas.style.zIndex = '999';
+    this.currentCanvas.style.background = '#ffffff';
 
-      // Получаем размеры SVG
-      const svgRect = this.currentSVGElement.getBoundingClientRect();
-      const width = svgRect.width || 800;
-      const height = svgRect.height || 600;
+    divSvgContainer.appendChild(this.currentCanvas);
 
-      // Обновляем размеры canvas если нужно
-      if (this.currentCanvas.width !== width || this.currentCanvas.height !== height) {
-        console.log(4444);
-        this.currentCanvas.width = width;
-        this.currentCanvas.height = height;
-      }
-
-      // Конвертируем SVG в data URL
-      const svgString = new XMLSerializer().serializeToString(this.currentSVGElement);
-      const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
-      const svgUrl = URL.createObjectURL(svgBlob);
-
-      // Ждем загрузки SVG изображения
-      const img = new Image();
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = svgUrl;
-      });
-
-      // Очищаем canvas перед перерисовкой
-      this.ctx.clearRect(0, 0, width, height);
-
-      // Рисуем SVG на canvas
-      this.ctx.drawImage(img, 0, 0, width, height);
-
-      // Очищаем URL
-      URL.revokeObjectURL(svgUrl);
-
-      // Используем WatermarkCanvas для добавления водяного знака
-      const watermarkCanvas = WatermarkCanvas.getWatermarkCanvas();
-      this.ctx.drawImage(watermarkCanvas, 0, 0, width, height);
-    } catch (error) {
-      console.error('Error adding watermark:', error);
-    }
+    this.renderWatermark();
   }
 
-  // Метод для обновления водяного знака (например, при изменении размера)
-  public static async updateWatermark(): Promise<void> {
-    if (this.currentCanvas && this.divSvgContainer && this.currentSVGElement) {
-      await this.addWatermark();
-    }
+  private static async canvasFromSvg() {
+    const svgClone = this.currentSVGElement.cloneNode(true) as SVGElement;
+
+    const canvasWidth = this.currentCanvas.width;
+    const canvasHeight = this.currentCanvas.height;
+
+    svgClone.setAttribute('width', canvasWidth.toString());
+    svgClone.setAttribute('height', canvasHeight.toString());
+    svgClone.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+    const svgString = new XMLSerializer().serializeToString(svgClone);
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
+    const svgUrl = URL.createObjectURL(svgBlob);
+
+    const img = new Image();
+    img.width = canvasWidth;
+    img.height = canvasHeight;
+
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = svgUrl;
+    });
+
+    this.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    this.ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+    URL.revokeObjectURL(svgUrl);
   }
 
-  // Дополнительный статический метод для получения текущего canvas
-  public static getCurrentCanvas(): HTMLCanvasElement | null {
-    return this.currentCanvas;
+  public static async renderWatermark() {
+    if (!this.watermarkCanvas) return;
+
+    await this.canvasFromSvg();
+
+    const svgRect = this.currentCanvas.getBoundingClientRect();
+    const width = svgRect.width;
+    const height = svgRect.height;
+
+    this.ctx.drawImage(this.watermarkCanvas, 0, 0, width, height);
   }
 
-  // Дополнительный статический метод для очистки
-  public static clear(): void {
-    if (this.currentCanvas) {
-      this.ctx.clearRect(0, 0, this.currentCanvas.width, this.currentCanvas.height);
-    }
+  public static async updateWatermark() {
+    this.watermarkCanvas = WatermarkCanvas.getWatermarkCanvas();
+    if (!this.watermarkCanvas) return;
+
+    const svgRect = this.divSvgContainer.getBoundingClientRect();
+    const width = svgRect.width;
+    const height = svgRect.height;
+    this.currentCanvas.width = width;
+    this.currentCanvas.height = height;
+
+    await this.renderWatermark();
   }
 
-  // Полная очистка и удаление canvas
-  public static destroy(): void {
+  private static clear(): void {
     if (this.currentCanvas) {
       this.currentCanvas.remove();
       this.currentCanvas = null;
       this.ctx = null;
-      this.divSvgContainer = null;
       this.currentSVGElement = null;
     }
   }

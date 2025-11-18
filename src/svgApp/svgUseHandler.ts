@@ -11,7 +11,6 @@ export class SvgUseHandler {
   private groupMatcher: SvgGroupAssembler;
   private isDown = false;
   private isMove = false;
-  isRenderingWatermark = false;
 
   constructor(svgElement: SVGElement) {
     this.svg = svgElement;
@@ -60,13 +59,7 @@ export class SvgUseHandler {
     const selectedElem = this.findSelectedElem(event);
     this.selectedGroupByElemId(selectedElem, 'highlighted');
 
-    if (!this.isRenderingWatermark) {
-      this.isRenderingWatermark = true;
-      requestAnimationFrame(() => {
-        WatermarkSvg.addWatermark();
-        this.isRenderingWatermark = false;
-      });
-    }
+    WatermarkSvg.renderWatermark();
   };
 
   private mouseUp = (event: MouseEvent) => {
@@ -80,8 +73,7 @@ export class SvgUseHandler {
     this.isDown = false;
     this.isMove = false;
 
-    console.log(555);
-    WatermarkSvg.addWatermark();
+    WatermarkSvg.renderWatermark();
   };
 
   private findSelectedElem(event: MouseEvent) {

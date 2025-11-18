@@ -1,7 +1,12 @@
 import { SvgUseHandler } from './svgUseHandler';
 import { WatermarkSvg } from '../watermark/watermarkSvg';
+import { WatermarkCanvas } from '../watermark/watermarkCanvas';
 
 export class SvgApp {
+  constructor() {
+    window.addEventListener('resize', this.handleResize);
+  }
+
   public async createSvgPage(svgHTML: string) {
     const divSvgContainer = document.createElement('div');
     document.getElementById('container')?.append(divSvgContainer);
@@ -20,8 +25,15 @@ export class SvgApp {
     svg.style.top = '0';
     svg.style.background = '#ffffff';
 
+    await WatermarkCanvas.init(divSvgContainer);
+
     new SvgUseHandler(svg);
 
-    WatermarkSvg.addWatermark(divSvgContainer);
+    WatermarkSvg.init(divSvgContainer, svg);
   }
+
+  private handleResize = () => {
+    console.log(9999);
+    WatermarkSvg.updateWatermark();
+  };
 }
