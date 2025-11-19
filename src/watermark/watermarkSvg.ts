@@ -2,10 +2,10 @@ import { WatermarkCanvas } from './watermarkCanvas';
 
 export class WatermarkSvg {
   private static currentCanvas: HTMLCanvasElement | null = null;
-  private static currentSVGElement: SVGElement | null = null;
+  private static currentSVGElement: SVGElement | undefined = undefined;
   private static ctx: CanvasRenderingContext2D | null = null;
-  private static watermarkCanvas: HTMLCanvasElement | null = null;
-  private static divSvgContainer: HTMLElement | null = null;
+  private static watermarkCanvas: HTMLCanvasElement | undefined = undefined;
+  private static divSvgContainer: HTMLElement | undefined = undefined;
 
   public static init(divSvgContainer: HTMLElement, svg: SVGElement) {
     this.watermarkCanvas = WatermarkCanvas.getWatermarkCanvas();
@@ -30,6 +30,7 @@ export class WatermarkSvg {
     this.currentCanvas.style.width = '100%';
     this.currentCanvas.style.height = '100%';
     this.currentCanvas.style.top = '0';
+    this.currentCanvas.style.left = '0';
     this.currentCanvas.style.zIndex = '999';
     this.currentCanvas.style.background = '#ffffff';
 
@@ -39,6 +40,7 @@ export class WatermarkSvg {
   }
 
   private static async canvasFromSvg() {
+    if (!this.currentCanvas || !this.currentSVGElement) return;
     const svgClone = this.currentSVGElement.cloneNode(true) as SVGElement;
 
     const canvasWidth = this.currentCanvas.width;
@@ -62,13 +64,13 @@ export class WatermarkSvg {
       img.src = svgUrl;
     });
 
-    this.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    this.ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+    this.ctx?.clearRect(0, 0, canvasWidth, canvasHeight);
+    this.ctx?.drawImage(img, 0, 0, canvasWidth, canvasHeight);
     URL.revokeObjectURL(svgUrl);
   }
 
   public static async renderWatermark() {
-    if (!this.watermarkCanvas) return;
+    if (!this.watermarkCanvas || !this.currentCanvas || !this.ctx) return;
 
     await this.canvasFromSvg();
 
@@ -80,6 +82,8 @@ export class WatermarkSvg {
   }
 
   public static async updateWatermark() {
+    if (!this.divSvgContainer || !this.currentCanvas) return;
+
     this.watermarkCanvas = WatermarkCanvas.getWatermarkCanvas();
     if (!this.watermarkCanvas) return;
 
@@ -92,12 +96,12 @@ export class WatermarkSvg {
     await this.renderWatermark();
   }
 
-  private static clear(): void {
+  private static clear() {
     if (this.currentCanvas) {
       this.currentCanvas.remove();
       this.currentCanvas = null;
       this.ctx = null;
-      this.currentSVGElement = null;
+      this.currentSVGElement = undefined;
     }
   }
 }

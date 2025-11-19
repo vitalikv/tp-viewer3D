@@ -30,6 +30,11 @@ export class SvgApp {
     new SvgUseHandler(svg);
 
     WatermarkSvg.init(divSvgContainer, svg);
+
+    divSvgContainer.addEventListener('wheel', () => {
+      console.log(888);
+      WatermarkSvg.renderWatermark();
+    });
   }
 
   private handleResize = () => {
