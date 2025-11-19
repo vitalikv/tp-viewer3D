@@ -31,8 +31,6 @@ export class WatermarkSvg {
     this.currentCanvas.style.height = '100%';
     this.currentCanvas.style.top = '0';
     this.currentCanvas.style.left = '0';
-    this.currentCanvas.style.zIndex = '999';
-    this.currentCanvas.style.background = '#ffffff';
 
     divSvgContainer.appendChild(this.currentCanvas);
 
