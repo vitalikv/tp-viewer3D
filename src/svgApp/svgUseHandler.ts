@@ -59,7 +59,7 @@ export class SvgUseHandler {
     const selectedElem = this.findSelectedElem(event);
     this.selectedGroupByElemId(selectedElem, 'highlighted');
 
-    WatermarkSvg.renderWatermark();
+    //WatermarkSvg.renderWatermark();
   };
 
   private mouseUp = (event: MouseEvent) => {
@@ -73,7 +73,7 @@ export class SvgUseHandler {
     this.isDown = false;
     this.isMove = false;
 
-    WatermarkSvg.renderWatermark();
+    //WatermarkSvg.renderWatermark();
   };
 
   private findSelectedElem(event: MouseEvent) {

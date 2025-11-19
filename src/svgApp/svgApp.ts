@@ -16,40 +16,24 @@ export class SvgApp {
     divSvgContainer.style.height = '100%';
     divSvgContainer.style.top = '0';
     divSvgContainer.style.background = '#ffffff';
+    divSvgContainer.innerHTML = svgHTML;
 
-    const divSvg = document.createElement('div');
-    divSvgContainer.append(divSvg);
-    divSvg.style.position = 'absolute';
-    divSvg.style.width = '100%';
-    divSvg.style.height = '100%';
-    divSvg.style.top = '0';
-    divSvg.innerHTML = svgHTML;
-
-    const svg = divSvg.children[0] as SVGElement;
+    const svg = divSvgContainer.children[0] as SVGElement;
     svg.style.position = 'absolute';
     svg.style.width = '100%';
     svg.style.height = '100%';
     svg.style.top = '0';
     svg.style.background = '#ffffff';
 
-    const divCanvas = document.createElement('div');
-    divSvgContainer.append(divCanvas);
-    divCanvas.style.position = 'absolute';
-    divCanvas.style.width = '100%';
-    divCanvas.style.height = '100%';
-    divCanvas.style.top = '0';
-    divCanvas.style.pointerEvents = 'none';
-
-    await WatermarkCanvas.init(divCanvas);
+    await WatermarkCanvas.init(divSvgContainer);
 
     new SvgUseHandler(svg);
 
-    WatermarkSvg.init(divCanvas, svg);
-    //WatermarkSvg.updateWatermark();
+    WatermarkSvg.init(divSvgContainer, svg);
 
     divSvgContainer.addEventListener('wheel', () => {
       console.log(888);
-      WatermarkSvg.renderWatermark();
+      WatermarkSvg.updateWatermark();
     });
   }
 

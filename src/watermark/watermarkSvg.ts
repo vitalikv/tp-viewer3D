@@ -31,6 +31,7 @@ export class WatermarkSvg {
     this.currentCanvas.style.height = '100%';
     this.currentCanvas.style.top = '0';
     this.currentCanvas.style.left = '0';
+    //this.currentCanvas.style.background = '#ffffff';
 
     divSvgContainer.appendChild(this.currentCanvas);
 
@@ -70,7 +71,7 @@ export class WatermarkSvg {
   public static async renderWatermark() {
     if (!this.watermarkCanvas || !this.currentCanvas || !this.ctx) return;
 
-    await this.canvasFromSvg();
+    //await this.canvasFromSvg();
 
     const svgRect = this.currentCanvas.getBoundingClientRect();
     const width = svgRect.width;
