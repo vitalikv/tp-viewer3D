@@ -1,4 +1,5 @@
 import { threeApp } from '../three/threeApp';
+import { ApiUiToThree } from '../api/apiLocal/apiUiToThree';
 
 export class UiClippingSlider {
   private act = false;
@@ -160,8 +161,9 @@ export class UiClippingSlider {
       const y = parseInt(yPositionSlider.value);
       const z = parseInt(zPositionSlider.value);
 
-      threeApp.clippingBvh.setPlanePosition(x, y, z);
-      threeApp.sceneManager.render();
+      // threeApp.clippingBvh.setPlanePosition(x, y, z);
+      // threeApp.sceneManager.render();
+      ApiUiToThree.setPlanePosition(x, y, z);
     };
 
     const updatePlaneRotation = () => {
@@ -171,8 +173,9 @@ export class UiClippingSlider {
       const y = parseInt(yRotationSlider.value);
       const z = parseInt(zRotationSlider.value);
 
-      threeApp.clippingBvh.setPlaneRotation(x, y, z);
-      threeApp.sceneManager.render();
+      // threeApp.clippingBvh.setPlaneRotation(x, y, z);
+      // threeApp.sceneManager.render();
+      ApiUiToThree.setPlaneRotation(x, y, z);
     };
 
     xPositionSlider.addEventListener('input', function () {
@@ -221,8 +224,9 @@ export class UiClippingSlider {
       zRotationValue.textContent = '0°';
 
       if (threeApp.clippingBvh) {
-        threeApp.clippingBvh.resetPlane();
-        threeApp.sceneManager.render();
+        // threeApp.clippingBvh.resetPlane();
+        // threeApp.sceneManager.render();
+        ApiUiToThree.resetPlane();
       }
     });
   }
@@ -279,11 +283,15 @@ export class UiClippingSlider {
   }
 
   private setStartColorBtns() {
-    this.useBVH.style.background = threeApp.clippingBvh.getUseBVH() ? this.actBtnColor : this.deActBtnColor;
-    this.helperBVH.style.background = threeApp.clippingBvh.getHelperBVH() ? this.actBtnColor : this.deActBtnColor;
-    this.model.style.background = threeApp.clippingBvh.getModel() ? this.actBtnColor : this.deActBtnColor;
-    this.wireframe.style.background = threeApp.clippingBvh.getWireframe() ? this.actBtnColor : this.deActBtnColor;
-    this.showPlane.style.background = threeApp.clippingBvh.getShowPlane() ? this.actBtnColor : this.deActBtnColor;
+    const state = ApiUiToThree.getStateClippingBvh();
+
+    if (state) {
+      this.useBVH.style.background = state.useBVH ? this.actBtnColor : this.deActBtnColor;
+      this.helperBVH.style.background = state.helperBVH ? this.actBtnColor : this.deActBtnColor;
+      this.model.style.background = state.model ? this.actBtnColor : this.deActBtnColor;
+      this.wireframe.style.background = state.wireframe ? this.actBtnColor : this.deActBtnColor;
+      this.showPlane.style.background = state.showPlane ? this.actBtnColor : this.deActBtnColor;
+    }
   }
 
   public showSlider() {
