@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
-import Stats from 'stats.js';
+import * as Stats from 'stats.js';
 
 import { threeApp } from '../threeApp';
 import { CameraManager } from './cameraManager';

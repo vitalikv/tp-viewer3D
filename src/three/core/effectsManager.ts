@@ -7,17 +7,17 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 
 export class EffectsManager {
-  public composer: EffectComposer;
-  public outlinePass: OutlinePass;
-  private renderPass: RenderPass;
-  private outputPass: OutputPass;
+  public composer!: EffectComposer;
+  public outlinePass!: OutlinePass;
+  private renderPass!: RenderPass;
+  private outputPass!: OutputPass;
   private smaaPass: SMAAPass;
   public enabled = false;
 
-  private container: HTMLElement;
-  private scene: THREE.Scene;
-  private camera: THREE.Camera;
-  private renderer: THREE.WebGLRenderer;
+  private container!: HTMLElement;
+  private scene!: THREE.Scene;
+  private camera!: THREE.Camera;
+  private renderer!: THREE.WebGLRenderer;
 
   public init({ scene, camera, renderer, container }: { scene: THREE.Scene; camera: THREE.Camera; renderer: THREE.WebGLRenderer; container: HTMLElement }) {
     if (this.enabled) return;
