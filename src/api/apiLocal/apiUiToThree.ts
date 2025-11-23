@@ -33,4 +33,19 @@ export class ApiUiToThree {
 
     return { useBVH, helperBVH, model, wireframe, showPlane };
   }
+
+  public static activateClippingBvh() {
+    if (!threeApp.clippingBvh) return;
+
+    const model = threeApp.modelLoader.getModel();
+    threeApp.clippingBvh.initClipping({ model });
+    threeApp.sceneManager.render();
+  }
+
+  public static deActivateClippingBvh() {
+    if (!threeApp.clippingBvh) return;
+
+    threeApp.clippingBvh.destroy();
+    threeApp.sceneManager.render();
+  }
 }
