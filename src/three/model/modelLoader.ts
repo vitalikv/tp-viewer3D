@@ -95,6 +95,13 @@ export class ModelLoader {
       const jsonData = JSON.parse(jsonString);
       generator = jsonData.asset.generator;
       console.log('Распарсенный JSON:', generator, jsonData);
+
+      // Проверка наличия анимаций в модели
+      if (jsonData.animations && Array.isArray(jsonData.animations) && jsonData.animations.length > 0) {
+        console.log(`✅ Модель содержит анимации. Количество анимаций: ${jsonData.animations.length}`);
+      } else {
+        console.log('ℹ️ Модель не содержит анимаций');
+      }
     } catch (err) {
       console.error('Ошибка парсинга JSON:', err);
     }
@@ -132,6 +139,11 @@ export class ModelLoader {
     threeApp.sceneManager.scene.add(model);
     this.model = model;
     this.jsonGltf = gltf;
+
+    if (gltf.animations && gltf.animations.length > 0 && threeApp.animationManager) {
+      threeApp.animationManager.initAnimations(gltf.animations, model);
+      console.log('🎬 Анимации инициализированы');
+    }
 
     // if (1 === 2) {
     //   const gltfStructure = new GltfStructure();
@@ -245,6 +257,12 @@ export class ModelLoader {
   public dispose() {
     this.mergedMeshes.clear();
     this.mergedLines.clear();
+
+    // Очистка анимаций
+    if (threeApp.animationManager) {
+      threeApp.animationManager.dispose();
+    }
+
     //this.originalMaterials.clear();
   }
 }

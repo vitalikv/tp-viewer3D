@@ -7,6 +7,7 @@ import { ClippingBvh } from './clipping/clippingBvh';
 import { EffectsManager } from './core/effectsManager';
 import { OutlineSelection } from './mouse/outlineSelection';
 import { WatermarkCanvas, IWatermarkParams } from '../watermark/watermarkCanvas';
+import { AnimationManager } from './animation/animationManager';
 
 import { ModelFileLoader2 } from './loaders/workers/modelFileLoader2';
 import { RenderWorker } from './render/initRenderWorker';
@@ -21,6 +22,7 @@ class ThreeApp {
   clippingBvh: ClippingBvh;
   renderWorker: RenderWorker;
   effectsManager: EffectsManager;
+  animationManager: AnimationManager;
 
   constructor() {}
 
@@ -43,6 +45,7 @@ class ThreeApp {
       this.outlineSelection = new OutlineSelection();
       this.bvhManager = new BVHManager();
       this.clippingBvh = new ClippingBvh();
+      this.animationManager = new AnimationManager();
 
       this.effectsManager = new EffectsManager();
       this.effectsManager.init({ scene: this.sceneManager.scene, camera: this.sceneManager.camera, renderer: this.sceneManager.renderer, container });
@@ -50,13 +53,13 @@ class ThreeApp {
       this.mouseManager.init(this.sceneManager.scene, this.sceneManager.camera, this.sceneManager.renderer.domElement);
       this.bvhManager.init();
 
-      this.modelLoader.setMerge({ merge: true });
+      this.modelLoader.setMerge({ merge: false });
     }
   }
 
   private initWatermark() {
     const params: IWatermarkParams = {
-      activated: true, // вкл/выкл watermark
+      activated: false, // вкл/выкл watermark
       contentType: 'datetime', // 'datetime' | 'text' показывать время или текст
       text: '', // если указанно в contentType: 'text', то можно задать свой текст
       textColor: '#000000', // цвет текста

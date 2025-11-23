@@ -48,4 +48,8 @@ export class ApiUiToThree {
     threeApp.clippingBvh.destroy();
     threeApp.sceneManager.render();
   }
+
+  public static playAnimation() {
+    threeApp.animationManager.animation();
+  }
 }

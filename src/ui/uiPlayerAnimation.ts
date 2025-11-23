@@ -1,8 +1,14 @@
+import { ApiUiToThree } from '../api/apiLocal/apiUiToThree';
+
 export class UiPlayerAnimation {
+  private divWrap: HTMLDivElement;
+
   constructor(container: HTMLDivElement) {
-    const div = this.crDiv();
-    container.append(div);
-    this.eventStop({ div });
+    this.divWrap = this.crDiv();
+    container.append(this.divWrap);
+
+    this.eventStop({ div: this.divWrap });
+    this.eventPlayer();
   }
 
   private crDiv() {
@@ -86,7 +92,7 @@ export class UiPlayerAnimation {
     <div style="${css1}">
       <div id="wrap-player" style="${css2}">
         <div style="${cssPlayer}">
-          <div style="${cssPlayerButton}">
+          <div nameId="playerButton" style="${cssPlayerButton}">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M4 3.72316C4 2.95533 4.82948 2.47397 5.49614 2.85491L16.4806 9.13173C17.1524 9.51563 17.1524 10.4843 16.4806 10.8682L5.49614 17.145C4.82948 17.526 4 17.0446 4 16.2768V3.72316Z" fill="#797979"></path>
             </svg>
@@ -142,5 +148,15 @@ export class UiPlayerAnimation {
         e.stopPropagation();
       };
     });
+  }
+
+  private eventPlayer() {
+    const btnPlay = this.divWrap.querySelector('[nameId="playerButton"]') as HTMLDivElement;
+
+    btnPlay.onmousedown = () => {
+      ApiUiToThree.playAnimation();
+    };
+
+    console.log(9999, btnPlay);
   }
 }
