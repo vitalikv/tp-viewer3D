@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { threeApp } from '../threeApp';
-import { MergeModel } from '../mergedModel/mergeModel';
+//import { MergeModel } from '../mergedModel/mergeModel';
+import { MergeAnimation } from '../mergedModel/mergeAnimation';
 
 export class AnimationManager {
   private mixers: THREE.AnimationMixer[] = [];
@@ -37,7 +38,7 @@ export class AnimationManager {
       this.isMergedModel = true;
       this.animationRoot = animationRoot;
       console.log('🎬 Обнаружена смерженная модель, используем виртуальную иерархию для анимации');
-      
+
       // Используем виртуальную иерархию для анимации
       const mixer = new THREE.AnimationMixer(animationRoot);
       this.animationActions = [];
@@ -280,16 +281,16 @@ export class AnimationManager {
     this.animationRoot.traverse((node) => {
       const uuid = node.uuid;
       const originalMatrixWorld = (node.userData as any)?.originalMatrixWorld;
-      
+
       if (originalMatrixWorld) {
         // Вычисляем относительную трансформацию: новая мировая матрица * обратная исходная
         tempMatrix.copy(node.matrixWorld);
         tempMatrix.multiplyMatrices(tempMatrix, originalMatrixWorld.clone().invert());
         // Применяем относительную трансформацию к группе
-        MergeModel.applyAnimationToGroup(uuid, tempMatrix);
+        MergeAnimation.applyAnimationToGroup(uuid, tempMatrix);
       } else {
         // Если нет исходной матрицы, применяем мировую матрицу напрямую
-        MergeModel.applyAnimationToGroup(uuid, node.matrixWorld);
+        MergeAnimation.applyAnimationToGroup(uuid, node.matrixWorld);
       }
     });
   }
