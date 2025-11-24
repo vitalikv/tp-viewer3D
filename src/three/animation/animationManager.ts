@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { threeApp } from '../threeApp';
+import { MergeModel } from '../mergedModel/mergeModel';
 
 export class AnimationManager {
   private mixers: THREE.AnimationMixer[] = [];
@@ -8,6 +9,8 @@ export class AnimationManager {
   private animationActions: THREE.AnimationAction[] = [];
   private animationClips: THREE.AnimationClip[] = [];
   private animationLoopId: number | null = null;
+  private isMergedModel: boolean = false;
+  private animationRoot: THREE.Object3D | null = null;
 
   constructor() {
     this.clock = new THREE.Clock();
@@ -28,25 +31,50 @@ export class AnimationManager {
     // Очищаем предыдущие анимации
     this.dispose();
 
-    const mixer = new THREE.AnimationMixer(model);
-    this.animationActions = [];
-    this.animationClips = [];
+    // Проверяем, есть ли виртуальная иерархия для анимации (смерженная модель)
+    const animationRoot = (model as any).userData?.animationRoot;
+    if (animationRoot) {
+      this.isMergedModel = true;
+      this.animationRoot = animationRoot;
+      console.log('🎬 Обнаружена смерженная модель, используем виртуальную иерархию для анимации');
+      
+      // Используем виртуальную иерархию для анимации
+      const mixer = new THREE.AnimationMixer(animationRoot);
+      this.animationActions = [];
+      this.animationClips = [];
 
-    animations.forEach((clip, index) => {
-      const action = mixer.clipAction(clip);
-      // Включаем action (чтобы он был активен)
-      action.enabled = true;
-      action.setLoop(THREE.LoopOnce, 1); // Один раз
-      action.clampWhenFinished = true; // Оставаться в конечной позиции
-      this.animationActions.push(action);
-      this.animationClips.push(clip);
-      // Запускаем action, но пока не устанавливаем время
-      console.log(`▶️ Инициализирована анимация: ${clip.name || `Анимация ${index + 1}`} (длительность: ${clip.duration.toFixed(2)}с)`);
-    });
+      animations.forEach((clip, index) => {
+        const action = mixer.clipAction(clip);
+        action.enabled = true;
+        action.setLoop(THREE.LoopOnce, 1);
+        action.clampWhenFinished = true;
+        this.animationActions.push(action);
+        this.animationClips.push(clip);
+        console.log(`▶️ Инициализирована анимация: ${clip.name || `Анимация ${index + 1}`} (длительность: ${clip.duration.toFixed(2)}с)`);
+      });
 
-    this.mixers.push(mixer);
+      this.mixers.push(mixer);
+    } else {
+      // Обычная модель без мержа
+      this.isMergedModel = false;
+      const mixer = new THREE.AnimationMixer(model);
+      this.animationActions = [];
+      this.animationClips = [];
+
+      animations.forEach((clip, index) => {
+        const action = mixer.clipAction(clip);
+        action.enabled = true;
+        action.setLoop(THREE.LoopOnce, 1);
+        action.clampWhenFinished = true;
+        this.animationActions.push(action);
+        this.animationClips.push(clip);
+        console.log(`▶️ Инициализирована анимация: ${clip.name || `Анимация ${index + 1}`} (длительность: ${clip.duration.toFixed(2)}с)`);
+      });
+
+      this.mixers.push(mixer);
+    }
+
     this.isPlaying = true;
-
     console.log(`✅ Инициализировано ${animations.length} анимаций`);
 
     return true;
@@ -193,6 +221,11 @@ export class AnimationManager {
         this.mixers.forEach((mixer) => {
           mixer.update(delta);
         });
+
+        // Если это смерженная модель, применяем трансформации к группам
+        if (this.isMergedModel && this.animationRoot) {
+          this.applyAnimationsToMergedGeometry();
+        }
       }
 
       // Рендерим сцену
@@ -233,6 +266,35 @@ export class AnimationManager {
   }
 
   /**
+   * Применяет трансформации из виртуальной иерархии к группам в смерженной геометрии
+   */
+  private applyAnimationsToMergedGeometry(): void {
+    if (!this.animationRoot) return;
+
+    // Обновляем мировые матрицы всех узлов
+    this.animationRoot.updateMatrixWorld(true);
+
+    const tempMatrix = new THREE.Matrix4();
+
+    // Обходим все узлы в виртуальной иерархии и применяем трансформации
+    this.animationRoot.traverse((node) => {
+      const uuid = node.uuid;
+      const originalMatrixWorld = (node.userData as any)?.originalMatrixWorld;
+      
+      if (originalMatrixWorld) {
+        // Вычисляем относительную трансформацию: новая мировая матрица * обратная исходная
+        tempMatrix.copy(node.matrixWorld);
+        tempMatrix.multiplyMatrices(tempMatrix, originalMatrixWorld.clone().invert());
+        // Применяем относительную трансформацию к группе
+        MergeModel.applyAnimationToGroup(uuid, tempMatrix);
+      } else {
+        // Если нет исходной матрицы, применяем мировую матрицу напрямую
+        MergeModel.applyAnimationToGroup(uuid, node.matrixWorld);
+      }
+    });
+  }
+
+  /**
    * Очищает все анимации и освобождает ресурсы
    */
   public dispose(): void {
@@ -248,6 +310,8 @@ export class AnimationManager {
     this.animationActions = [];
     this.animationClips = [];
     this.isPlaying = false;
+    this.isMergedModel = false;
+    this.animationRoot = null;
     console.log('🗑️ Анимации очищены');
   }
 }

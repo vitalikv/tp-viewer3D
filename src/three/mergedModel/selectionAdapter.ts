@@ -6,7 +6,6 @@ export class SelectionAdapter {
   private static fragmentGuidIndex: Map<string, any[]> = new Map();
 
   public static initializeCache() {
-    return;
     const structure = threeApp.modelLoader.initData.getTree();
     this.structureCache = this.convertGroups(structure);
     this.buildIndexes(this.structureCache);

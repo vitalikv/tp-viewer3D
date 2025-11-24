@@ -53,7 +53,7 @@ class ThreeApp {
       this.mouseManager.init(this.sceneManager.scene, this.sceneManager.camera, this.sceneManager.renderer.domElement);
       this.bvhManager.init();
 
-      this.modelLoader.setMerge({ merge: false });
+      this.modelLoader.setMerge({ merge: true });
     }
   }
 

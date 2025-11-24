@@ -118,7 +118,7 @@ export class SelectionManager {
 
       if (highlightGroupIndices.length === 0) return;
 
-      this.testOffsetPositionGroups({ geometry, groups, highlightGroupIndices });
+      //this.testOffsetPositionGroups({ geometry, groups, highlightGroupIndices });
 
       if (!this.originalMaterials.has(mesh.uuid)) {
         this.originalMaterials.set(mesh.uuid, mesh.material);

@@ -8,6 +8,7 @@ import { GltfStructure } from './gltfStructure';
 
 import { SelectionManager } from '../mergedModel/selectionManager';
 import { SelectionAdapter } from '../mergedModel/selectionAdapter';
+import { MergeModel } from '../mergedModel/mergeModel';
 
 export class ModelLoader {
   private loader: GLTFLoader;
@@ -257,6 +258,9 @@ export class ModelLoader {
   public dispose() {
     this.mergedMeshes.clear();
     this.mergedLines.clear();
+
+    // Очистка данных анимации для смерженной модели
+    MergeModel.clearAnimationData();
 
     // Очистка анимаций
     if (threeApp.animationManager) {
