@@ -276,22 +276,33 @@ export class AnimationManager {
     this.animationRoot.updateMatrixWorld(true);
 
     const tempMatrix = new THREE.Matrix4();
+    const uuidToGroupMap = MergeAnimation.getUuidToGroupMap();
 
     // Обходим все узлы в виртуальной иерархии и применяем трансформации
     this.animationRoot.traverse((node) => {
       const uuid = node.uuid;
+
+      // Применяем трансформации только к узлам, которые имеют маппинг (т.е. являются мешами)
+      // Трансформации групп уже учтены в мировых матрицах их детей через иерархию
+      if (!uuidToGroupMap.has(uuid)) {
+        return; // Пропускаем узлы без маппинга (группы, которые не были мешами)
+      }
+
+      // Если есть маппинг, значит узел был мешем, и originalMatrixWorld должен быть сохранен
       const originalMatrixWorld = (node.userData as any)?.originalMatrixWorld;
 
-      if (originalMatrixWorld) {
-        // Вычисляем относительную трансформацию: новая мировая матрица * обратная исходная
-        tempMatrix.copy(node.matrixWorld);
-        tempMatrix.multiplyMatrices(tempMatrix, originalMatrixWorld.clone().invert());
-        // Применяем относительную трансформацию к группе
-        MergeAnimation.applyAnimationToGroup(uuid, tempMatrix);
-      } else {
-        // Если нет исходной матрицы, применяем мировую матрицу напрямую
-        MergeAnimation.applyAnimationToGroup(uuid, node.matrixWorld);
+      if (!originalMatrixWorld) {
+        console.warn(`⚠️ Узел ${uuid} имеет маппинг, но нет originalMatrixWorld`);
+        return;
       }
+
+      // Вычисляем относительную трансформацию: новая мировая матрица * обратная исходная
+      // Мировая матрица меша уже учитывает трансформации всех родительских групп
+      tempMatrix.copy(node.matrixWorld);
+      tempMatrix.multiplyMatrices(tempMatrix, originalMatrixWorld.clone().invert());
+
+      // Применяем относительную трансформацию к группе в смерженной геометрии
+      MergeAnimation.applyAnimationToGroup(uuid, tempMatrix);
     });
   }
 

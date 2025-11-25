@@ -22,6 +22,9 @@ export class MergeModel {
 
     group.add(groupMeshes, groupLines);
 
+    // Связываем виртуальную иерархию со смерженной моделью через originalUuids
+    MergeAnimation.linkAnimationHierarchyToMergedModel(animationRoot, mergedMeshes, mergedLines);
+
     // Сохраняем ссылку на виртуальную иерархию в группе
     (group as any).userData.animationRoot = animationRoot;
     (group as any).userData.uuidToGroupMap = MergeAnimation.getUuidToGroupMap();
@@ -68,7 +71,10 @@ export class MergeModel {
   }
 
   private static mergeMeshGeometries(meshEntries: { mesh: THREE.Mesh; worldMatrix: THREE.Matrix4 }[]) {
-    const materialGroups = new Map<string, { material: THREE.Material; geometries: THREE.BufferGeometry[]; originalUuids: string[]; originalParentUuids: string[] }>();
+    const materialGroups = new Map<
+      string,
+      { material: THREE.Material; geometries: THREE.BufferGeometry[]; originalUuids: string[]; originalParentUuids: string[] }
+    >();
 
     meshEntries.forEach(({ mesh, worldMatrix }) => {
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
@@ -128,8 +134,13 @@ export class MergeModel {
     return mergedMeshes;
   }
 
-  private static mergeLineGeometries(lineEntries: { line: THREE.Line | THREE.LineSegments; worldMatrix: THREE.Matrix4; isLineSegments: boolean }[]): (THREE.Line | THREE.LineSegments)[] {
-    const lineMaterialGroups = new Map<string, { material: THREE.Material; geometries: THREE.BufferGeometry[]; isLineSegments: boolean; originalUuids: string[]; originalParentUuids: string[] }>();
+  private static mergeLineGeometries(
+    lineEntries: { line: THREE.Line | THREE.LineSegments; worldMatrix: THREE.Matrix4; isLineSegments: boolean }[]
+  ): (THREE.Line | THREE.LineSegments)[] {
+    const lineMaterialGroups = new Map<
+      string,
+      { material: THREE.Material; geometries: THREE.BufferGeometry[]; isLineSegments: boolean; originalUuids: string[]; originalParentUuids: string[] }
+    >();
 
     lineEntries.forEach(({ line, worldMatrix, isLineSegments }) => {
       const materials = Array.isArray(line.material) ? line.material : [line.material];
@@ -233,7 +244,19 @@ export class MergeModel {
     return clonedGeo;
   }
 
-  private static setGeomAttribute({ geometries, mergedGeometry, originalUuids = [], originalParentUuids = [], mergedMesh }: { geometries: THREE.BufferGeometry[]; mergedGeometry: THREE.BufferGeometry; originalUuids: string[]; originalParentUuids: string[]; mergedMesh?: THREE.Mesh }) {
+  private static setGeomAttribute({
+    geometries,
+    mergedGeometry,
+    originalUuids = [],
+    originalParentUuids = [],
+    mergedMesh,
+  }: {
+    geometries: THREE.BufferGeometry[];
+    mergedGeometry: THREE.BufferGeometry;
+    originalUuids: string[];
+    originalParentUuids: string[];
+    mergedMesh?: THREE.Mesh;
+  }) {
     mergedGeometry.userData = {
       groups: mergedGeometry.groups,
       uuids: originalUuids,
