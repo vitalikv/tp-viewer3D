@@ -123,16 +123,16 @@ export class UiPlayerAnimation {
           </div>
         </div>
         <div style="${cssSwitchingView}">
-          <div class="open" style="${cssSwitchingViewButton}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" fill="none">
-              <path d="M1.8 16.5293V8.35961L9.2 12.4707V20.6404L1.8 16.5293ZM12.8 20.6404V12.4707L20.2 8.35961V16.5293L12.8 20.6404ZM18.3527 5L11 9.08483L3.6473 5L11 0.915167L18.3527 5Z" stroke="#9B9B9B" stroke-width="1.6"></path>
-            </svg>
-          </div>
-          <div class="close active" style="${cssSwitchingViewButton}">
+          <div nameId="animationPosStart" style="${cssSwitchingViewButton}">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" fill="none">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M2 6V17L11 22L20 17V6L11 1L2 6ZM3.6 7.80406V16.0586L10.2 19.7252V11.4707L3.6 7.80406ZM11.8 11.4707V19.7252L18.4 16.0586V7.80406L11.8 11.4707ZM17.529 6.45758L11 2.83033L4.47095 6.45758L11 10.0848L17.529 6.45758Z" fill="#9B9B9B"></path>
             </svg>
           </div>
+          <div nameId="animationPosEnd" style="${cssSwitchingViewButton}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M1.8 16.5293V8.35961L9.2 12.4707V20.6404L1.8 16.5293ZM12.8 20.6404V12.4707L20.2 8.35961V16.5293L12.8 20.6404ZM18.3527 5L11 9.08483L3.6473 5L11 0.915167L18.3527 5Z" stroke="#9B9B9B" stroke-width="1.6"></path>
+            </svg>
+          </div>          
         </div>
       </div>
     </div>`;
@@ -152,11 +152,19 @@ export class UiPlayerAnimation {
 
   private eventPlayer() {
     const btnPlay = this.divWrap.querySelector('[nameId="playerButton"]') as HTMLDivElement;
+    const animationPosStart = this.divWrap.querySelector('[nameId="animationPosStart"]') as HTMLDivElement;
+    const animationPosEnd = this.divWrap.querySelector('[nameId="animationPosEnd"]') as HTMLDivElement;
 
     btnPlay.onmousedown = () => {
       ApiUiToThree.playAnimation();
     };
 
-    console.log(9999, btnPlay);
+    animationPosStart.onmousedown = () => {
+      ApiUiToThree.setAnimationPosStart();
+    };
+
+    animationPosEnd.onmousedown = () => {
+      ApiUiToThree.setAnimationPosEnd();
+    };
   }
 }

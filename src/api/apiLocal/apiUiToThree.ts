@@ -52,4 +52,17 @@ export class ApiUiToThree {
   public static playAnimation() {
     threeApp.animationManager.animation();
   }
+
+  public static setAnimationPosStart() {
+    threeApp.animationManager.setAnimationPosStart();
+  }
+
+  public static setAnimationPosEnd() {
+    threeApp.animationManager.setAnimationPosEnd();
+    //threeApp.animationManager.stop();
+  }
+
+  public static resetAnimation() {
+    //threeApp.animationManager.resetAnimation();
+  }
 }

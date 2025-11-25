@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { threeApp } from '../threeApp';
-//import { MergeModel } from '../mergedModel/mergeModel';
 import { MergeAnimation } from '../mergedModel/mergeAnimation';
 
 export class AnimationManager {
@@ -12,6 +11,7 @@ export class AnimationManager {
   private animationLoopId: number | null = null;
   private isMergedModel: boolean = false;
   private animationRoot: THREE.Object3D | null = null;
+  private mergedModel: THREE.Object3D | null = null;
 
   constructor() {
     this.clock = new THREE.Clock();
@@ -37,6 +37,7 @@ export class AnimationManager {
     if (animationRoot) {
       this.isMergedModel = true;
       this.animationRoot = animationRoot;
+      this.mergedModel = model;
       console.log('🎬 Обнаружена смерженная модель, используем виртуальную иерархию для анимации');
 
       // Используем виртуальную иерархию для анимации
@@ -72,6 +73,7 @@ export class AnimationManager {
         console.log(`▶️ Инициализирована анимация: ${clip.name || `Анимация ${index + 1}`} (длительность: ${clip.duration.toFixed(2)}с)`);
       });
 
+      this.mergedModel = null;
       this.mixers.push(mixer);
     }
 
@@ -161,6 +163,78 @@ export class AnimationManager {
     console.log(`⚡ Скорость анимаций установлена: ${speed}x`);
   }
 
+  private getAnimationDuration(): number {
+    if (this.animationClips.length === 0) {
+      return 0;
+    }
+
+    return Math.max(...this.animationClips.map((clip) => clip.duration));
+  }
+
+  private updateAnimationPose(time: number, options?: { rebuildMergedModelBVH?: boolean; resetActions?: boolean }): void {
+    if (this.mixers.length === 0 || this.animationActions.length === 0) {
+      console.warn('⚠️ Нет анимаций для установки позиции');
+      return;
+    }
+
+    this.stopAnimationLoop();
+    this.isPlaying = false;
+
+    const clampedTime = Math.max(0, time);
+    const shouldResetActions = options?.resetActions ?? clampedTime === 0;
+    this.animationActions.forEach((action) => {
+      if (shouldResetActions) {
+        action.reset();
+      }
+      action.play();
+      action.paused = false;
+    });
+
+    this.mixers.forEach((mixer) => {
+      mixer.timeScale = 1.0;
+
+      const deltaTime = clampedTime - mixer.time;
+      if (deltaTime > 0) {
+        mixer.update(deltaTime);
+      } else {
+        mixer.setTime(clampedTime);
+      }
+
+      mixer.timeScale = 0.0;
+    });
+
+    this.animationActions.forEach((action) => {
+      action.paused = true;
+    });
+
+    if (this.isMergedModel && this.animationRoot) {
+      this.animationRoot.updateMatrixWorld(true);
+      this.applyAnimationsToMergedGeometry();
+
+      if (options?.rebuildMergedModelBVH && this.mergedModel) {
+        this.rebuildMergedModelBVH();
+      }
+    }
+
+    this.renderScene();
+  }
+
+  private renderScene(): void {
+    if (threeApp.sceneManager && threeApp.sceneManager.renderer) {
+      threeApp.sceneManager.render();
+    }
+  }
+
+  public setAnimationPosStart(): void {
+    this.updateAnimationPose(0);
+  }
+
+  public setAnimationPosEnd(): void {
+    const endTime = this.getAnimationDuration();
+    const rebuild = endTime > 0;
+    this.updateAnimationPose(endTime, { rebuildMergedModelBVH: rebuild, resetActions: false });
+  }
+
   // Запускает и воспроизводит анимацию до её завершения
   public animation() {
     // Проверяем, есть ли анимации для воспроизведения
@@ -241,14 +315,12 @@ export class AnimationManager {
       if (!isFinished && this.isPlaying) {
         this.animationLoopId = requestAnimationFrame(animate);
       } else {
-        // Анимация завершена
         if (isFinished) {
           console.log(`✅ Анимация завершена (время: ${elapsedTime.toFixed(2)}с из ${maxDuration.toFixed(2)}с)`);
-          // Останавливаем actions
-          this.animationActions.forEach((action) => {
-            action.stop();
-          });
           this.isPlaying = false;
+          if (this.isMergedModel) {
+            this.rebuildMergedModelBVH();
+          }
         }
         this.animationLoopId = null;
       }
@@ -306,6 +378,17 @@ export class AnimationManager {
     });
   }
 
+  private rebuildMergedModelBVH(): void {
+    if (!this.mergedModel) return;
+    if (!THREE.BufferGeometry.prototype.computeBoundsTree) return;
+
+    this.mergedModel.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.geometry) {
+        child.geometry.computeBoundsTree({ indirect: true });
+      }
+    });
+  }
+
   /**
    * Очищает все анимации и освобождает ресурсы
    */
@@ -324,6 +407,7 @@ export class AnimationManager {
     this.isPlaying = false;
     this.isMergedModel = false;
     this.animationRoot = null;
+    this.mergedModel = null;
     console.log('🗑️ Анимации очищены');
   }
 }
