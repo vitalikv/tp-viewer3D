@@ -1,11 +1,22 @@
 import * as THREE from 'three';
 
+type MergedObject = THREE.Mesh | THREE.Line | THREE.LineSegments;
+
+interface UuidGroupMapping {
+  mesh: MergedObject;
+  groupIndex: number;
+  originalPositions?: Float32Array;
+  vertexIndices?: number[];
+  vertexIndexMap?: Map<number, number>;
+  startVertex?: number;
+}
+
 export class MergeAnimation {
   private static readonly tempVector = new THREE.Vector3();
   // Виртуальная иерархия узлов для анимации
   private static animationNodes: Map<string, THREE.Object3D> = new Map();
   // Маппинг UUID исходного объекта -> { mesh, groupIndex, originalPositions }
-  private static uuidToGroupMap: Map<string, { mesh: THREE.Mesh; groupIndex: number; originalPositions?: Float32Array }> = new Map();
+  private static uuidToGroupMap: Map<string, UuidGroupMapping> = new Map();
 
   /**
    * Создает виртуальную иерархию узлов для анимации
@@ -93,19 +104,14 @@ export class MergeAnimation {
   /**
    * Получает маппинг UUID -> группа для применения анимаций
    */
-  public static getUuidToGroupMap(): Map<string, { mesh: THREE.Mesh; groupIndex: number }> {
+  public static getUuidToGroupMap(): Map<string, UuidGroupMapping> {
     return this.uuidToGroupMap;
   }
 
   /**
    * Создает маппинг UUID -> group index для применения анимаций
    */
-  public static createUuidToGroupMapping(
-    geometries: THREE.BufferGeometry[],
-    mergedGeometry: THREE.BufferGeometry,
-    originalUuids: string[],
-    mergedMesh: THREE.Mesh
-  ) {
+  public static createUuidToGroupMapping(geometries: THREE.BufferGeometry[], mergedGeometry: THREE.BufferGeometry, originalUuids: string[], mergedObject: MergedObject) {
     if (!mergedGeometry.groups) {
       console.warn('⚠️ Нет групп в смерженной геометрии для создания маппинга');
       return;
@@ -189,12 +195,12 @@ export class MergeAnimation {
         });
 
         this.uuidToGroupMap.set(uuid, {
-          mesh: mergedMesh,
+          mesh: mergedObject,
           groupIndex: groupIndex,
           originalPositions: originalPositions,
-          vertexIndices: uniqueVertices, // Сохраняем индексы вершин для этой группы
-          vertexIndexMap: vertexIndexMap, // Маппинг для быстрого поиска
-        } as any);
+          vertexIndices: uniqueVertices,
+          vertexIndexMap: vertexIndexMap,
+        });
       } else {
         // Геометрия не индексированная
         // group.start - индекс первого примитива (треугольника)
@@ -207,9 +213,7 @@ export class MergeAnimation {
 
         // Проверяем валидность индексов
         if (startVertex + countVertices > allPositions.length) {
-          console.warn(
-            `⚠️ Некорректные индексы для группы ${groupIndex}: start=${startVertex}, count=${countVertices}, positions.length=${allPositions.length}, group.start=${group.start}, group.count=${group.count}`
-          );
+          console.warn(`⚠️ Некорректные индексы для группы ${groupIndex}: start=${startVertex}, count=${countVertices}, positions.length=${allPositions.length}, group.start=${group.start}, group.count=${group.count}`);
           // Пропускаем эту группу, но не останавливаем процесс
           return;
         }
@@ -221,11 +225,11 @@ export class MergeAnimation {
         }
 
         this.uuidToGroupMap.set(uuid, {
-          mesh: mergedMesh,
+          mesh: mergedObject,
           groupIndex: groupIndex,
           originalPositions: originalPositions,
-          startVertex: startVertex, // Сохраняем начальный индекс для применения трансформаций
-        } as any);
+          startVertex: startVertex,
+        });
       }
     });
 
@@ -259,9 +263,9 @@ export class MergeAnimation {
 
     if (originalPositions) {
       // Используем сохраненные исходные позиции
-      if (indexAttr && (mapping as any).vertexIndices) {
+      if (indexAttr && mapping.vertexIndices) {
         // Индексированная геометрия - применяем трансформацию к уникальным вершинам
-        const vertexIndices = (mapping as any).vertexIndices as number[];
+        const vertexIndices = mapping.vertexIndices;
         for (let i = 0; i < vertexIndices.length; i++) {
           const vertexIndex = vertexIndices[i];
           const posIndex = vertexIndex * 3;
@@ -276,7 +280,7 @@ export class MergeAnimation {
         }
       } else {
         // Неиндексированная геометрия - используем startVertex
-        const startVertex = (mapping as any).startVertex !== undefined ? (mapping as any).startVertex : group.start * 3;
+        const startVertex = mapping.startVertex ?? group.start * 3;
         const count = originalPositions.length;
 
         for (let i = 0; i < count; i += 3) {
@@ -308,11 +312,7 @@ export class MergeAnimation {
    * Связывает виртуальную иерархию со смерженной моделью через originalUuids
    * Проверяет, что все узлы виртуальной иерархии, которые являются мешами, правильно связаны
    */
-  public static linkAnimationHierarchyToMergedModel(
-    animationRoot: THREE.Object3D,
-    mergedMeshes: THREE.Mesh[],
-    mergedLines: (THREE.Line | THREE.LineSegments)[]
-  ): void {
+  public static linkAnimationHierarchyToMergedModel(animationRoot: THREE.Object3D, mergedMeshes: THREE.Mesh[], mergedLines: (THREE.Line | THREE.LineSegments)[]): void {
     // Собираем все originalUuids из смерженных мешей и линий
     const allOriginalUuids = new Set<string>();
 
@@ -374,9 +374,7 @@ export class MergeAnimation {
       }
     }
 
-    console.log(
-      `✅ Связь виртуальной иерархии со смерженной моделью: ${this.uuidToGroupMap.size} маппингов, ${totalMeshNodes.size} мешей/линий в иерархии, ${this.animationNodes.size} всего узлов`
-    );
+    console.log(`✅ Связь виртуальной иерархии со смерженной моделью: ${this.uuidToGroupMap.size} маппингов, ${totalMeshNodes.size} мешей/линий в иерархии, ${this.animationNodes.size} всего узлов`);
   }
 
   /**
