@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 //import { uiMain, sceneManager, effectsManager, controls, mouseManager } from '../../../index';
 import { threeApp } from '../threeApp';
 import { Watermark3d } from '../../watermark/watermark3d';
@@ -193,5 +194,42 @@ export class CameraManager {
       orbitControls.target.copy(state.target);
       controls.update();
     }
+  }
+
+  public zoomCameraToFitModel(options: { center: THREE.Vector3; radius: number; maxDim: number }) {
+    const sceneManager = threeApp.sceneManager;
+    if (!sceneManager) return;
+
+    const camera = this.getActiveCamera();
+    const controls = sceneManager.controls;
+    if (!camera || !controls) return;
+
+    const target = options.center;
+    const arcballControls = controls as ArcballControls & { target: THREE.Vector3 };
+    arcballControls.target.copy(target);
+
+    const direction = camera.position.clone().sub(target);
+    if (direction.lengthSq() === 0) {
+      direction.set(0, 0, 1);
+    }
+    direction.normalize();
+
+    let distance = Math.max(options.radius, options.maxDim * 0.5);
+
+    if (camera instanceof THREE.PerspectiveCamera) {
+      const fovRad = THREE.MathUtils.degToRad(camera.fov);
+      const halfFov = Math.max(Math.min(fovRad / 2, Math.PI / 2 - 0.01), 0.1);
+      const projectedDistance = options.radius / Math.sin(halfFov);
+      distance = Math.max(distance, projectedDistance);
+    }
+
+    distance = distance * 1.2 + 0.5;
+
+    camera.position.copy(target).addScaledVector(direction, distance);
+    camera.lookAt(target);
+    camera.updateProjectionMatrix();
+
+    controls.update();
+    sceneManager.render();
   }
 }

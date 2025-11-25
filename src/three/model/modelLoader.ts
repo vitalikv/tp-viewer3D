@@ -164,12 +164,12 @@ export class ModelLoader {
     const center = box.getCenter(new THREE.Vector3());
     model.position.sub(center);
 
-    // Настраиваем камеру под размер модели
-    // const size = box.getSize(new THREE.Vector3());
-    // const maxDim = Math.max(size.x, size.y, size.z);
-    // threeApp.sceneManager.camera.position.z = maxDim * 1.5;
-    // threeApp.sceneManager.controls.target.copy(center);
-    // threeApp.sceneManager.controls.update();
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const sphere = box.getBoundingSphere(new THREE.Sphere());
+    const radius = sphere.radius || maxDim * 0.5;
+
+    threeApp.sceneManager.cameraManager.zoomCameraToFitModel({ center: new THREE.Vector3(0, 0, 0), radius, maxDim });
   }
 
   private modelOptimized({ model }) {
