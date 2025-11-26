@@ -23,12 +23,22 @@ export class MergeAnimation {
    * Копирует структуру исходной модели с теми же UUID и именами
    */
   public static createAnimationHierarchy(model: THREE.Object3D): THREE.Object3D {
+    // Убедимся, что матрицы мира актуальны до копирования
+    model.updateMatrixWorld(true);
+
     // ВАЖНО: Не обновляем матрицы исходной модели, чтобы не изменить её состояние
     // Вместо этого обновим матрицы после копирования в виртуальную иерархию
-
     const root = new THREE.Group();
     root.name = model.name || 'AnimationRoot';
     root.uuid = model.uuid;
+
+    // Копируем трансформации корня, чтобы виртуальная иерархия работала в той же системе координат
+    // root.position.copy(model.position);
+    // root.rotation.copy(model.rotation);
+    // root.scale.copy(model.scale);
+    // root.matrix.copy(model.matrix);
+    // root.matrixWorld.copy(model.matrixWorld);
+    // root.matrixAutoUpdate = model.matrixAutoUpdate;
 
     const nodeMap = new Map<string, THREE.Object3D>();
     nodeMap.set(model.uuid, root);
