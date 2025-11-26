@@ -2,19 +2,34 @@ import * as THREE from 'three';
 import { WatermarkCanvas } from './watermarkCanvas';
 
 export class Watermark3d {
+  private static renderer: THREE.WebGLRenderer;
   private static watermarkMesh: THREE.Mesh;
+  private static watermarkScene: THREE.Scene | null = null;
+  private static watermarkCamera: THREE.OrthographicCamera | null = null;
 
-  public static async init(scene: THREE.Scene) {
+  public static async init(renderer: THREE.WebGLRenderer) {
+    this.renderer = renderer;
     const canvas = WatermarkCanvas.getWatermarkCanvas();
     if (!canvas) return;
+    console.log('Watermark3dFront');
 
-    this.createFullscreenWatermark(scene);
+    this.createOverlay();
     this.renderWatermark();
   }
 
-  private static createFullscreenWatermark(scene: THREE.Scene) {
-    this.watermarkMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial());
-    scene.add(this.watermarkMesh);
+  private static createOverlay() {
+    if (this.watermarkScene && this.watermarkCamera) return;
+
+    this.watermarkScene = new THREE.Scene();
+    this.watermarkCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    this.watermarkCamera.position.set(0, 0, 1);
+    this.watermarkCamera.lookAt(0, 0, 0);
+    this.watermarkCamera.updateProjectionMatrix();
+
+    this.watermarkMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ transparent: true }));
+    this.watermarkMesh.frustumCulled = false;
+    this.watermarkMesh.renderOrder = Infinity;
+    this.watermarkScene.add(this.watermarkMesh);
   }
 
   private static getShader(canvas: HTMLCanvasElement) {
@@ -46,8 +61,22 @@ export class Watermark3d {
     const canvas = WatermarkCanvas.getWatermarkCanvas();
     if (!canvas) return;
 
+    if (!this.watermarkScene) {
+      this.createOverlay();
+    }
+
     const texture = new THREE.CanvasTexture(canvas);
     this.updateMaterial(texture);
+  }
+
+  public static renderOverlay() {
+    if (!this.watermarkScene || !this.watermarkCamera) return;
+
+    const previousAutoClear = this.renderer.autoClear;
+    this.renderer.autoClear = false;
+    this.renderer.clearDepth();
+    this.renderer.render(this.watermarkScene, this.watermarkCamera);
+    this.renderer.autoClear = previousAutoClear;
   }
 
   private static updateMaterial(texture: THREE.CanvasTexture) {

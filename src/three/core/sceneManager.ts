@@ -31,7 +31,7 @@ export class SceneManager {
     this.initHelpers();
 
     await WatermarkCanvas.init(this.container);
-    Watermark3d.init(this.scene);
+    Watermark3d.init(this.renderer);
 
     this.render();
 
@@ -212,11 +212,13 @@ export class SceneManager {
     // не работает при вкл renderWorker
     if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
       const renderCalls = threeApp.effectsManager.render();
+      Watermark3d.renderOverlay();
 
       uiMain.uiDrawCallsDiv?.updateText(renderCalls);
     } else {
       const camera = this.cameraManager.getActiveCamera();
       this.renderer.render(this.scene, camera);
+      Watermark3d.renderOverlay();
 
       uiMain.uiDrawCallsDiv?.updateText(this.renderer.info.render.calls);
     }

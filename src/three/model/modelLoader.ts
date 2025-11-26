@@ -153,7 +153,8 @@ export class ModelLoader {
     //   //await gltfStructure.selectedNode({ gltf, model, nodeId: 759 });
     // }
 
-    threeApp.sceneManager.renderer.render(threeApp.sceneManager.scene, threeApp.sceneManager.camera);
+    threeApp.sceneManager.render();
+    //threeApp.sceneManager.renderer.render(threeApp.sceneManager.scene, threeApp.sceneManager.camera);
     // console.log(threeApp.sceneManager.renderer.info.programs);
     // console.log(threeApp.sceneManager.renderer.info.render);
     // console.log(threeApp.sceneManager.renderer.info.memory);
