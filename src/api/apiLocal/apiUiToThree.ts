@@ -53,16 +53,23 @@ export class ApiUiToThree {
     threeApp.animationManager.animation();
   }
 
+  public static pauseAnimation() {
+    threeApp.animationManager.pause();
+  }
+
   public static setAnimationPosStart() {
     threeApp.animationManager.setAnimationPosStart();
   }
 
   public static setAnimationPosEnd() {
     threeApp.animationManager.setAnimationPosEnd();
-    //threeApp.animationManager.stop();
   }
 
   public static resetAnimation() {
     //threeApp.animationManager.resetAnimation();
+  }
+
+  public static setAnimationIndex(index: number) {
+    threeApp.animationManager.setAnimationIndex(index);
   }
 }

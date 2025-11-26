@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { threeApp } from '../threeApp';
+import { ApiThreeToUi } from '../../api/apiLocal/apiThreeToUi';
 import { MergeAnimation } from '../mergedModel/mergeAnimation';
 
 export class AnimationManager {
@@ -8,6 +9,7 @@ export class AnimationManager {
   private isPlaying: boolean = false;
   private animationActions: THREE.AnimationAction[] = [];
   private animationClips: THREE.AnimationClip[] = [];
+  private currentActionIndex: number = 0;
   private animationLoopId: number | null = null;
   private isMergedModel: boolean = false;
   private animationRoot: THREE.Object3D | null = null;
@@ -28,6 +30,8 @@ export class AnimationManager {
       console.log('ℹ️ Нет анимаций для инициализации');
       return false;
     }
+    console.log('animations.length', animations);
+    ApiThreeToUi.updatePlayerMenu(animations);
 
     // Очищаем предыдущие анимации
     this.dispose();
@@ -77,10 +81,44 @@ export class AnimationManager {
       this.mixers.push(mixer);
     }
 
-    this.isPlaying = true;
+    this.setAnimationIndex(0);
+    this.isPlaying = false;
     console.log(`✅ Инициализировано ${animations.length} анимаций`);
 
     return true;
+  }
+
+  public setAnimationIndex(index: number): void {
+    if (this.mixers.length === 0 || this.animationActions.length === 0) {
+      console.warn('⚠️ Нет анимаций для установки индекса');
+      return;
+    }
+
+    if (index < 0 || index >= this.animationActions.length) {
+      console.warn(`⚠️ Индекс анимации ${index} выходит за пределы доступных анимаций`);
+      return;
+    }
+
+    this.stopAnimationLoop();
+    this.isPlaying = false;
+
+    this.animationActions.forEach((action, actionIndex) => {
+      action.stop();
+      action.reset();
+      action.paused = true;
+      action.enabled = actionIndex === index;
+    });
+
+    this.mixers.forEach((mixer) => {
+      mixer.time = 0;
+      mixer.setTime(0);
+      mixer.timeScale = 1.0;
+    });
+
+    this.currentActionIndex = index;
+
+    const clip = this.animationClips[index];
+    console.log(`ℹ️ Активная анимация: ${clip?.name || `Анимация ${index + 1}`}`);
   }
 
   private play(): void {
@@ -102,7 +140,7 @@ export class AnimationManager {
     console.log('▶️ Анимации запущены');
   }
 
-  public stop(): void {
+  private stop(): void {
     if (this.mixers.length === 0) {
       console.warn('⚠️ Нет анимаций для остановки');
       return;
@@ -182,13 +220,26 @@ export class AnimationManager {
 
     const clampedTime = Math.max(0, time);
     const shouldResetActions = options?.resetActions ?? clampedTime === 0;
-    this.animationActions.forEach((action) => {
-      if (shouldResetActions) {
+    const selectedAction = this.animationActions[this.currentActionIndex];
+
+    if (!selectedAction) {
+      console.warn('⚠️ Текущая анимация не найдена');
+      return;
+    }
+
+    this.animationActions.forEach((action, actionIndex) => {
+      if (actionIndex !== this.currentActionIndex) {
+        action.stop();
         action.reset();
       }
-      action.play();
-      action.paused = false;
     });
+
+    if (shouldResetActions) {
+      selectedAction.reset();
+    }
+
+    selectedAction.play();
+    selectedAction.paused = false;
 
     this.mixers.forEach((mixer) => {
       mixer.timeScale = 1.0;
@@ -203,9 +254,7 @@ export class AnimationManager {
       mixer.timeScale = 0.0;
     });
 
-    this.animationActions.forEach((action) => {
-      action.paused = true;
-    });
+    selectedAction.paused = true;
 
     if (this.isMergedModel && this.animationRoot) {
       this.animationRoot.updateMatrixWorld(true);
@@ -258,22 +307,36 @@ export class AnimationManager {
       mixer.timeScale = 1.0;
     });
 
-    // Сбрасываем и запускаем все actions явно
-    this.animationActions.forEach((action, index) => {
-      action.reset();
-      action.play();
-      // Проверяем, что action действительно запущен
-      if (!action.isRunning()) {
-        console.warn(`⚠️ Action ${index} не запущен после вызова play()`);
+    const selectedAction = this.animationActions[this.currentActionIndex];
+    if (!selectedAction) {
+      console.warn('⚠️ Текущая анимация не найдена');
+      return;
+    }
+
+    const selectedClip = this.animationClips[this.currentActionIndex];
+    const animationLabel = selectedClip?.name || `Анимация ${this.currentActionIndex + 1}`;
+
+    // Сбрасываем лишние действия, чтобы проигрывался только выбранный
+    this.animationActions.forEach((action, actionIndex) => {
+      if (actionIndex !== this.currentActionIndex) {
+        action.stop();
+        action.reset();
       }
     });
 
-    this.isPlaying = true;
-    console.log(`▶️ Запущено ${this.animationActions.length} анимаций, mixer time: ${this.mixers[0]?.time || 0}`);
+    selectedAction.reset();
+    selectedAction.play();
+    if (!selectedAction.isRunning()) {
+      console.warn(`⚠️ Action ${this.currentActionIndex} не запущен после вызова play()`);
+    }
 
-    // Получаем максимальную длительность всех анимаций
-    const maxDuration = Math.max(...this.animationClips.map((clip) => clip.duration));
-    console.log(`🎬 Запуск воспроизведения анимации (длительность: ${maxDuration.toFixed(2)}с)`);
+    this.isPlaying = true;
+    console.log(`▶️ Запущена анимация: ${animationLabel}, mixer time: ${this.mixers[0]?.time || 0}`);
+
+    // Получаем длительность выбранной анимации (если не задана, используем максимальную)
+    const fallbackDuration = this.animationClips.reduce((duration, clip) => Math.max(duration, clip.duration), 0);
+    const maxDuration = selectedClip?.duration ?? fallbackDuration;
+    console.log(`🎬 Запуск воспроизведения: ${animationLabel} (длительность: ${maxDuration.toFixed(2)}с)`);
 
     // Переменная для отслеживания прошедшего времени
     let elapsedTime = 0;
@@ -304,9 +367,7 @@ export class AnimationManager {
       }
 
       // Рендерим сцену
-      if (threeApp.sceneManager && threeApp.sceneManager.renderer) {
-        threeApp.sceneManager.render();
-      }
+      this.renderScene();
 
       // Проверяем, завершилась ли анимация (сравниваем прошедшее время с максимальной длительностью)
       const isFinished = elapsedTime >= maxDuration;
@@ -408,6 +469,7 @@ export class AnimationManager {
     this.isMergedModel = false;
     this.animationRoot = null;
     this.mergedModel = null;
+    this.currentActionIndex = 0;
     console.log('🗑️ Анимации очищены');
   }
 }

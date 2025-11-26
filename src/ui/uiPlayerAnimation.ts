@@ -1,7 +1,9 @@
+import * as THREE from 'three';
 import { ApiUiToThree } from '../api/apiLocal/apiUiToThree';
 
 export class UiPlayerAnimation {
   private divWrap: HTMLDivElement;
+  private playerMenu: HTMLDivElement;
 
   constructor(container: HTMLDivElement) {
     this.divWrap = this.crDiv();
@@ -9,6 +11,8 @@ export class UiPlayerAnimation {
 
     this.eventStop({ div: this.divWrap });
     this.eventPlayer();
+
+    //this.updatePlayerMenu(2);
   }
 
   private crDiv() {
@@ -67,7 +71,7 @@ export class UiPlayerAnimation {
     transition: transform .2s,background-color .2s;
     will-change: transform;`;
     const cssPlayerNavigations = `display: flex; gap: 20px;`;
-    const cssPlayerMenu = `max-width: 40px; position: relative; display: inline-block;`;
+    const cssPlayerWrapMenuBtn = `max-width: 40px; position: relative; display: inline-block;`;
     const cssPlayerMenuBtn = `background: none;
     border: none;
     cursor: pointer;
@@ -87,15 +91,32 @@ export class UiPlayerAnimation {
     width: 50%;
     padding: 9px 14px;
     cursor: pointer;`;
+    const cssPlayerMenu = `position: absolute;
+    top: -15px;
+    right: 15px;
+    transform: translateY(-100%);
+    display: flex;
+    min-width: 200px;
+    min-height: 100px;
+    background: #fff;
+    border: 1px solid #222222;`;
 
     const html = `
     <div style="${css1}">
       <div id="wrap-player" style="${css2}">
         <div style="${cssPlayer}">
-          <div nameId="playerButton" style="${cssPlayerButton}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M4 3.72316C4 2.95533 4.82948 2.47397 5.49614 2.85491L16.4806 9.13173C17.1524 9.51563 17.1524 10.4843 16.4806 10.8682L5.49614 17.145C4.82948 17.526 4 17.0446 4 16.2768V3.72316Z" fill="#797979"></path>
-            </svg>
+          <div style="${cssPlayerButton}">
+            <div nameId="playerButton" style="display: block;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M4 3.72316C4 2.95533 4.82948 2.47397 5.49614 2.85491L16.4806 9.13173C17.1524 9.51563 17.1524 10.4843 16.4806 10.8682L5.49614 17.145C4.82948 17.526 4 17.0446 4 16.2768V3.72316Z" fill="#797979"></path>
+              </svg>
+            </div>
+            <div nameId="playerPause" style="display: none;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M4 5C4 4.44772 4.44772 4 5 4H8C8.55228 4 9 4.44772 9 5V15C9 15.5523 8.55228 16 8 16H5C4.44772 16 4 15.5523 4 15V5Z" fill="#797979"></path>
+                <path d="M11 5C11 4.44772 11.4477 4 12 4H15C15.5523 4 16 4.44772 16 5V15C16 15.5523 15.5523 16 15 16H12C11.4477 16 11 15.5523 11 15V5Z" fill="#797979"></path>
+              </svg>
+            </div>
           </div>
           <div style="${cssPlayerTime}">00:00 / 00:20</div>
           <div id="player-time-line" style="${cssPlayerTimeLine}">
@@ -103,9 +124,9 @@ export class UiPlayerAnimation {
             <div style="transform: translateX(0px); ${cssPlayerCaret}"></div>
           </div>
           <div id="player-navigations" style="${cssPlayerNavigations}">
-            <div style="${cssPlayerMenu}">
-              <div style="${cssPlayerMenuBtn}">
-                <div class="menu-icon">
+            <div style="${cssPlayerWrapMenuBtn}">
+              <div nameId="btnPlayerMenu" style="${cssPlayerMenuBtn}">
+                <div>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <rect width="20" height="20" fill="white"></rect>
                     <path d="M2 5H18" stroke="#797979" stroke-width="2" stroke-linejoin="bevel"></path>
@@ -134,6 +155,8 @@ export class UiPlayerAnimation {
             </svg>
           </div>          
         </div>
+        <div nameId="playerMenu" style="${cssPlayerMenu}">
+        </div>
       </div>
     </div>`;
 
@@ -152,11 +175,26 @@ export class UiPlayerAnimation {
 
   private eventPlayer() {
     const btnPlay = this.divWrap.querySelector('[nameId="playerButton"]') as HTMLDivElement;
+    const btnPause = this.divWrap.querySelector('[nameId="playerPause"]') as HTMLDivElement;
+    const btnPlayerMenu = this.divWrap.querySelector('[nameId="btnPlayerMenu"]') as HTMLDivElement;
+    this.playerMenu = this.divWrap.querySelector('[nameId="playerMenu"]') as HTMLDivElement;
     const animationPosStart = this.divWrap.querySelector('[nameId="animationPosStart"]') as HTMLDivElement;
     const animationPosEnd = this.divWrap.querySelector('[nameId="animationPosEnd"]') as HTMLDivElement;
 
     btnPlay.onmousedown = () => {
+      btnPlay.style.display = 'none';
+      btnPause.style.display = 'block';
       ApiUiToThree.playAnimation();
+    };
+
+    btnPause.onmousedown = () => {
+      btnPlay.style.display = 'block';
+      btnPause.style.display = 'none';
+      ApiUiToThree.pauseAnimation();
+    };
+
+    btnPlayerMenu.onmousedown = () => {
+      this.playerMenu.style.display = this.playerMenu.style.display === 'none' ? 'flex' : 'none';
     };
 
     animationPosStart.onmousedown = () => {
@@ -166,5 +204,69 @@ export class UiPlayerAnimation {
     animationPosEnd.onmousedown = () => {
       ApiUiToThree.setAnimationPosEnd();
     };
+  }
+
+  public updatePlayerTime(time: number) {
+    const playerTime = this.divWrap.querySelector('[nameId="playerTime"]') as HTMLDivElement;
+    playerTime.innerHTML = `${time.toFixed(2)} / 00:20`;
+  }
+
+  public updatePlayerMenu(animations: THREE.AnimationClip[]) {
+    let html = '<div style="display: flex; flex-direction: column; gap: 10px; margin: auto; padding: 20px; font-size: 12px;">';
+    const cssCheckbox = `width: 16px; height: 16px; border: 1px solid #666; display: flex; align-items: center; justify-content: center;`;
+    const cssAnimationItem = `display: flex; align-items: center; gap: 10px; padding: 3px 0px; cursor: pointer; transition: all 0.2s;`;
+    const divCheckBoxSelected = '<div style="width: 8px; height: 8px; background: #666;"></div>';
+
+    for (let i = 0; i < animations.length; i++) {
+      const selected = i === 0 ? 'selected' : '';
+      const animationName = animations[i].name;
+
+      html += `
+      <div nameId="animationItem" animationName="${animationName}" animationIndex="${i}" style="${cssAnimationItem}">
+        <div nameId="checkbox" style="${cssCheckbox}">
+          ${selected ? divCheckBoxSelected : ''}
+        </div>
+        <label style="cursor: pointer; user-select: none;">${animationName}</label>
+      </div>
+      `;
+    }
+
+    html += '</div>';
+    this.playerMenu.innerHTML = html;
+    this.eventPlayerMenu(divCheckBoxSelected);
+  }
+
+  private eventPlayerMenu(divCheckBoxSelected: string) {
+    const items = Array.from(this.playerMenu.querySelectorAll<HTMLDivElement>('[nameId="animationItem"]'));
+
+    const clearSelection = () => {
+      items.forEach((item) => {
+        item.setAttribute('nameId', 'animationItem');
+        const checkbox = item.querySelector('[nameId="checkbox"]') as HTMLDivElement;
+        checkbox.innerHTML = '';
+      });
+    };
+
+    items.forEach((item) => {
+      item.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (item.getAttribute('nameId') === 'animationItem: selected') {
+          return;
+        }
+
+        clearSelection();
+
+        item.setAttribute('nameId', 'animationItem: selected');
+        const checkbox = item.querySelector('[nameId="checkbox"]') as HTMLDivElement;
+        checkbox.innerHTML = divCheckBoxSelected;
+
+        const animationName = item.getAttribute('animationName');
+        const animationIndex = item.getAttribute('animationIndex');
+        console.log('Selected animation:', animationIndex, animationName);
+        ApiUiToThree.setAnimationIndex(Number(animationIndex));
+      };
+    });
   }
 }
