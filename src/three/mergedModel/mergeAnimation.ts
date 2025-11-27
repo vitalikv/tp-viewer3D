@@ -33,12 +33,12 @@ export class MergeAnimation {
     root.uuid = model.uuid;
 
     // Копируем трансформации корня, чтобы виртуальная иерархия работала в той же системе координат
-    // root.position.copy(model.position);
-    // root.rotation.copy(model.rotation);
-    // root.scale.copy(model.scale);
-    // root.matrix.copy(model.matrix);
-    // root.matrixWorld.copy(model.matrixWorld);
-    // root.matrixAutoUpdate = model.matrixAutoUpdate;
+    root.position.copy(model.position);
+    root.rotation.copy(model.rotation);
+    root.scale.copy(model.scale);
+    root.matrix.copy(model.matrix);
+    root.matrixWorld.copy(model.matrixWorld);
+    root.matrixAutoUpdate = model.matrixAutoUpdate;
 
     const nodeMap = new Map<string, THREE.Object3D>();
     nodeMap.set(model.uuid, root);
