@@ -11,6 +11,8 @@ export class AnimationManager {
   private animationClips: THREE.AnimationClip[] = [];
   private currentActionIndex: number = 0;
   private animationLoopId: number | null = null;
+  private animationElapsedTime: number = 0;
+  private animationMaxDuration: number = 0;
   private isMergedModel: boolean = false;
   private animationRoot: THREE.Object3D | null = null;
   private mergedModel: THREE.Object3D | null = null;
@@ -119,52 +121,32 @@ export class AnimationManager {
 
     const clip = this.animationClips[index];
     console.log(`ℹ️ Активная анимация: ${clip?.name || `Анимация ${index + 1}`}`);
+
+    this.animationElapsedTime = 0;
+    this.animationMaxDuration = 0;
   }
 
-  private play(): void {
-    if (this.mixers.length === 0 || this.animationActions.length === 0) {
-      console.warn('⚠️ Нет анимаций для воспроизведения');
-      return;
-    }
-
-    // Запускаем все actions
-    this.animationActions.forEach((action) => {
-      action.play();
-    });
-
-    this.mixers.forEach((mixer) => {
-      mixer.timeScale = 1.0;
-    });
-
-    this.isPlaying = true;
-    console.log('▶️ Анимации запущены');
-  }
-
-  private stop(): void {
+  public pause(): void {
     if (this.mixers.length === 0) {
       console.warn('⚠️ Нет анимаций для остановки');
       return;
+    }
+
+    const selectedAction = this.animationActions[this.currentActionIndex];
+    if (selectedAction) {
+      selectedAction.paused = true;
     }
 
     this.mixers.forEach((mixer) => {
       mixer.timeScale = 0.0;
     });
 
+    this.stopAnimationLoop();
+
     this.isPlaying = false;
     console.log('⏸️ Анимации остановлены');
   }
 
-  public pause(): void {
-    this.stop();
-  }
-
-  public resume(): void {
-    this.play();
-  }
-
-  /**
-   * Сбрасывает анимации в начальное состояние
-   */
   public reset(): void {
     if (this.mixers.length === 0) {
       console.warn('⚠️ Нет анимаций для сброса');
@@ -238,6 +220,7 @@ export class AnimationManager {
       selectedAction.reset();
     }
 
+    selectedAction.paused = false;
     selectedAction.play();
     selectedAction.paused = false;
 
@@ -285,27 +268,18 @@ export class AnimationManager {
   }
 
   // Запускает и воспроизводит анимацию до её завершения
-  public animation() {
-    // Проверяем, есть ли анимации для воспроизведения
+  public play() {
     if (this.mixers.length === 0 || this.animationActions.length === 0) {
       console.warn('⚠️ Нет анимаций для воспроизведения. Сначала инициализируйте анимации через initAnimations()');
       return;
     }
 
-    // Останавливаем предыдущий цикл, если он был запущен
+    this.logPlaybackProgress();
+
     if (this.animationLoopId !== null) {
       cancelAnimationFrame(this.animationLoopId);
       this.animationLoopId = null;
     }
-
-    // Сбрасываем clock для точного отслеживания времени
-    this.clock = new THREE.Clock();
-
-    // Сбрасываем время миксеров
-    this.mixers.forEach((mixer) => {
-      mixer.time = 0;
-      mixer.timeScale = 1.0;
-    });
 
     const selectedAction = this.animationActions[this.currentActionIndex];
     if (!selectedAction) {
@@ -316,7 +290,6 @@ export class AnimationManager {
     const selectedClip = this.animationClips[this.currentActionIndex];
     const animationLabel = selectedClip?.name || `Анимация ${this.currentActionIndex + 1}`;
 
-    // Сбрасываем лишние действия, чтобы проигрывался только выбранный
     this.animationActions.forEach((action, actionIndex) => {
       if (actionIndex !== this.currentActionIndex) {
         action.stop();
@@ -324,7 +297,37 @@ export class AnimationManager {
       }
     });
 
-    selectedAction.reset();
+    const fallbackDuration = this.animationClips.reduce((duration, clip) => Math.max(duration, clip.duration), 0);
+    const maxDuration = selectedClip?.duration ?? fallbackDuration;
+    this.animationMaxDuration = maxDuration;
+    const isResuming = this.animationElapsedTime > 0 && this.animationElapsedTime < maxDuration;
+    if (!isResuming) {
+      this.animationElapsedTime = 0;
+    }
+
+    console.log(`🎬 Запуск воспроизведения: ${animationLabel} (длительность: ${maxDuration.toFixed(2)}с)`);
+
+    // Сбрасываем clock для точного отслеживания времени
+    this.clock = new THREE.Clock();
+
+    // Сбрасываем время миксеров
+    this.mixers.forEach((mixer) => {
+      if (!isResuming) {
+        mixer.time = 0;
+        mixer.setTime(0);
+      } else {
+        mixer.setTime(Math.min(this.animationElapsedTime, maxDuration));
+      }
+      mixer.timeScale = 1.0;
+    });
+
+    if (isResuming) {
+      selectedAction.time = Math.min(this.animationElapsedTime, this.animationMaxDuration);
+    } else {
+      selectedAction.reset();
+    }
+
+    selectedAction.paused = false;
     selectedAction.play();
     if (!selectedAction.isRunning()) {
       console.warn(`⚠️ Action ${this.currentActionIndex} не запущен после вызова play()`);
@@ -333,15 +336,6 @@ export class AnimationManager {
     this.isPlaying = true;
     console.log(`▶️ Запущена анимация: ${animationLabel}, mixer time: ${this.mixers[0]?.time || 0}`);
 
-    // Получаем длительность выбранной анимации (если не задана, используем максимальную)
-    const fallbackDuration = this.animationClips.reduce((duration, clip) => Math.max(duration, clip.duration), 0);
-    const maxDuration = selectedClip?.duration ?? fallbackDuration;
-    console.log(`🎬 Запуск воспроизведения: ${animationLabel} (длительность: ${maxDuration.toFixed(2)}с)`);
-
-    // Переменная для отслеживания прошедшего времени
-    let elapsedTime = 0;
-
-    // Запускаем цикл анимации
     const animate = () => {
       // Получаем дельту времени и обновляем прошедшее время
       const delta = this.clock.getDelta();
@@ -352,15 +346,15 @@ export class AnimationManager {
         return;
       }
 
-      elapsedTime += delta;
+      if (this.isPlaying) {
+        this.animationElapsedTime = Math.min(this.animationElapsedTime + delta, this.animationMaxDuration);
 
-      // Обновляем анимации
-      if (this.isPlaying && this.mixers.length > 0) {
-        this.mixers.forEach((mixer) => {
-          mixer.update(delta);
-        });
+        if (this.mixers.length > 0) {
+          this.mixers.forEach((mixer) => {
+            mixer.update(delta);
+          });
+        }
 
-        // Если это смерженная модель, применяем трансформации к группам
         if (this.isMergedModel && this.animationRoot) {
           this.applyAnimationsToMergedGeometry();
         }
@@ -370,25 +364,43 @@ export class AnimationManager {
       this.renderScene();
 
       // Проверяем, завершилась ли анимация (сравниваем прошедшее время с максимальной длительностью)
-      const isFinished = elapsedTime >= maxDuration;
+      const isFinished = this.animationElapsedTime >= this.animationMaxDuration;
 
       // Если анимация не завершилась и она воспроизводится, продолжаем цикл
       if (!isFinished && this.isPlaying) {
         this.animationLoopId = requestAnimationFrame(animate);
       } else {
         if (isFinished) {
-          console.log(`✅ Анимация завершена (время: ${elapsedTime.toFixed(2)}с из ${maxDuration.toFixed(2)}с)`);
+          console.log(`✅ Анимация завершена (время: ${this.animationElapsedTime.toFixed(2)}с из ${this.animationMaxDuration.toFixed(2)}с)`);
           this.isPlaying = false;
           if (this.isMergedModel) {
             this.rebuildMergedModelBVH();
           }
+          this.animationElapsedTime = 0;
+
+          ApiThreeToUi.updatePlayerBtnPlay(false);
         }
         this.animationLoopId = null;
       }
+
+      this.logPlaybackProgress();
     };
 
     // Запускаем цикл анимации (первый кадр)
     this.animationLoopId = requestAnimationFrame(animate);
+  }
+
+  public logPlaybackProgress(): void {
+    if (this.animationClips.length === 0 || this.animationMaxDuration === 0) {
+      console.log('ℹ️ Анимация не запущена или не инициализирована (0% / 0.00с)');
+      return;
+    }
+
+    const currentTime = Math.min(this.animationElapsedTime, this.animationMaxDuration);
+    const percent = Math.min(100, (currentTime / this.animationMaxDuration) * 100);
+    console.log(`ℹ️ Анимация ${percent.toFixed(1)}% (${currentTime.toFixed(2)}с из ${this.animationMaxDuration.toFixed(2)}с)`);
+    ApiThreeToUi.updatePlayerTime(currentTime, this.animationMaxDuration);
+    ApiThreeToUi.updatePlayerCaret(percent, this.isPlaying);
   }
 
   private stopAnimationLoop(): void {
@@ -396,6 +408,7 @@ export class AnimationManager {
       cancelAnimationFrame(this.animationLoopId);
       this.animationLoopId = null;
       console.log('🛑 Цикл анимации остановлен');
+      this.rebuildMergedModelBVH();
     }
   }
 
@@ -470,6 +483,8 @@ export class AnimationManager {
     this.animationRoot = null;
     this.mergedModel = null;
     this.currentActionIndex = 0;
+    this.animationElapsedTime = 0;
+    this.animationMaxDuration = 0;
     console.log('🗑️ Анимации очищены');
   }
 }

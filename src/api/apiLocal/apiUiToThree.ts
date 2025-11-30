@@ -50,7 +50,7 @@ export class ApiUiToThree {
   }
 
   public static playAnimation() {
-    threeApp.animationManager.animation();
+    threeApp.animationManager.play();
   }
 
   public static pauseAnimation() {

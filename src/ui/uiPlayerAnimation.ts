@@ -3,6 +3,11 @@ import { ApiUiToThree } from '../api/apiLocal/apiUiToThree';
 
 export class UiPlayerAnimation {
   private divWrap: HTMLDivElement;
+  private btnPlay: HTMLDivElement;
+  private btnPause: HTMLDivElement;
+  private playerTime: HTMLDivElement;
+  private playerCaret: HTMLDivElement;
+  private playerTimeLine: HTMLDivElement;
   private playerMenu: HTMLDivElement;
 
   constructor(container: HTMLDivElement) {
@@ -67,9 +72,7 @@ export class UiPlayerAnimation {
     height: 14px;
     background-color: #9fc8ff;
     cursor: pointer;
-    border-radius: 50%;
-    transition: transform .2s,background-color .2s;
-    will-change: transform;`;
+    border-radius: 50%;`;
     const cssPlayerNavigations = `display: flex; gap: 20px;`;
     const cssPlayerWrapMenuBtn = `max-width: 40px; position: relative; display: inline-block;`;
     const cssPlayerMenuBtn = `background: none;
@@ -118,10 +121,10 @@ export class UiPlayerAnimation {
               </svg>
             </div>
           </div>
-          <div style="${cssPlayerTime}">00:00 / 00:20</div>
+          <div nameId="playerTime" style="${cssPlayerTime}">0.00 / 0.00</div>
           <div id="player-time-line" style="${cssPlayerTimeLine}">
             <div style="${cssPlayerStep}"></div>
-            <div style="transform: translateX(0px); ${cssPlayerCaret}"></div>
+            <div nameId="playerCaret" style="transform: translateX(0px); ${cssPlayerCaret}"></div>
           </div>
           <div id="player-navigations" style="${cssPlayerNavigations}">
             <div style="${cssPlayerWrapMenuBtn}">
@@ -174,22 +177,23 @@ export class UiPlayerAnimation {
   }
 
   private eventPlayer() {
-    const btnPlay = this.divWrap.querySelector('[nameId="playerButton"]') as HTMLDivElement;
-    const btnPause = this.divWrap.querySelector('[nameId="playerPause"]') as HTMLDivElement;
-    const btnPlayerMenu = this.divWrap.querySelector('[nameId="btnPlayerMenu"]') as HTMLDivElement;
+    this.playerTime = this.divWrap.querySelector('[nameId="playerTime"]') as HTMLDivElement;
+    this.btnPlay = this.divWrap.querySelector('[nameId="playerButton"]') as HTMLDivElement;
+    this.btnPause = this.divWrap.querySelector('[nameId="playerPause"]') as HTMLDivElement;
+    this.playerCaret = this.divWrap.querySelector('[nameId="playerCaret"]') as HTMLDivElement;
+    this.playerTimeLine = this.divWrap.querySelector('#player-time-line') as HTMLDivElement;
     this.playerMenu = this.divWrap.querySelector('[nameId="playerMenu"]') as HTMLDivElement;
+    const btnPlayerMenu = this.divWrap.querySelector('[nameId="btnPlayerMenu"]') as HTMLDivElement;
     const animationPosStart = this.divWrap.querySelector('[nameId="animationPosStart"]') as HTMLDivElement;
     const animationPosEnd = this.divWrap.querySelector('[nameId="animationPosEnd"]') as HTMLDivElement;
 
-    btnPlay.onmousedown = () => {
-      btnPlay.style.display = 'none';
-      btnPause.style.display = 'block';
+    this.btnPlay.onmousedown = () => {
+      this.updateBtnPlay(true);
       ApiUiToThree.playAnimation();
     };
 
-    btnPause.onmousedown = () => {
-      btnPlay.style.display = 'block';
-      btnPause.style.display = 'none';
+    this.btnPause.onmousedown = () => {
+      this.updateBtnPlay(false);
       ApiUiToThree.pauseAnimation();
     };
 
@@ -206,9 +210,32 @@ export class UiPlayerAnimation {
     };
   }
 
-  public updatePlayerTime(time: number) {
-    const playerTime = this.divWrap.querySelector('[nameId="playerTime"]') as HTMLDivElement;
-    playerTime.innerHTML = `${time.toFixed(2)} / 00:20`;
+  public updateBtnPlay(isPlaying: boolean) {
+    if (isPlaying) {
+      this.btnPlay.style.display = 'none';
+      this.btnPause.style.display = 'block';
+    } else {
+      this.btnPlay.style.display = 'block';
+      this.btnPause.style.display = 'none';
+    }
+  }
+
+  public updatePlayerTime(time: number, maxTime: number) {
+    this.playerTime.innerHTML = `${time.toFixed(2)} / ${maxTime.toFixed(2)}`;
+  }
+
+  public updatePlayerCaret(percent: number, isPlaying: boolean) {
+    const clampedPercent = Math.max(0, Math.min(100, percent));
+    const lineWidth = this.playerTimeLine?.clientWidth ?? 0;
+    const caretWidth = this.playerCaret?.offsetWidth ?? 0;
+    const maxTranslate = Math.max(0, lineWidth - caretWidth);
+    const translateX = (clampedPercent / 100) * maxTranslate;
+    this.playerCaret.style.transform = `translateX(${translateX}px)`;
+    if (isPlaying) {
+      this.playerCaret.style.backgroundColor = '#ff0000';
+    } else {
+      this.playerCaret.style.backgroundColor = '#9fc8ff';
+    }
   }
 
   public updatePlayerMenu(animations: THREE.AnimationClip[]) {
