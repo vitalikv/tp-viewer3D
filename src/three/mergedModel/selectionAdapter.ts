@@ -9,8 +9,6 @@ export class SelectionAdapter {
     const structure = threeApp.modelLoader.initData.getTree();
     this.structureCache = this.convertGroups(structure);
     this.buildIndexes(this.structureCache);
-
-    console.log(333355, this.structureCache, this.uuidIndex, structure);
   }
 
   private static convertGroups(val: any[]) {

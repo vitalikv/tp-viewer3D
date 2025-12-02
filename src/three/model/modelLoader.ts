@@ -4,9 +4,6 @@ import { threeApp } from '../threeApp';
 import { InitData } from '../loaders/data/InitData';
 import { InitMergedModel } from '../mergedModel/initMergedModel';
 import { MergeEnvironment } from '../mergedModel/mergeEnvironment';
-
-import { SelectionManager } from '../mergedModel/selectionManager';
-import { SelectionAdapter } from '../mergedModel/selectionAdapter';
 import { MergeAnimation } from '../mergedModel/mergeAnimation';
 
 export class ModelLoader {

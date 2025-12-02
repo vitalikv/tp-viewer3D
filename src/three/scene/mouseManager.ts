@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { threeApp } from '../threeApp';
-import { SelectionManager } from '../mergedModel/selectionManager';
+import { SelectionMergedGeometries } from '../selection/selectionMergedGeometries';
 import { SelectionHandler } from '../selection/selectionHandler';
 
 type SelectionMode = 'merge' | 'tflex';
@@ -81,7 +81,7 @@ export class MouseManager {
   private pointerUp = async (event: PointerEvent): Promise<void> => {
     try {
       if (!this.isMove) {
-        SelectionManager.clearSelection();
+        SelectionMergedGeometries.clearSelection();
         this.selectionHandler.resetSelection();
 
         this.calculateMousePosition(event);

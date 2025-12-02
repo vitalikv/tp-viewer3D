@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 import { threeApp } from '../threeApp';
 import { SelectedByData } from '../loaders/data/selectedByData';
-import { SelectionManager } from '../mergedModel/selectionManager';
+import { SelectionMergedGeometries } from './selectionMergedGeometries';
 
 // Типы для управления активными объектами
 interface ActiveObjectItem {
@@ -118,7 +118,7 @@ export class SelectionHandler {
 
     if (!isMesh && !isLine) return;
 
-    SelectionManager.handleObjectClick(intersect);
+    SelectionMergedGeometries.handleObjectClick(intersect);
   }
 
   /**

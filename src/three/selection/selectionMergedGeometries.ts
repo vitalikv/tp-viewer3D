@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { threeApp } from '../threeApp';
-import { SelectionAdapter } from './selectionAdapter';
-import { OutlineSelection } from './outlineSelection';
+import { SelectionAdapter } from '../mergedModel/selectionAdapter';
+import { OutlineSelection } from '../mergedModel/outlineSelection';
 
-export class SelectionManager {
+export class SelectionMergedGeometries {
   private static originalMaterials = new Map<string, THREE.Material | THREE.Material[]>();
   private static mergedMeshes: Map<string, THREE.Mesh[]> = new Map();
   private static mergedLines: Map<string, (THREE.Line | THREE.LineSegments)[]> = new Map();
