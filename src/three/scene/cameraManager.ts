@@ -1,19 +1,16 @@
 import * as THREE from 'three';
 import type { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
-//import { uiMain, sceneManager, effectsManager, controls, mouseManager } from '../../../index';
 import { threeApp } from '../threeApp';
 import { Watermark3d } from '../../watermark/watermark3d';
 
 export class CameraManager {
-  private container: HTMLElement;
   private cam3D: THREE.PerspectiveCamera;
   private camTop: THREE.OrthographicCamera;
   private activeCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   private options = { fov: 75, aspect: 1, near: 0.01, far: 1000, position: new THREE.Vector3(5, 5, 5) };
   private renderer: THREE.WebGLRenderer;
 
-  public init({ container, renderer }) {
-    this.container = container;
+  public init({ renderer }) {
     this.renderer = renderer;
 
     this.initCameras();
@@ -115,26 +112,6 @@ export class CameraManager {
     return this.camTop;
   }
 
-  public updateTargetOnModel({ center }: { center: THREE.Vector3 }) {
-    const orbitControls = controls.getControls();
-    orbitControls.target.copy(center);
-
-    const cam3D = this.getCam3D();
-    cam3D.position.add(center);
-    cam3D.lookAt(center);
-    cam3D.updateProjectionMatrix();
-    this.saveCameraState({ camera: cam3D });
-
-    const camTop = this.getCamTop();
-    camTop.position.add(center);
-    camTop.lookAt(center);
-    camTop.updateProjectionMatrix();
-    this.saveCameraState({ camera: camTop });
-
-    controls.update();
-    threeApp.sceneManager.render();
-  }
-
   public setCamera({ type }: { type: 'Perspective' | 'Orthographic' }) {
     //this.saveCameraState({ camera: this.getActiveCamera() });
 
@@ -166,34 +143,7 @@ export class CameraManager {
       threeApp.effectsManager.outlinePass.renderCamera = camera;
     }
 
-    // mouseManager.setCamera({ camera: this.getActiveCamera() });
-    // this.restoreCameraState();
-
     threeApp.sceneManager.render();
-  }
-
-  private saveCameraState({ camera }: { camera: THREE.PerspectiveCamera | THREE.OrthographicCamera }) {
-    const orbitControls = controls.getControls();
-
-    camera.userData.state = {
-      position: camera.position.clone(),
-      rotation: camera.rotation.clone(),
-      target: orbitControls.target.clone(),
-    };
-
-    console.log(camera.userData.state);
-  }
-
-  private restoreCameraState() {
-    const orbitControls = controls.getControls();
-    const state = this.activeCamera.userData.state;
-
-    if (state) {
-      this.activeCamera.position.copy(state.position);
-      this.activeCamera.rotation.copy(state.rotation);
-      orbitControls.target.copy(state.target);
-      controls.update();
-    }
   }
 
   public zoomCameraToFitModel(options: { center: THREE.Vector3; radius: number; maxDim: number }) {

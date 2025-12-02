@@ -113,7 +113,6 @@ export class ModelLoader {
 
     let model = gltf.scene;
 
-    // Использование
     const duplicateGeoms = this.findDuplicateGeometries(model);
     console.log('Дублирующиеся геометрии:', duplicateGeoms);
 
@@ -123,12 +122,7 @@ export class ModelLoader {
 
     //model = MergeEnvironmentUtils.mergeObj(model);
 
-    const typeGenerator = /Optimized/.test(generator);
-
-    if (typeGenerator) {
-      this.modelOptimized({ model });
-      console.log('модель оптимизированная на nodejs');
-    } else if (merge) {
+    if (merge) {
       model = this.modelMerged({ model });
       console.log('модель смержена на клиенте');
     } else {
@@ -159,54 +153,6 @@ export class ModelLoader {
     const radius = sphere.radius || maxDim * 0.5;
 
     threeApp.sceneManager.cameraManager.zoomCameraToFitModel({ center: new THREE.Vector3(0, 0, 0), radius, maxDim });
-  }
-
-  private modelOptimized({ model }) {
-    threeApp.bvhManager.setupBVH(model);
-
-    const group = model.children[0];
-    const groupMeshes = group.children[0];
-    const groupLines = group.children[1];
-    const allMeshes: THREE.Mesh[] = [];
-    const allLines: (THREE.Line | THREE.LineSegments)[] = [];
-
-    model.updateMatrixWorld(true);
-
-    groupMeshes.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        allMeshes.push(child);
-
-        const geometry = child.geometry;
-        if (geometry.userData.groups) {
-          const { groups } = geometry.userData;
-          geometry.groups = groups;
-        }
-      }
-    });
-
-    groupLines.traverse((child) => {
-      if (child instanceof THREE.Line || child instanceof THREE.LineSegments) {
-        allLines.push(child);
-
-        const geometry = child.geometry;
-        if (geometry.userData.groups) {
-          const { groups } = geometry.userData;
-          geometry.groups = groups;
-        }
-      }
-    });
-
-    allMeshes.forEach((mesh) => {
-      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-
-      materials.forEach((material) => {
-        material.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
-      });
-    });
-
-    SelectionManager.setMergedObjects(allMeshes, allLines);
-
-    SelectionAdapter.initializeCache();
   }
 
   private modelMerged({ model }) {
@@ -256,7 +202,5 @@ export class ModelLoader {
     if (threeApp.animationManager) {
       threeApp.animationManager.dispose();
     }
-
-    //this.originalMaterials.clear();
   }
 }

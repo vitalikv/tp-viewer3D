@@ -4,7 +4,6 @@ import Stats from 'stats.js';
 
 import { threeApp } from '../threeApp';
 import { CameraManager } from './cameraManager';
-import { uiMain } from '../../ui/uiMain';
 
 import { WatermarkCanvas } from '../../watermark/watermarkCanvas';
 import { Watermark3d } from '../../watermark/watermark3d';
@@ -156,7 +155,7 @@ export class SceneManager {
 
   private initCamera() {
     this.cameraManager = new CameraManager();
-    this.cameraManager.init({ container: this.container, renderer: this.renderer });
+    this.cameraManager.init({ renderer: this.renderer });
     this.camera = this.cameraManager.getActiveCamera();
   }
 

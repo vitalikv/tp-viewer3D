@@ -1,15 +1,16 @@
-import { SceneManager } from './core/sceneManager';
+import { SceneManager } from './scene/sceneManager';
 import { ModelFileLoader } from './loaders/modelFileLoader';
 import { ModelLoader } from './model/modelLoader';
-import { MouseManager } from './mouse/mouseManager';
+import { MouseManager } from './scene/mouseManager';
+import { SelectionHandler } from './selection/selectionHandler';
 import { BVHManager } from './bvh/bvhManager';
 import { ClippingBvh } from './clipping/clippingBvh';
-import { EffectsManager } from './core/effectsManager';
-import { OutlineSelection } from './mouse/outlineSelection';
+import { EffectsManager } from './scene/effectsManager';
+import { OutlineSelection } from './selection/outlineSelection';
 import { WatermarkCanvas, IWatermarkParams } from '../watermark/watermarkCanvas';
 import { AnimationManager } from './animation/animationManager';
 
-import { ViewCube } from './core/viewCube';
+import { ViewCube } from './scene/viewCube';
 
 import { ModelFileLoader2 } from './loaders/workers/modelFileLoader2';
 import { RenderWorker } from './render/initRenderWorker';
@@ -19,6 +20,7 @@ class ThreeApp {
   modelFileLoader: ModelFileLoader;
   modelLoader: ModelLoader;
   mouseManager: MouseManager;
+  selectionHandler: SelectionHandler;
   outlineSelection: OutlineSelection;
   bvhManager: BVHManager;
   clippingBvh: ClippingBvh;
@@ -43,7 +45,8 @@ class ThreeApp {
       this.sceneManager.init({ container });
       this.modelFileLoader = new ModelFileLoader();
       this.modelLoader = new ModelLoader();
-      this.mouseManager = new MouseManager();
+      this.selectionHandler = new SelectionHandler();
+      this.mouseManager = new MouseManager(this.selectionHandler);
       this.outlineSelection = new OutlineSelection();
       this.bvhManager = new BVHManager();
       this.clippingBvh = new ClippingBvh();
@@ -52,7 +55,7 @@ class ThreeApp {
       this.effectsManager = new EffectsManager();
       this.effectsManager.init({ scene: this.sceneManager.scene, camera: this.sceneManager.camera, renderer: this.sceneManager.renderer, container });
       this.outlineSelection.init({ outlinePass: this.effectsManager.outlinePass, composer: this.effectsManager.composer });
-      this.mouseManager.init(this.sceneManager.scene, this.sceneManager.camera, this.sceneManager.renderer.domElement);
+      this.mouseManager.init(this.sceneManager.camera, this.sceneManager.renderer.domElement);
       this.bvhManager.init();
 
       new ViewCube({ container, controls: this.sceneManager.controls, animate: () => this.sceneManager.render() });
