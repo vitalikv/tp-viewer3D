@@ -2,8 +2,18 @@ import * as THREE from 'three';
 
 import { threeApp } from '../threeApp';
 
+interface OutlineMeshData {
+  outlineMesh: THREE.Mesh;
+  originalMesh: THREE.Mesh;
+  groupIndex: number;
+  targetUuid: string;
+  originalGeometry: THREE.BufferGeometry;
+  group: { start: number; count: number };
+}
+
 export class OutlineSelection {
   private static outlineMeshes: THREE.Mesh[] = [];
+  private static outlineMeshData: OutlineMeshData[] = [];
   private static outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.0 });
 
   public static createOutlineMeshes(targetUuid: string, mergedMeshes: Map<string, THREE.Mesh[]>) {
@@ -46,6 +56,16 @@ export class OutlineSelection {
           outlineMesh.matrixAutoUpdate = false;
 
           this.outlineMeshes.push(outlineMesh);
+
+          // Сохраняем связь между outline мешем и оригинальным объектом
+          this.outlineMeshData.push({
+            outlineMesh,
+            originalMesh: originalObject,
+            groupIndex,
+            targetUuid,
+            originalGeometry: geometry,
+            group,
+          });
 
           threeApp.sceneManager.scene.add(outlineMesh);
           threeApp.outlineSelection.addOutlineObject(outlineMesh);
@@ -114,5 +134,38 @@ export class OutlineSelection {
     });
 
     this.outlineMeshes.length = 0;
+    this.outlineMeshData.length = 0;
+  }
+
+  /**
+   * Обновляет позиции outline мешей на основе текущих позиций оригинальных объектов
+   * Вызывается после обновления анимации
+   */
+  public static updateOutlineMeshes() {
+    if (this.outlineMeshData.length === 0) return;
+
+    this.outlineMeshData.forEach((data) => {
+      const { outlineMesh, originalMesh, originalGeometry, group } = data;
+
+      // Обновляем мировую матрицу оригинального меша
+      originalMesh.updateMatrixWorld(true);
+
+      // Пересоздаем геометрию outline на основе обновленной геометрии оригинального меша
+      const updatedOutlineGeometry = this.createGeometryForGroup(originalGeometry, group);
+
+      if (updatedOutlineGeometry) {
+        // Удаляем старую геометрию
+        if (outlineMesh.geometry) {
+          outlineMesh.geometry.dispose();
+        }
+
+        // Устанавливаем новую геометрию
+        outlineMesh.geometry = updatedOutlineGeometry;
+
+        // Сбрасываем матрицу и применяем новую мировую матрицу
+        outlineMesh.matrix.identity();
+        outlineMesh.applyMatrix4(originalMesh.matrixWorld);
+      }
+    });
   }
 }

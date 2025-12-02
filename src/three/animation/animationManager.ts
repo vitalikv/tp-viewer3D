@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { threeApp } from '../threeApp';
 import { ApiThreeToUi } from '../../api/apiLocal/apiThreeToUi';
 import { MergeAnimation } from '../mergedModel/mergeAnimation';
+import { OutlineSelection } from '../mergedModel/outlineSelection';
 
 export class AnimationManager {
   private mixers: THREE.AnimationMixer[] = [];
@@ -259,12 +260,14 @@ export class AnimationManager {
 
   public setAnimationPosStart(): void {
     this.updateAnimationPose(0);
+    OutlineSelection.updateOutlineMeshes();
   }
 
   public setAnimationPosEnd(): void {
     const endTime = this.getAnimationDuration();
     const rebuild = endTime > 0;
     this.updateAnimationPose(endTime, { rebuildMergedModelBVH: rebuild, resetActions: false });
+    OutlineSelection.updateOutlineMeshes();
   }
 
   // Запускает и воспроизводит анимацию до её завершения
@@ -358,6 +361,9 @@ export class AnimationManager {
         if (this.isMergedModel && this.animationRoot) {
           this.applyAnimationsToMergedGeometry();
         }
+
+        // Обновляем outline меши после обновления анимации
+        OutlineSelection.updateOutlineMeshes();
       }
 
       // Рендерим сцену
