@@ -9,19 +9,16 @@ export class ViewCube {
   private verticesDiv?: NodeListOf<HTMLDivElement>;
   private edgesDiv?: NodeListOf<HTMLDivElement>;
 
-  constructor({ containerId, controls, animate }: { containerId: string; controls: ArcballControls; animate: () => void }) {
+  constructor({ container, controls, animate }: { container: HTMLElement; controls: ArcballControls; animate: () => void }) {
     this.controls = controls;
     this.animate = animate;
 
-    this.createHtmlCube(containerId);
+    this.createHtmlCube(container);
     this.setupEventListeners();
     this.updateViewCube();
   }
 
-  private createHtmlCube(containerId: string) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
+  private createHtmlCube(container: HTMLElement) {
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
     const minDimension = Math.min(containerWidth, containerHeight);

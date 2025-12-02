@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
 
-export class MergeEnvironmentUtils {
+export class MergeEnvironment {
   public static mergeObj(obj: THREE.Object3D) {
     const { mergedGeomMesh, mergedGeomLine } = this.mergeGeometries(obj);
 

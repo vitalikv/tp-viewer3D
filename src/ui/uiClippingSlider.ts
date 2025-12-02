@@ -36,7 +36,7 @@ export class UiClippingSlider {
   }
 
   private html() {
-    const controlsStyle = `position: absolute; right: 20px; bottom: 90px; width: 200px; background: rgba(0, 0, 0, 0.3); padding: 15px;`;
+    const controlsStyle = `position: absolute; right: 20px; bottom: 120px; width: 200px; background: rgba(0, 0, 0, 0.3); padding: 15px;`;
     const controlGroupStyle = `margin-bottom: 15px;`;
     const controlTitleStyle = `font-size: 1.1rem; margin-bottom: 10px; color: #fff;`;
     const sliderContainerStyle = `margin-bottom: 10px;`;

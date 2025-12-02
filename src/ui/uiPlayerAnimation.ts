@@ -30,7 +30,7 @@ export class UiPlayerAnimation {
 
   private html() {
     const css1 = `position: absolute;
-    bottom: 90px;
+    bottom: 0px;
     right: 0;
     left: 0;
     background: #fff;
@@ -98,7 +98,7 @@ export class UiPlayerAnimation {
     top: -15px;
     right: 15px;
     transform: translateY(-100%);
-    display: flex;
+    display: none;
     min-width: 200px;
     min-height: 100px;
     background: #fff;

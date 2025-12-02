@@ -9,6 +9,8 @@ import { OutlineSelection } from './mouse/outlineSelection';
 import { WatermarkCanvas, IWatermarkParams } from '../watermark/watermarkCanvas';
 import { AnimationManager } from './animation/animationManager';
 
+import { ViewCube } from './core/viewCube';
+
 import { ModelFileLoader2 } from './loaders/workers/modelFileLoader2';
 import { RenderWorker } from './render/initRenderWorker';
 
@@ -52,6 +54,8 @@ class ThreeApp {
       this.outlineSelection.init({ outlinePass: this.effectsManager.outlinePass, composer: this.effectsManager.composer });
       this.mouseManager.init(this.sceneManager.scene, this.sceneManager.camera, this.sceneManager.renderer.domElement);
       this.bvhManager.init();
+
+      new ViewCube({ container, controls: this.sceneManager.controls, animate: () => this.sceneManager.render() });
 
       this.modelLoader.setMerge({ merge: true });
     }

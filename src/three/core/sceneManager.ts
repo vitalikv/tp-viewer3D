@@ -4,11 +4,11 @@ import Stats from 'stats.js';
 
 import { threeApp } from '../threeApp';
 import { CameraManager } from './cameraManager';
-import { ViewCube } from './viewCube';
 import { uiMain } from '../../ui/uiMain';
 
 import { WatermarkCanvas } from '../../watermark/watermarkCanvas';
 import { Watermark3d } from '../../watermark/watermark3d';
+import { ApiThreeToUi } from '../../api/apiLocal/apiThreeToUi';
 
 export class SceneManager {
   stats = null;
@@ -34,8 +34,6 @@ export class SceneManager {
     Watermark3d.init(this.renderer);
 
     this.render();
-
-    //new ViewCube({ containerId: 'container', controls: this.controls, animate: () => this.render() });
   }
 
   public initWorker({ container }) {
@@ -160,10 +158,6 @@ export class SceneManager {
     this.cameraManager = new CameraManager();
     this.cameraManager.init({ container: this.container, renderer: this.renderer });
     this.camera = this.cameraManager.getActiveCamera();
-
-    // const rect = this.getClientRect();
-    // this.camera = new THREE.PerspectiveCamera(75, rect.width / rect.height, 0.01, 1000);
-    // this.camera.position.set(5, 5, 5);
   }
 
   private initRenderer() {
@@ -214,13 +208,13 @@ export class SceneManager {
       const renderCalls = threeApp.effectsManager.render();
       Watermark3d.renderOverlay();
 
-      uiMain.uiDrawCallsDiv?.updateText(renderCalls);
+      ApiThreeToUi.updateDrawCalls(renderCalls);
     } else {
       const camera = this.cameraManager.getActiveCamera();
       this.renderer.render(this.scene, camera);
       Watermark3d.renderOverlay();
 
-      uiMain.uiDrawCallsDiv?.updateText(this.renderer.info.render.calls);
+      ApiThreeToUi.updateDrawCalls(this.renderer.info.render.calls);
     }
 
     this.controls.update();

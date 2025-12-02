@@ -17,4 +17,8 @@ export class ApiThreeToUi {
   public static updatePlayerBtnPlay(isPlaying: boolean) {
     uiMain.uiPlayerAnimation.updateBtnPlay(isPlaying);
   }
+
+  public static updateDrawCalls(value: string | number) {
+    uiMain.uiDrawCallsDiv.updateText(value);
+  }
 }

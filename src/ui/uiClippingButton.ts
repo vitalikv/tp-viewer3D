@@ -25,9 +25,9 @@ export class UiClippingButton {
   }
 
   private html() {
-    const css1 = `position: absolute; bottom: 20px; right: 20px; z-index: 100; background: white; padding: 10px; cursor: pointer;`;
+    const css1 = `position: absolute; bottom: 70px; right: 20px; background: white; padding: 10px; cursor: pointer;`;
 
-    const html = `<button id="btn-clipping" style="${css1}">Вкл сечение</button>`;
+    const html = `<button nameId="btnClipping" style="${css1}">Вкл сечение</button>`;
 
     return html;
   }
@@ -42,7 +42,7 @@ export class UiClippingButton {
     });
   }
 
-  private toggle(): void {
+  private toggle() {
     this.isEnabled = !this.getEnabled();
     this.updateText();
 
@@ -58,11 +58,11 @@ export class UiClippingButton {
     }
   }
 
-  private updateText(): void {
+  private updateText() {
     this.button.textContent = this.getEnabled() ? 'Выкл сечение' : 'Вкл сечение';
   }
 
-  private getEnabled(): boolean {
+  private getEnabled() {
     return this.isEnabled;
   }
 }

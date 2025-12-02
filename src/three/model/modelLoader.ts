@@ -3,12 +3,10 @@ import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js';
 import { threeApp } from '../threeApp';
 import { InitData } from '../loaders/data/InitData';
 import { InitMergedModel } from '../mergedModel/initMergedModel';
-import { MergeEnvironmentUtils } from './mergeEnvironmentUtils';
-import { GltfStructure } from './gltfStructure';
+import { MergeEnvironment } from '../mergedModel/mergeEnvironment';
 
 import { SelectionManager } from '../mergedModel/selectionManager';
 import { SelectionAdapter } from '../mergedModel/selectionAdapter';
-import { MergeModel } from '../mergedModel/mergeModel';
 import { MergeAnimation } from '../mergedModel/mergeAnimation';
 
 export class ModelLoader {
@@ -147,17 +145,7 @@ export class ModelLoader {
       console.log('🎬 Анимации инициализированы');
     }
 
-    // if (1 === 2) {
-    //   const gltfStructure = new GltfStructure();
-    //   gltfStructure.initStructure({ gltf });
-    //   //await gltfStructure.selectedNode({ gltf, model, nodeId: 759 });
-    // }
-
     threeApp.sceneManager.render();
-    //threeApp.sceneManager.renderer.render(threeApp.sceneManager.scene, threeApp.sceneManager.camera);
-    // console.log(threeApp.sceneManager.renderer.info.programs);
-    // console.log(threeApp.sceneManager.renderer.info.render);
-    // console.log(threeApp.sceneManager.renderer.info.memory);
   };
 
   private centerModel(model) {
