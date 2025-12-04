@@ -1,24 +1,25 @@
 import * as THREE from 'three';
-import { uiMain } from '@/ui/uiMain';
+import { UiPlayerAnimation } from '@/ui/uiPlayerAnimation';
+import { UiDrawCallsDiv } from '@/ui/uiDrawCallsDiv';
 
 export class ApiThreeToUi {
   public static updatePlayerMenu(animations: THREE.AnimationClip[]) {
-    uiMain.uiPlayerAnimation.updatePlayerMenu(animations);
+    UiPlayerAnimation.inst().updatePlayerMenu(animations);
   }
 
   public static updatePlayerTime(time: number, maxTime: number) {
-    uiMain.uiPlayerAnimation.updatePlayerTime(time, maxTime);
+    UiPlayerAnimation.inst().updatePlayerTime(time, maxTime);
   }
 
   public static updatePlayerCaret(percent: number, isPlaying: boolean) {
-    uiMain.uiPlayerAnimation.updatePlayerCaret(percent, isPlaying);
+    UiPlayerAnimation.inst().updatePlayerCaret(percent, isPlaying);
   }
 
   public static updatePlayerBtnPlay(isPlaying: boolean) {
-    uiMain.uiPlayerAnimation.updateBtnPlay(isPlaying);
+    UiPlayerAnimation.inst().updateBtnPlay(isPlaying);
   }
 
   public static updateDrawCalls(value: string | number) {
-    uiMain.uiDrawCallsDiv.updateText(value);
+    UiDrawCallsDiv.inst().updateText(value);
   }
 }

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
+import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
 
-export class UiPlayerAnimation {
+export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
   private divWrap: HTMLDivElement;
   private btnPlay: HTMLDivElement;
   private btnPause: HTMLDivElement;
@@ -10,14 +11,12 @@ export class UiPlayerAnimation {
   private playerTimeLine: HTMLDivElement;
   private playerMenu: HTMLDivElement;
 
-  constructor(container: HTMLDivElement) {
+  public init(container: HTMLDivElement) {
     this.divWrap = this.crDiv();
     container.append(this.divWrap);
 
     this.eventStop({ div: this.divWrap });
     this.eventPlayer();
-
-    //this.updatePlayerMenu(2);
   }
 
   private crDiv() {
@@ -101,7 +100,8 @@ export class UiPlayerAnimation {
     min-width: 200px;
     min-height: 100px;
     background: #fff;
-    border: 1px solid #222222;`;
+    border: 1px solid #222222;
+    z-index: 1;`;
 
     const html = `
     <div style="${css1}">

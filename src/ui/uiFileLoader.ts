@@ -1,12 +1,13 @@
 import { SvgApp } from '@/svgApp/svgApp';
 import { ModelLoader } from '@/threeApp/model/modelLoader';
+import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
 
-export class UiFileLoader {
+export class UiFileLoader extends ContextSingleton<UiFileLoader> {
   private container: HTMLElement;
   private div: HTMLDivElement;
   private fileInput: HTMLInputElement;
 
-  constructor(container: HTMLDivElement) {
+  public init(container: HTMLDivElement) {
     this.container = container;
     this.div = this.crDiv();
     this.container.append(this.div);

@@ -1,13 +1,16 @@
-import { uiMain } from './uiMain';
 import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
+import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { UiClippingSlider } from './uiClippingSlider';
 
-export class UiClippingButton {
+export class UiClippingButton extends ContextSingleton<UiClippingButton> {
+  private container: HTMLElement;
   private button: HTMLButtonElement;
   private isEnabled: boolean = false;
 
-  constructor(container: HTMLDivElement) {
+  public init(container: HTMLDivElement) {
+    this.container = container;
     const div = this.crDiv();
-    container.append(div);
+    this.container.append(div);
     this.eventStop({ div });
 
     this.button = div.children[0] as HTMLButtonElement;
@@ -48,12 +51,12 @@ export class UiClippingButton {
     if (this.isEnabled) {
       ApiUiToThree.activateClippingBvh();
 
-      uiMain.uiClippingSlider.init(document.body);
-      uiMain.uiClippingSlider.showSlider();
+      UiClippingSlider.inst().init(this.container);
+      UiClippingSlider.inst().showSlider();
     } else {
       ApiUiToThree.deActivateClippingBvh();
 
-      uiMain.uiClippingSlider.hideSlider();
+      UiClippingSlider.inst().hideSlider();
     }
   }
 

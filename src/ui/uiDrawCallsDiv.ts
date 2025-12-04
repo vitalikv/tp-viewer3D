@@ -1,4 +1,6 @@
-export class UiDrawCallsDiv {
+import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+
+export class UiDrawCallsDiv extends ContextSingleton<UiDrawCallsDiv> {
   private act: boolean = true;
   private container: HTMLDivElement;
   private divInfo: HTMLDivElement;
