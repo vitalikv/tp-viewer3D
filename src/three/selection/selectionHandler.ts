@@ -1,10 +1,9 @@
 import * as THREE from 'three';
 
-import { threeApp } from '../threeApp';
-import { SelectedByData } from '../loaders/data/selectedByData';
-import { SelectionMergedGeometries } from './selectionMergedGeometries';
+import { threeApp } from '@/three/threeApp';
+import { SelectedByData } from '@/three/loaders/data/selectedByData';
+import { SelectionMergedGeometries } from '@/three/selection/selectionMergedGeometries';
 
-// Типы для управления активными объектами
 interface ActiveObjectItem {
   obj: THREE.Mesh | THREE.Line | THREE.LineSegments;
   mat: THREE.Material | THREE.Material[];
