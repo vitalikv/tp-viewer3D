@@ -28,6 +28,8 @@ export class SvgPages extends ContextSingleton<SvgPages> {
     this.arrPages.push(svgPage.getPage());
 
     WatermarkSvg.updateWatermark();
+
+    return this.arrPages.length - 1;
   }
 
   public getSvgPage(pageIndex: number) {
@@ -47,5 +49,15 @@ export class SvgPages extends ContextSingleton<SvgPages> {
 
     this.hidePages();
     this.arrPages[pageIndex].style.display = '';
+  }
+
+  public hideContainerSvg() {
+    if (!this.container) return;
+    this.container.style.display = 'none';
+  }
+
+  public showContainerSvg() {
+    if (!this.container) return;
+    this.container.style.display = '';
   }
 }

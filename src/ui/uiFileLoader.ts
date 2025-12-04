@@ -1,6 +1,7 @@
 import { SvgPages } from '@/svgApp/svgPages';
 import { ModelLoader } from '@/threeApp/model/modelLoader';
 import { ContextSingleton } from '@/core/ContextSingleton';
+import { UiFileMenu } from './uiFileMenu';
 
 export class UiFileLoader extends ContextSingleton<UiFileLoader> {
   private container: HTMLElement;
@@ -100,7 +101,11 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
 
     reader.onload = (e) => {
       progressElement.style.display = 'none';
+
+      UiFileMenu.inst().addItem(`${file.name}`, 'gltf', undefined);
+      SvgPages.inst().hideContainerSvg();
       ModelLoader.inst().handleFileLoad(e);
+
       event.target.value = '';
     };
 
@@ -118,7 +123,11 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
 
     reader.onload = (e) => {
       progressElement.style.display = 'none';
-      SvgPages.inst().addSvgPage(e.target.result as string);
+
+      SvgPages.inst().showContainerSvg();
+      const index = SvgPages.inst().addSvgPage(e.target.result as string);
+      UiFileMenu.inst().addItem(`${file.name}`, 'svg', index);
+
       event.target.value = '';
     };
 
