@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import type { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import { Watermark3d } from '@/watermark/watermark3d';
-import { SceneManager } from './sceneManager';
-import { EffectsManager } from './effectsManager';
+import { SceneManager } from '@/threeApp/scene/sceneManager';
+import { EffectsManager } from '@/threeApp/scene/effectsManager';
 
 export class CameraManager {
   private cam3D: THREE.PerspectiveCamera;

@@ -1,18 +1,18 @@
-import { SceneManager } from '@/three/scene/sceneManager';
-import { ModelLoader } from '@/three/model/modelLoader';
-import { MouseManager } from '@/three/scene/mouseManager';
-import { SelectionHandler } from '@/three/selection/selectionHandler';
-import { BVHManager } from '@/three/bvh/bvhManager';
-import { ClippingBvh } from '@/three/clipping/clippingBvh';
-import { EffectsManager } from '@/three/scene/effectsManager';
-import { OutlineSelection } from '@/three/selection/outlineSelection';
+import { SceneManager } from '@/threeApp/scene/sceneManager';
+import { ModelLoader } from '@/threeApp/model/modelLoader';
+import { MouseManager } from '@/threeApp/scene/mouseManager';
+import { SelectionHandler } from '@/threeApp/selection/selectionHandler';
+import { BVHManager } from '@/threeApp/bvh/bvhManager';
+import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
+import { EffectsManager } from '@/threeApp/scene/effectsManager';
+import { OutlineSelection } from '@/threeApp/selection/outlineSelection';
 import { WatermarkCanvas, IWatermarkParams } from '@/watermark/watermarkCanvas';
-import { AnimationManager } from '@/three/animation/animationManager';
+import { AnimationManager } from '@/threeApp/animation/animationManager';
 
-import { ViewCube } from '@/three/scene/viewCube';
+import { ViewCube } from '@/threeApp/scene/viewCube';
 
-import { ModelFileLoader2 } from '@/three/loaders/workers/modelFileLoader2';
-import { RenderWorker } from '@/three/render/initRenderWorker';
+import { ModelFileLoader2 } from '@/threeApp/loaders/workers/modelFileLoader2';
+import { RenderWorker } from '@/threeApp/render/initRenderWorker';
 
 export class ThreeApp {
   renderWorker: RenderWorker;

@@ -1,7 +1,7 @@
-import { SceneManager } from '@/three/scene/sceneManager';
-import { ModelLoader } from '@/three/model/modelLoader';
-import { ClippingBvh } from '@/three/clipping/clippingBvh';
-import { AnimationManager } from '@/three/animation/animationManager';
+import { SceneManager } from '@/threeApp/scene/sceneManager';
+import { ModelLoader } from '@/threeApp/model/modelLoader';
+import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
+import { AnimationManager } from '@/threeApp/animation/animationManager';
 
 export class ApiUiToThree {
   public static setPlanePosition(x: number, y: number, z: number) {
@@ -50,6 +50,60 @@ export class ApiUiToThree {
 
     ClippingBvh.inst().destroy();
     SceneManager.inst().render();
+  }
+
+  public static toggleUseBVH() {
+    if (!ClippingBvh.inst()) return;
+
+    const act = !ClippingBvh.inst().getUseBVH();
+    ClippingBvh.inst().setUseBVH(act);
+
+    return act;
+  }
+
+  public static toggleHelperBVH() {
+    if (!ClippingBvh.inst()) return;
+
+    const act = !ClippingBvh.inst().getHelperBVH();
+    ClippingBvh.inst().setHelperBVH(act);
+
+    return act;
+  }
+
+  public static toggleModel() {
+    if (!ClippingBvh.inst()) return;
+
+    const act = !ClippingBvh.inst().getModel();
+    ClippingBvh.inst().setModel(act);
+
+    return act;
+  }
+
+  public static toggleWireframe() {
+    if (!ClippingBvh.inst()) return;
+
+    const act = !ClippingBvh.inst().getWireframe();
+    ClippingBvh.inst().setWireframe(act);
+
+    return act;
+  }
+
+  public static toggleInvertPlane() {
+    if (!ClippingBvh.inst()) return;
+
+    const act = !ClippingBvh.inst().getInvertPlane();
+    ClippingBvh.inst().setInvertPlane(act);
+
+    return act;
+  }
+
+  public static toggleShowPlane() {
+    if (!ClippingBvh.inst()) return;
+
+    const act = !ClippingBvh.inst().getShowPlane();
+    ClippingBvh.inst().setShowPlane(act);
+
+    return act;
   }
 
   public static playAnimation() {

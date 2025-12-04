@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 
-import { ContextSingleton } from '@/three/core/ContextSingleton';
-import { ClippingBvh } from '@/three/clipping/clippingBvh';
-import { EffectsManager } from '@/three/scene/effectsManager';
-import { OutlineSelection } from '@/three/selection/outlineSelection';
-import { SelectedByData } from '@/three/loaders/data/selectedByData';
-import { SelectionMergedGeometries } from '@/three/selection/selectionMergedGeometries';
+import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
+import { EffectsManager } from '@/threeApp/scene/effectsManager';
+import { OutlineSelection } from '@/threeApp/selection/outlineSelection';
+import { SelectedByData } from '@/threeApp/loaders/data/selectedByData';
+import { SelectionMergedGeometries } from '@/threeApp/selection/selectionMergedGeometries';
 
 interface ActiveObjectItem {
   obj: THREE.Mesh | THREE.Line | THREE.LineSegments;

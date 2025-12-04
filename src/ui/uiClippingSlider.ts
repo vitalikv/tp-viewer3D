@@ -1,5 +1,4 @@
 import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
-import { ClippingBvh } from '@/three/clipping/clippingBvh';
 
 export class UiClippingSlider {
   private act = false;
@@ -155,26 +154,18 @@ export class UiClippingSlider {
     const resetBtn = this.container.querySelector('#reset-btn');
 
     const updatePlanePosition = () => {
-      if (!ClippingBvh.inst()) return;
-
       const x = parseInt(xPositionSlider.value);
       const y = parseInt(yPositionSlider.value);
       const z = parseInt(zPositionSlider.value);
 
-      // threeApp.clippingBvh.setPlanePosition(x, y, z);
-      // threeApp.sceneManager.render();
       ApiUiToThree.setPlanePosition(x, y, z);
     };
 
     const updatePlaneRotation = () => {
-      if (!ClippingBvh.inst()) return;
-
       const x = parseInt(xRotationSlider.value);
       const y = parseInt(yRotationSlider.value);
       const z = parseInt(zRotationSlider.value);
 
-      // threeApp.clippingBvh.setPlaneRotation(x, y, z);
-      // threeApp.sceneManager.render();
       ApiUiToThree.setPlaneRotation(x, y, z);
     };
 
@@ -223,9 +214,7 @@ export class UiClippingSlider {
       yRotationValue.textContent = '0°';
       zRotationValue.textContent = '0°';
 
-      if (ClippingBvh.inst()) {
-        ApiUiToThree.resetPlane();
-      }
+      ApiUiToThree.resetPlane();
     });
   }
 
@@ -238,43 +227,37 @@ export class UiClippingSlider {
     this.showPlane = this.container.querySelector('#showPlane') as HTMLDivElement;
 
     this.useBVH.onmousedown = () => {
-      const act = !ClippingBvh.inst().getUseBVH();
-      ClippingBvh.inst().setUseBVH(act);
+      const act = ApiUiToThree.toggleUseBVH();
 
       this.useBVH.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
     this.helperBVH.onmousedown = () => {
-      const act = !ClippingBvh.inst().getHelperBVH();
-      ClippingBvh.inst().setHelperBVH(act);
+      const act = ApiUiToThree.toggleHelperBVH();
 
       this.helperBVH.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
     this.model.onmousedown = () => {
-      const act = !ClippingBvh.inst().getModel();
-      ClippingBvh.inst().setModel(act);
+      const act = ApiUiToThree.toggleModel();
 
       this.model.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
     this.wireframe.onmousedown = () => {
-      const act = !ClippingBvh.inst().getWireframe();
-      ClippingBvh.inst().setWireframe(act);
+      const act = ApiUiToThree.toggleWireframe();
 
       this.wireframe.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
     this.invert.onmousedown = () => {
-      const act = !ClippingBvh.inst().getInvertPlane();
-      ClippingBvh.inst().setInvertPlane(act);
+      const act = ApiUiToThree.toggleInvertPlane();
 
       this.invert.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
     this.showPlane.onmousedown = () => {
-      const act = !ClippingBvh.inst().getShowPlane();
-      ClippingBvh.inst().setShowPlane(act);
+      const act = ApiUiToThree.toggleShowPlane();
 
       this.showPlane.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };

@@ -34,8 +34,7 @@ export class UiPlayerAnimation {
     right: 0;
     left: 0;
     background: #fff;
-    border: 1px solid #222222;
-    z-index: 99;`;
+    border: 1px solid #222222;`;
 
     const css2 = `padding: 15px; box-sizing: border-box;`;
     const cssPlayer = `position: relative;

@@ -1,4 +1,4 @@
-import { SvgUseHandler } from './svgUseHandler';
+import { SvgUseHandler } from '@/svgApp/svgUseHandler';
 import { WatermarkSvg } from '@/watermark/watermarkSvg';
 import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
 

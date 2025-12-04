@@ -1,4 +1,4 @@
-import { ThreeApp } from '@/three/threeApp';
+import { ThreeApp } from '@/threeApp/threeApp';
 import { uiMain } from '@/ui/uiMain';
 
 export const threeApp = new ThreeApp();

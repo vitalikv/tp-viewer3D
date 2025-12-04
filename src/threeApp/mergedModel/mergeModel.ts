@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { ClippingBvh } from '@/three/clipping/clippingBvh';
-import { MergeAnimation } from './mergeAnimation';
+import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
+import { MergeAnimation } from '@/threeApp/mergedModel/mergeAnimation';
 
 export class MergeModel {
   private static readonly tempVector = new THREE.Vector3();

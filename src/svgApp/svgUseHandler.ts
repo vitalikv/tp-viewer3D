@@ -1,4 +1,4 @@
-import { SelectedByData } from '@/three/loaders/data/selectedByData';
+import { SelectedByData } from '@/threeApp/loaders/data/selectedByData';
 import { SvgGroupAssembler } from './svgGroupAssembler';
 import { WatermarkSvg } from '@/watermark/watermarkSvg';
 

@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { ContextSingleton } from '@/three/core/ContextSingleton';
+import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
 import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
-import { MergeAnimation } from '@/three/mergedModel/mergeAnimation';
-import { OutlineSelection } from '@/three/mergedModel/outlineSelection';
-import { SceneManager } from '@/three/scene/sceneManager';
+import { MergeAnimation } from '@/threeApp/mergedModel/mergeAnimation';
+import { OutlineSelection } from '@/threeApp/mergedModel/outlineSelection';
+import { SceneManager } from '@/threeApp/scene/sceneManager';
 
 export class AnimationManager extends ContextSingleton<AnimationManager> {
   private mixers: THREE.AnimationMixer[] = [];

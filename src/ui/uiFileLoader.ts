@@ -1,5 +1,5 @@
 import { SvgApp } from '@/svgApp/svgApp';
-import { ModelLoader } from '@/three/model/modelLoader';
+import { ModelLoader } from '@/threeApp/model/modelLoader';
 
 export class UiFileLoader {
   private container: HTMLElement;

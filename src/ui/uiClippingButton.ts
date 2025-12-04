@@ -19,7 +19,6 @@ export class UiClippingButton {
   private crDiv() {
     let div = document.createElement('div');
     div.innerHTML = this.html();
-    //div = div.children[0] as HTMLDivElement;
 
     return div;
   }

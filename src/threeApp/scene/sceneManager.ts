@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import Stats from 'stats.js';
 
-import { CameraManager } from './cameraManager';
-import { ClippingBvh } from '@/three/clipping/clippingBvh';
-import { EffectsManager } from './effectsManager';
-import { ContextSingleton } from '@/three/core/ContextSingleton';
+import { CameraManager } from '@/threeApp/scene/cameraManager';
+import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
+import { EffectsManager } from '@/threeApp/scene/effectsManager';
+import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
 
 import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
 import { Watermark3d } from '@/watermark/watermark3d';
