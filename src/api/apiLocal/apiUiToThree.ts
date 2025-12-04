@@ -5,29 +5,21 @@ import { AnimationManager } from '@/threeApp/animation/animationManager';
 
 export class ApiUiToThree {
   public static setPlanePosition(x: number, y: number, z: number) {
-    if (!ClippingBvh.inst()) return;
-
     ClippingBvh.inst().setPlanePosition(x, y, z);
     SceneManager.inst().render();
   }
 
   public static setPlaneRotation(x: number, y: number, z: number) {
-    if (!ClippingBvh.inst()) return;
-
     ClippingBvh.inst().setPlaneRotation(x, y, z);
     SceneManager.inst().render();
   }
 
   public static resetPlane() {
-    if (!ClippingBvh.inst()) return;
-
     ClippingBvh.inst().resetPlane();
     SceneManager.inst().render();
   }
 
   public static getStateClippingBvh() {
-    if (!ClippingBvh.inst()) return;
-
     const useBVH = ClippingBvh.inst().getUseBVH();
     const helperBVH = ClippingBvh.inst().getHelperBVH();
     const model = ClippingBvh.inst().getModel();
@@ -38,23 +30,17 @@ export class ApiUiToThree {
   }
 
   public static activateClippingBvh() {
-    if (!ClippingBvh.inst()) return;
-
     const model = ModelLoader.inst().getModel();
     ClippingBvh.inst().initClipping({ model });
     SceneManager.inst().render();
   }
 
   public static deActivateClippingBvh() {
-    if (!ClippingBvh.inst()) return;
-
     ClippingBvh.inst().destroy();
     SceneManager.inst().render();
   }
 
   public static toggleUseBVH() {
-    if (!ClippingBvh.inst()) return;
-
     const act = !ClippingBvh.inst().getUseBVH();
     ClippingBvh.inst().setUseBVH(act);
 
@@ -62,8 +48,6 @@ export class ApiUiToThree {
   }
 
   public static toggleHelperBVH() {
-    if (!ClippingBvh.inst()) return;
-
     const act = !ClippingBvh.inst().getHelperBVH();
     ClippingBvh.inst().setHelperBVH(act);
 
@@ -71,8 +55,6 @@ export class ApiUiToThree {
   }
 
   public static toggleModel() {
-    if (!ClippingBvh.inst()) return;
-
     const act = !ClippingBvh.inst().getModel();
     ClippingBvh.inst().setModel(act);
 
@@ -80,8 +62,6 @@ export class ApiUiToThree {
   }
 
   public static toggleWireframe() {
-    if (!ClippingBvh.inst()) return;
-
     const act = !ClippingBvh.inst().getWireframe();
     ClippingBvh.inst().setWireframe(act);
 
@@ -89,8 +69,6 @@ export class ApiUiToThree {
   }
 
   public static toggleInvertPlane() {
-    if (!ClippingBvh.inst()) return;
-
     const act = !ClippingBvh.inst().getInvertPlane();
     ClippingBvh.inst().setInvertPlane(act);
 
@@ -98,8 +76,6 @@ export class ApiUiToThree {
   }
 
   public static toggleShowPlane() {
-    if (!ClippingBvh.inst()) return;
-
     const act = !ClippingBvh.inst().getShowPlane();
     ClippingBvh.inst().setShowPlane(act);
 

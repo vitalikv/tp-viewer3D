@@ -24,44 +24,32 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     this.clock = new THREE.Clock();
   }
 
-  /**
-   * Инициализирует анимации из GLTF модели
-   * @param animations - массив анимационных клипов из GLTF
-   * @param model - модель (группа или сцена), к которой применяются анимации
-   * @returns true, если анимации были успешно инициализированы
-   */
   public initAnimations(animations: THREE.AnimationClip[], model: THREE.Object3D): boolean {
     if (!animations || animations.length === 0) {
-      console.log('ℹ️ Нет анимаций для инициализации');
       return false;
     }
     console.log('animations.length', animations);
     ApiThreeToUi.updatePlayerMenu(animations);
 
-    // Очищаем предыдущие анимации
     this.dispose();
 
-    // Проверяем, есть ли виртуальная иерархия для анимации (смерженная модель)
     const animationRoot = (model as any).userData?.animationRoot;
     if (animationRoot) {
       this.isMergedModel = true;
       this.animationRoot = animationRoot;
       this.mergedModel = model;
-      console.log('🎬 Обнаружена смерженная модель, используем виртуальную иерархию для анимации');
 
-      // Используем виртуальную иерархию для анимации
       const mixer = new THREE.AnimationMixer(animationRoot);
       this.animationActions = [];
       this.animationClips = [];
 
-      animations.forEach((clip, index) => {
+      animations.forEach((clip) => {
         const action = mixer.clipAction(clip);
         action.enabled = true;
         action.setLoop(THREE.LoopOnce, 1);
         action.clampWhenFinished = true;
         this.animationActions.push(action);
         this.animationClips.push(clip);
-        console.log(`▶️ Инициализирована анимация: ${clip.name || `Анимация ${index + 1}`} (длительность: ${clip.duration.toFixed(2)}с)`);
       });
 
       this.mixers.push(mixer);
@@ -72,14 +60,13 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
       this.animationActions = [];
       this.animationClips = [];
 
-      animations.forEach((clip, index) => {
+      animations.forEach((clip) => {
         const action = mixer.clipAction(clip);
         action.enabled = true;
         action.setLoop(THREE.LoopOnce, 1);
         action.clampWhenFinished = true;
         this.animationActions.push(action);
         this.animationClips.push(clip);
-        console.log(`▶️ Инициализирована анимация: ${clip.name || `Анимация ${index + 1}`} (длительность: ${clip.duration.toFixed(2)}с)`);
       });
 
       this.mergedModel = null;
@@ -88,19 +75,17 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
     this.setAnimationIndex(0);
     this.isPlaying = false;
-    console.log(`✅ Инициализировано ${animations.length} анимаций`);
+    console.log(` Инициализировано ${animations.length} анимаций`);
 
     return true;
   }
 
   public setAnimationIndex(index: number): void {
     if (this.mixers.length === 0 || this.animationActions.length === 0) {
-      console.warn('⚠️ Нет анимаций для установки индекса');
       return;
     }
 
     if (index < 0 || index >= this.animationActions.length) {
-      console.warn(`⚠️ Индекс анимации ${index} выходит за пределы доступных анимаций`);
       return;
     }
 
@@ -122,16 +107,12 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
     this.currentActionIndex = index;
 
-    const clip = this.animationClips[index];
-    console.log(`ℹ️ Активная анимация: ${clip?.name || `Анимация ${index + 1}`}`);
-
     this.animationElapsedTime = 0;
     this.animationMaxDuration = 0;
   }
 
   public pause(): void {
     if (this.mixers.length === 0) {
-      console.warn('⚠️ Нет анимаций для остановки');
       return;
     }
 
@@ -147,43 +128,30 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     this.stopAnimationLoop();
 
     this.isPlaying = false;
-    console.log('⏸️ Анимации остановлены');
   }
 
   public reset(): void {
     if (this.mixers.length === 0) {
-      console.warn('⚠️ Нет анимаций для сброса');
       return;
     }
 
-    // Сбрасываем время всех миксеров
     this.mixers.forEach((mixer) => {
       mixer.time = 0;
     });
 
-    // Сбрасываем все actions в начало
     this.animationActions.forEach((action) => {
       action.reset();
     });
-
-    console.log('⏮️ Анимации сброшены в начало');
   }
 
-  /**
-   * Устанавливает скорость воспроизведения анимаций
-   * @param speed - скорость (1.0 = нормальная, 2.0 = в 2 раза быстрее, 0.5 = в 2 раза медленнее)
-   */
   public setSpeed(speed: number): void {
     if (this.mixers.length === 0) {
-      console.warn('⚠️ Нет анимаций для изменения скорости');
       return;
     }
 
     this.mixers.forEach((mixer) => {
       mixer.timeScale = speed;
     });
-
-    console.log(`⚡ Скорость анимаций установлена: ${speed}x`);
   }
 
   private getAnimationDuration(): number {
@@ -196,7 +164,6 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
   private updateAnimationPose(time: number, options?: { rebuildMergedModelBVH?: boolean; resetActions?: boolean }): void {
     if (this.mixers.length === 0 || this.animationActions.length === 0) {
-      console.warn('⚠️ Нет анимаций для установки позиции');
       return;
     }
 
@@ -208,7 +175,6 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     const selectedAction = this.animationActions[this.currentActionIndex];
 
     if (!selectedAction) {
-      console.warn('⚠️ Текущая анимация не найдена');
       return;
     }
 
@@ -272,10 +238,8 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     OutlineSelection.updateOutlineMeshes();
   }
 
-  // Запускает и воспроизводит анимацию до её завершения
   public play() {
     if (this.mixers.length === 0 || this.animationActions.length === 0) {
-      console.warn('⚠️ Нет анимаций для воспроизведения. Сначала инициализируйте анимации через initAnimations()');
       return;
     }
 
@@ -288,7 +252,6 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
     const selectedAction = this.animationActions[this.currentActionIndex];
     if (!selectedAction) {
-      console.warn('⚠️ Текущая анимация не найдена');
       return;
     }
 
@@ -310,12 +273,8 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
       this.animationElapsedTime = 0;
     }
 
-    console.log(`🎬 Запуск воспроизведения: ${animationLabel} (длительность: ${maxDuration.toFixed(2)}с)`);
-
-    // Сбрасываем clock для точного отслеживания времени
     this.clock = new THREE.Clock();
 
-    // Сбрасываем время миксеров
     this.mixers.forEach((mixer) => {
       if (!isResuming) {
         mixer.time = 0;
@@ -335,17 +294,13 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     selectedAction.paused = false;
     selectedAction.play();
     if (!selectedAction.isRunning()) {
-      console.warn(`⚠️ Action ${this.currentActionIndex} не запущен после вызова play()`);
     }
 
     this.isPlaying = true;
-    console.log(`▶️ Запущена анимация: ${animationLabel}, mixer time: ${this.mixers[0]?.time || 0}`);
 
     const animate = () => {
-      // Получаем дельту времени и обновляем прошедшее время
       const delta = this.clock.getDelta();
 
-      // Пропускаем слишком большие дельты (например, при смене вкладки)
       if (delta > 0.1) {
         this.animationLoopId = requestAnimationFrame(animate);
         return;
@@ -364,22 +319,17 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
           this.applyAnimationsToMergedGeometry();
         }
 
-        // Обновляем outline меши после обновления анимации
         OutlineSelection.updateOutlineMeshes();
       }
 
-      // Рендерим сцену
       this.renderScene();
 
-      // Проверяем, завершилась ли анимация (сравниваем прошедшее время с максимальной длительностью)
       const isFinished = this.animationElapsedTime >= this.animationMaxDuration;
 
-      // Если анимация не завершилась и она воспроизводится, продолжаем цикл
       if (!isFinished && this.isPlaying) {
         this.animationLoopId = requestAnimationFrame(animate);
       } else {
         if (isFinished) {
-          console.log(`✅ Анимация завершена (время: ${this.animationElapsedTime.toFixed(2)}с из ${this.animationMaxDuration.toFixed(2)}с)`);
           this.isPlaying = false;
           if (this.isMergedModel) {
             this.rebuildMergedModelBVH();
@@ -394,19 +344,16 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
       this.logPlaybackProgress();
     };
 
-    // Запускаем цикл анимации (первый кадр)
     this.animationLoopId = requestAnimationFrame(animate);
   }
 
   public logPlaybackProgress(): void {
     if (this.animationClips.length === 0 || this.animationMaxDuration === 0) {
-      console.log('ℹ️ Анимация не запущена или не инициализирована (0% / 0.00с)');
       return;
     }
 
     const currentTime = Math.min(this.animationElapsedTime, this.animationMaxDuration);
     const percent = Math.min(100, (currentTime / this.animationMaxDuration) * 100);
-    console.log(`ℹ️ Анимация ${percent.toFixed(1)}% (${currentTime.toFixed(2)}с из ${this.animationMaxDuration.toFixed(2)}с)`);
     ApiThreeToUi.updatePlayerTime(currentTime, this.animationMaxDuration);
     ApiThreeToUi.updatePlayerCaret(percent, this.isPlaying);
   }
@@ -415,47 +362,34 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     if (this.animationLoopId !== null) {
       cancelAnimationFrame(this.animationLoopId);
       this.animationLoopId = null;
-      console.log('🛑 Цикл анимации остановлен');
       this.rebuildMergedModelBVH();
     }
   }
 
-  /**
-   * Применяет трансформации из виртуальной иерархии к группам в смерженной геометрии
-   */
   private applyAnimationsToMergedGeometry(): void {
     if (!this.animationRoot) return;
 
-    // Обновляем мировые матрицы всех узлов
     this.animationRoot.updateMatrixWorld(true);
 
     const tempMatrix = new THREE.Matrix4();
     const uuidToGroupMap = MergeAnimation.getUuidToGroupMap();
 
-    // Обходим все узлы в виртуальной иерархии и применяем трансформации
     this.animationRoot.traverse((node) => {
       const uuid = node.uuid;
 
-      // Применяем трансформации только к узлам, которые имеют маппинг (т.е. являются мешами)
-      // Трансформации групп уже учтены в мировых матрицах их детей через иерархию
       if (!uuidToGroupMap.has(uuid)) {
-        return; // Пропускаем узлы без маппинга (группы, которые не были мешами)
-      }
-
-      // Если есть маппинг, значит узел был мешем, и originalMatrixWorld должен быть сохранен
-      const originalMatrixWorld = (node.userData as any)?.originalMatrixWorld;
-
-      if (!originalMatrixWorld) {
-        console.warn(`⚠️ Узел ${uuid} имеет маппинг, но нет originalMatrixWorld`);
         return;
       }
 
-      // Вычисляем относительную трансформацию: новая мировая матрица * обратная исходная
-      // Мировая матрица меша уже учитывает трансформации всех родительских групп
+      const originalMatrixWorld = (node.userData as any)?.originalMatrixWorld;
+
+      if (!originalMatrixWorld) {
+        return;
+      }
+
       tempMatrix.copy(node.matrixWorld);
       tempMatrix.multiplyMatrices(tempMatrix, originalMatrixWorld.clone().invert());
 
-      // Применяем относительную трансформацию к группе в смерженной геометрии
       MergeAnimation.applyAnimationToGroup(uuid, tempMatrix);
     });
   }
@@ -471,11 +405,7 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     });
   }
 
-  /**
-   * Очищает все анимации и освобождает ресурсы
-   */
   public dispose(): void {
-    // Останавливаем цикл анимации
     this.stopAnimationLoop();
 
     this.mixers.forEach((mixer) => {
@@ -493,6 +423,5 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     this.currentActionIndex = 0;
     this.animationElapsedTime = 0;
     this.animationMaxDuration = 0;
-    console.log('🗑️ Анимации очищены');
   }
 }

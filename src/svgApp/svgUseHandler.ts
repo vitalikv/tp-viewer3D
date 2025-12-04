@@ -37,7 +37,6 @@ export class SvgUseHandler {
     this.svg.parentElement.addEventListener('mouseup', this.mouseUp);
   }
 
-  //получение массива для выделения
   public cmd_select_intlinks(linkIds: Array<string>) {
     this.resetActElems();
     for (const linkId of linkIds) {
@@ -58,8 +57,6 @@ export class SvgUseHandler {
 
     const selectedElem = this.findSelectedElem(event);
     this.selectedGroupByElemId(selectedElem, 'highlighted');
-
-    //WatermarkSvg.renderWatermark();
   };
 
   private mouseUp = (event: MouseEvent) => {
@@ -72,8 +69,6 @@ export class SvgUseHandler {
 
     this.isDown = false;
     this.isMove = false;
-
-    //WatermarkSvg.renderWatermark();
   };
 
   private findSelectedElem(event: MouseEvent) {
@@ -150,9 +145,6 @@ export class SvgUseHandler {
     const arrDataGroup = [];
 
     if (fragment_guid) {
-      // const aciGuidObj = SelectedByData.getACIGuidbyFragmentGuid(fragment_guid.toLowerCase());
-      // const nodes = aciGuidObj?.guid ? SelectedByData.getUIIDbyACIGuidandFragmentGuid(aciGuidObj?.guid) : [];
-
       const nodes = [];
 
       for (const node of nodes) {
@@ -197,7 +189,6 @@ export class SvgUseHandler {
 
     const arrDataGroup = [];
 
-    //const nodes = AssemblyDataHelper.inst.getUIIDbyACIGuidandFragmentGuid(groupId);
     const nodes = [];
 
     for (const node of nodes) {
@@ -296,12 +287,10 @@ export class SvgUseHandler {
       return true;
     }
 
-    // Если клик по элементу с id="Drawing" или его прямому дочернему rect/path
     if (target.id === 'Drawing' || (target.parentElement && target.parentElement.id === 'Drawing')) {
       return true;
     }
 
-    // Если клик по overlay-элементу, который не принадлежит кликабельной группе
     if (target.classList.contains('clickable-overlay')) {
       const parentGroup = target.parentElement;
       if (!parentGroup || !parentGroup.id || parentGroup.id === 'Drawing') {
@@ -309,11 +298,9 @@ export class SvgUseHandler {
       }
     }
 
-    // Если клик по пустому пространству (проверяем через elementsFromPoint)
     const elements = document.elementsFromPoint(event.clientX, event.clientY);
     const svgElements = elements.filter((el) => el instanceof SVGElement && this.svg.contains(el));
 
-    // Если среди SVG элементов только фоновые
     return svgElements.length === 0 || svgElements.every((el) => el.id === 'Drawing' || (el.parentElement && el.parentElement.id === 'Drawing'));
   }
 }

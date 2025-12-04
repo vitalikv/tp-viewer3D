@@ -9,10 +9,6 @@ type SelectionMode = 'merge' | 'tflex';
 
 const RAYCASTER_FAR = 1000;
 
-/**
- * Класс для обработки событий мыши и raycasting
- * Отвечает только за отслеживание позиции мыши и определение пересечений с объектами
- */
 export class MouseManager extends ContextSingleton<MouseManager> {
   private raycaster: THREE.Raycaster;
   private mouse: THREE.Vector2;
@@ -59,7 +55,7 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     this.camera = null;
   }
 
-  private keyDown = (event: KeyboardEvent): void => {
+  private keyDown = (event: KeyboardEvent) => {
     if (event.code === 'Space') {
       event.preventDefault();
     }
@@ -68,11 +64,11 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     }
   };
 
-  private pointerDown = (_event: PointerEvent): void => {
+  private pointerDown = () => {
     this.isDown = true;
   };
 
-  private pointerMove = (event: PointerEvent): void => {
+  private pointerMove = (event: PointerEvent) => {
     if (!this.isDown) return;
     this.isMove = true;
 
@@ -103,7 +99,7 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     }
   };
 
-  private calculateMousePosition(event: PointerEvent): void {
+  private calculateMousePosition(event: PointerEvent) {
     if (!this.domElement) return;
 
     const rect = this.domElement.getBoundingClientRect();
@@ -111,7 +107,7 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   }
 
-  private updateRaycaster(): void {
+  private updateRaycaster() {
     if (!this.camera) return;
     this.raycaster.setFromCamera(this.mouse, this.camera);
   }
@@ -123,7 +119,6 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     let obj: THREE.Object3D | null = null;
     let intersect: THREE.Intersection<THREE.Object3D> | null = null;
 
-    // Пропускаем правую кнопку мыши
     if (event.button === 2) {
       return { obj, intersect };
     }

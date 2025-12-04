@@ -17,7 +17,7 @@ export class BVHManager extends ContextSingleton<BVHManager> {
     if (!THREE.BufferGeometry.prototype.computeBoundsTree) return;
 
     obj.traverse((child) => {
-      if (child.geometry && child.isMesh) {
+      if (child instanceof THREE.Mesh && child.geometry) {
         child.geometry.computeBoundsTree({ indirect: true });
         //child.geometry.boundsTree = new MeshBVH(mesh.geometry, { maxLeafTris: 3, indirect: true });
       }
@@ -28,7 +28,7 @@ export class BVHManager extends ContextSingleton<BVHManager> {
 
   private addBVHHelper(obj: THREE.Mesh | THREE.Group | THREE.Object3D) {
     obj.traverse((child) => {
-      if (child.geometry) {
+      if (child instanceof THREE.Mesh && child.geometry) {
         const helper = new MeshBVHHelper(child);
         helper.color.set(0x0000ff);
         SceneManager.inst().scene.add(helper);

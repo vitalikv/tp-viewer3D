@@ -5,8 +5,8 @@ import { SceneManager } from '@/threeApp/scene/sceneManager';
 import { EffectsManager } from '@/threeApp/scene/effectsManager';
 
 export class CameraManager {
-  private cam3D: THREE.PerspectiveCamera;
-  private camTop: THREE.OrthographicCamera;
+  private camPerspective: THREE.PerspectiveCamera;
+  private camOrthographic: THREE.OrthographicCamera;
   private activeCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   private options = { fov: 75, aspect: 1, near: 0.01, far: 1000, position: new THREE.Vector3(5, 5, 5) };
   private renderer: THREE.WebGLRenderer;
@@ -31,13 +31,13 @@ export class CameraManager {
   }
 
   private initCameras() {
-    this.cam3D = this.createCam3D();
-    this.camTop = this.createCamTop();
+    this.camPerspective = this.createCamPerspective();
+    this.camOrthographic = this.createCamOrthographic();
 
-    this.setActiveCamera({ camera: this.cam3D });
+    this.setActiveCamera({ camera: this.camPerspective });
   }
 
-  private createCam3D() {
+  private createCamPerspective() {
     const rect = SceneManager.inst().getClientRect();
     const aspect = rect.width / rect.height;
 
@@ -50,7 +50,7 @@ export class CameraManager {
     return camera;
   }
 
-  private createCamTop() {
+  private createCamOrthographic() {
     const rect = SceneManager.inst().getClientRect();
 
     const halfFovV = THREE.MathUtils.DEG2RAD * 45 * 0.5;
@@ -73,19 +73,19 @@ export class CameraManager {
 
     const rect = SceneManager.inst().getClientRect();
 
-    this.cam3D.aspect = rect.width / rect.height;
-    this.cam3D.updateProjectionMatrix();
+    this.camPerspective.aspect = rect.width / rect.height;
+    this.camPerspective.updateProjectionMatrix();
 
     const halfFovV = THREE.MathUtils.DEG2RAD * 45 * 0.5;
     const halfFovH = Math.atan((rect.width / rect.height) * Math.tan(halfFovV));
 
     const halfW = 7 * Math.tan(halfFovH);
     const halfH = 7 * Math.tan(halfFovV);
-    this.camTop.left = -halfW;
-    this.camTop.right = halfW;
-    this.camTop.top = halfH;
-    this.camTop.bottom = -halfH;
-    this.camTop.updateProjectionMatrix();
+    this.camOrthographic.left = -halfW;
+    this.camOrthographic.right = halfW;
+    this.camOrthographic.top = halfH;
+    this.camOrthographic.bottom = -halfH;
+    this.camOrthographic.updateProjectionMatrix();
 
     this.renderer.setSize(rect.width, rect.height);
 
@@ -105,27 +105,23 @@ export class CameraManager {
     return this.activeCamera;
   }
 
-  private getCam3D() {
-    return this.cam3D;
+  private getCamPerspective() {
+    return this.camPerspective;
   }
 
-  private getCamTop() {
-    return this.camTop;
+  private getCamOrthographic() {
+    return this.camOrthographic;
   }
 
   public setCamera({ type }: { type: 'Perspective' | 'Orthographic' }) {
-    //this.saveCameraState({ camera: this.getActiveCamera() });
-
     const cameraOld = this.getActiveCamera();
 
     if (type === 'Perspective') {
-      this.setActiveCamera({ camera: this.getCam3D() });
+      this.setActiveCamera({ camera: this.getCamPerspective() });
     }
     if (type === 'Orthographic') {
-      this.setActiveCamera({ camera: this.getCamTop() });
+      this.setActiveCamera({ camera: this.getCamOrthographic() });
     }
-
-    //uiMain.uiBtnCamera.clickOnBtn({ type });
 
     const camera = this.getActiveCamera();
     const gizmosPos = SceneManager.inst().controls['_gizmos'].position.clone();

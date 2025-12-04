@@ -58,7 +58,6 @@ export class OutlineSelection {
 
           this.outlineMeshes.push(outlineMesh);
 
-          // Сохраняем связь между outline мешем и оригинальным объектом
           this.outlineMeshData.push({
             outlineMesh,
             originalMesh: originalObject,
@@ -138,32 +137,23 @@ export class OutlineSelection {
     this.outlineMeshData.length = 0;
   }
 
-  /**
-   * Обновляет позиции outline мешей на основе текущих позиций оригинальных объектов
-   * Вызывается после обновления анимации
-   */
   public static updateOutlineMeshes() {
     if (this.outlineMeshData.length === 0) return;
 
     this.outlineMeshData.forEach((data) => {
       const { outlineMesh, originalMesh, originalGeometry, group } = data;
 
-      // Обновляем мировую матрицу оригинального меша
       originalMesh.updateMatrixWorld(true);
 
-      // Пересоздаем геометрию outline на основе обновленной геометрии оригинального меша
       const updatedOutlineGeometry = this.createGeometryForGroup(originalGeometry, group);
 
       if (updatedOutlineGeometry) {
-        // Удаляем старую геометрию
         if (outlineMesh.geometry) {
           outlineMesh.geometry.dispose();
         }
 
-        // Устанавливаем новую геометрию
         outlineMesh.geometry = updatedOutlineGeometry;
 
-        // Сбрасываем матрицу и применяем новую мировую матрицу
         outlineMesh.matrix.identity();
         outlineMesh.applyMatrix4(originalMesh.matrixWorld);
       }

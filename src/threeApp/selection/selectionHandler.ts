@@ -18,16 +18,11 @@ interface ActiveObjects {
 
 type SelectionMode = 'merge' | 'tflex';
 
-// Константы для материалов выделения
 const SELECTION_COLOR = 0x00ff00;
 const SELECTION_EMISSIVE_INTENSITY = 0.2;
 const SELECTION_OPACITY = 0.8;
 const LINE_OPACITY = 0.1;
 
-/**
- * Класс для управления выделением объектов в сцене
- * Отвечает за визуальное выделение объектов и управление их материалами
- */
 export class SelectionHandler extends ContextSingleton<SelectionHandler> {
   private activeObj: ActiveObjects = { items: [] };
   private selectionMaterial: THREE.MeshStandardMaterial;
@@ -35,7 +30,7 @@ export class SelectionHandler extends ContextSingleton<SelectionHandler> {
 
   constructor() {
     super();
-    // Инициализация материалов для выделения (создаются один раз)
+
     this.selectionMaterial = new THREE.MeshStandardMaterial({
       color: SELECTION_COLOR,
       transparent: true,
@@ -52,9 +47,6 @@ export class SelectionHandler extends ContextSingleton<SelectionHandler> {
     });
   }
 
-  /**
-   * Обрабатывает выделение на основе режима
-   */
   public handleSelection(obj: THREE.Object3D | null, intersect: THREE.Intersection<THREE.Object3D> | null, mode: SelectionMode): void {
     if (obj && mode === 'tflex') {
       this.selectTflex(obj);
@@ -63,17 +55,12 @@ export class SelectionHandler extends ContextSingleton<SelectionHandler> {
     }
   }
 
-  /**
-   * Обрабатывает выделение объекта в режиме tflex
-   */
   private selectTflex(obj: THREE.Object3D): void {
     let objs = SelectedByData.getSelectedNode({ obj });
 
-    // Обновляем clipping planes для материала выделения
     this.selectionMaterial.clippingPlanes = ClippingBvh.inst().getClippingPlanes();
     this.selectionMaterial.needsUpdate = true;
 
-    // Если объект не найден в структуре gltf, используем сам объект
     if (objs.length === 0) {
       objs = [obj];
     }
@@ -95,7 +82,6 @@ export class SelectionHandler extends ContextSingleton<SelectionHandler> {
   private setActiveObj(obj: THREE.Mesh | THREE.Line | THREE.LineSegments): void {
     if (!obj) return;
 
-    // Если объект уже в списке, не добавляем повторно
     const exists = this.activeObj.items.some((item) => item.obj === obj);
     if (exists) return;
 
@@ -104,15 +90,11 @@ export class SelectionHandler extends ContextSingleton<SelectionHandler> {
       mat: obj.material,
     });
 
-    // Добавляем outline для мешей, если эффекты включены
     if (obj instanceof THREE.Mesh && EffectsManager.inst()?.enabled) {
       OutlineSelection.inst().addOutlineObject(obj);
     }
   }
 
-  /**
-   * Обрабатывает выделение объекта в режиме merge
-   */
   private selectMerged(intersect: THREE.Intersection<THREE.Object3D>): void {
     if (!intersect?.object) return;
 
@@ -124,9 +106,6 @@ export class SelectionHandler extends ContextSingleton<SelectionHandler> {
     SelectionMergedGeometries.handleObjectClick(intersect);
   }
 
-  /**
-   * Сбрасывает выделение и восстанавливает оригинальные материалы
-   */
   public resetSelection(): void {
     const activeObj = this.getActiveObj();
     activeObj.items.forEach((item) => {

@@ -86,6 +86,11 @@ export class ModelLoader extends ContextSingleton<ModelLoader> {
   }
 
   public handleFileLoad = async (e) => {
+    if (this.getModel()) {
+      console.log('модель уже загружена');
+      return false;
+    }
+
     const contents = e.target.result;
 
     const decoder = new TextDecoder('utf-8');
@@ -142,6 +147,8 @@ export class ModelLoader extends ContextSingleton<ModelLoader> {
     }
 
     SceneManager.inst().render();
+
+    return true;
   };
 
   private centerModel(model) {

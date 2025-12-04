@@ -99,12 +99,14 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
       }
     };
 
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       progressElement.style.display = 'none';
 
-      UiFileMenu.inst().addItem(`${file.name}`, 'gltf', undefined);
-      SvgPages.inst().hideContainerSvg();
-      ModelLoader.inst().handleFileLoad(e);
+      const result = await ModelLoader.inst().handleFileLoad(e);
+      if (result) {
+        UiFileMenu.inst().addItem(`${file.name}`, 'gltf', undefined);
+        SvgPages.inst().hideContainerSvg();
+      }
 
       event.target.value = '';
     };

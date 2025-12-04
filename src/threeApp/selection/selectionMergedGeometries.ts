@@ -170,24 +170,20 @@ export class SelectionMergedGeometries {
   }
 
   private static testOffsetPositionGroups({ geometry, groups, highlightGroupIndices }) {
-    // Смещаем все выделенные группы по оси y на 1
     const positionAttr = geometry.attributes.position;
     if (positionAttr && groups.length > 0) {
       const vertexIndices = new Set<number>();
 
-      // Собираем вершины из всех выделенных групп
       highlightGroupIndices.forEach((groupIndex) => {
         if (groupIndex >= 0 && groupIndex < groups.length) {
           const group = groups[groupIndex];
           if (group && group.count > 0) {
             if (geometry.index) {
-              // Геометрия индексированная
               const indexAttr = geometry.index;
               for (let i = group.start; i < group.start + group.count; i++) {
                 vertexIndices.add(indexAttr.getX(i));
               }
             } else {
-              // Геометрия не индексированная
               for (let i = group.start; i < group.start + group.count; i++) {
                 vertexIndices.add(i);
               }
@@ -196,12 +192,10 @@ export class SelectionMergedGeometries {
         }
       });
 
-      // Смещаем все вершины выделенных групп по оси y на 1 и поворачиваем на 90° вокруг оси X
       if (vertexIndices.size > 0) {
         const positions = positionAttr.array as Float32Array;
         const vertexPositions: { x: number; y: number; z: number; index: number }[] = [];
 
-        // Сначала собираем текущие позиции вершин (до трансформаций)
         vertexIndices.forEach((vertexIndex) => {
           const xIndex = vertexIndex * 3;
           const yIndex = vertexIndex * 3 + 1;
@@ -217,7 +211,6 @@ export class SelectionMergedGeometries {
         });
 
         if (vertexPositions.length > 0) {
-          // Находим центр bounding box всех выделенных групп
           let minX = Infinity,
             minY = Infinity,
             minZ = Infinity;
@@ -234,26 +227,19 @@ export class SelectionMergedGeometries {
             maxZ = Math.max(maxZ, v.z);
           });
 
-          // Центр bounding box всех выделенных групп
           const center = new THREE.Vector3((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
 
-          // Матрица поворота на 90° вокруг оси X
           const rotationMatrix = new THREE.Matrix4().makeRotationX(Math.PI / 2);
           const tempVector = new THREE.Vector3();
 
-          // Применяем трансформации к каждой вершине
           vertexPositions.forEach((v) => {
-            // Перемещаем вершину относительно центра bounding box
             tempVector.set(v.x - center.x, v.y - center.y, v.z - center.z);
 
-            // Применяем поворот на 90° вокруг оси X
             tempVector.applyMatrix4(rotationMatrix);
 
-            // Возвращаем обратно к центру и добавляем смещение по Y на 1
             tempVector.add(center);
             tempVector.y += 1;
 
-            // Обновляем позицию в массиве
             const xIndex = v.index * 3;
             const yIndex = v.index * 3 + 1;
             const zIndex = v.index * 3 + 2;

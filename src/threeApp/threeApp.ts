@@ -24,7 +24,7 @@ export class ThreeApp {
 
     const container = document.getElementById('container');
 
-    this.initWatermark();
+    //this.initWatermark();
 
     if (isRenderWorker) {
       // new ModelFileLoader2();
@@ -44,7 +44,7 @@ export class ThreeApp {
       MouseManager.inst().init(SceneManager.inst().camera, SceneManager.inst().renderer.domElement);
       BVHManager.inst().init();
 
-      new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
+      //new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
 
       ModelLoader.inst().setMerge({ merge: true });
     }
