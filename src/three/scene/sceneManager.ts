@@ -4,15 +4,13 @@ import Stats from 'stats.js';
 
 import { threeApp } from '../threeApp';
 import { CameraManager } from './cameraManager';
+import { ContextSingleton } from '../core/ContextSingleton';
 
 import { WatermarkCanvas } from '../../watermark/watermarkCanvas';
 import { Watermark3d } from '../../watermark/watermark3d';
 import { ApiThreeToUi } from '../../api/apiLocal/apiThreeToUi';
 
-export class SceneManager {
-  private static _instances = new Map<string, SceneManager>();
-  private static _defaultContext = 'main';
-
+export class SceneManager extends ContextSingleton<SceneManager> {
   stats = null;
   container: HTMLElement | any;
   scene: THREE.Scene;
@@ -20,38 +18,6 @@ export class SceneManager {
   renderer: THREE.WebGLRenderer;
   controls: ArcballControls;
   cameraManager: CameraManager;
-
-  /**
-   * Получить экземпляр SceneManager для указанного контекста
-   * @param context - контекст (по умолчанию 'main')
-   * @returns экземпляр SceneManager
-   */
-  public static inst(context?: string): SceneManager {
-    const ctx = context || this._defaultContext;
-    if (!this._instances.has(ctx)) {
-      this._instances.set(ctx, new SceneManager());
-    }
-    return this._instances.get(ctx)!;
-  }
-
-  /**
-   * Установить экземпляр для контекста (для случаев, когда нужен предварительно созданный экземпляр)
-   * @param context - контекст
-   * @param instance - экземпляр SceneManager
-   */
-  public static setInstance(context: string, instance: SceneManager): void {
-    this._instances.set(context, instance);
-  }
-
-  /**
-   * Проверить, существует ли экземпляр для контекста
-   * @param context - контекст
-   * @returns true, если экземпляр существует
-   */
-  public static hasInstance(context?: string): boolean {
-    const ctx = context || this._defaultContext;
-    return this._instances.has(ctx);
-  }
 
   public async init({ container }) {
     this.container = container;
