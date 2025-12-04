@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
 import { SelectionMergedGeometries } from '@/threeApp/selection/selectionMergedGeometries';
 import { SelectionHandler } from '@/threeApp/selection/selectionHandler';
 import { ModelLoader } from '@/threeApp/model/modelLoader';

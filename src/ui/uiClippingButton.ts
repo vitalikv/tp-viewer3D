@@ -1,5 +1,5 @@
 import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
-import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
 import { UiClippingSlider } from './uiClippingSlider';
 
 export class UiClippingButton extends ContextSingleton<UiClippingButton> {

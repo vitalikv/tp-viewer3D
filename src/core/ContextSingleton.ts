@@ -76,3 +76,4 @@ export abstract class ContextSingleton<T extends ContextSingleton<T>> {
     ContextSingleton._defaultContexts.set(this, context);
   }
 }
+

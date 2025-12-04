@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast, MeshBVHHelper } from 'three-mesh-bvh';
 
 import { SceneManager } from '@/threeApp/scene/sceneManager';
-import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
 
 export class BVHManager extends ContextSingleton<BVHManager> {
   public init() {

@@ -1,6 +1,6 @@
 import { SvgApp } from '@/svgApp/svgApp';
 import { ModelLoader } from '@/threeApp/model/modelLoader';
-import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
 
 export class UiFileLoader extends ContextSingleton<UiFileLoader> {
   private container: HTMLElement;

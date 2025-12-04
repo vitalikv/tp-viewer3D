@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { MeshBVH, MeshBVHHelper, CONTAINED } from 'three-mesh-bvh';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
-import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
 
 type MeshBVHEntry = {
   mesh: THREE.Mesh;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
-import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
 import { AnimationManager } from '@/threeApp/animation/animationManager';
 import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
 import { BVHManager } from '@/threeApp/bvh/bvhManager';

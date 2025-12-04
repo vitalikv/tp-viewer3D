@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
 import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
 import { MergeAnimation } from '@/threeApp/mergedModel/mergeAnimation';
 import { OutlineSelection } from '@/threeApp/mergedModel/outlineSelection';

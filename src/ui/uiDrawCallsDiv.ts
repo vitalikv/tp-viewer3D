@@ -1,4 +1,4 @@
-import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
 
 export class UiDrawCallsDiv extends ContextSingleton<UiDrawCallsDiv> {
   private act: boolean = true;

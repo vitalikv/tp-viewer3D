@@ -5,7 +5,7 @@ import Stats from 'stats.js';
 import { CameraManager } from '@/threeApp/scene/cameraManager';
 import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
 import { EffectsManager } from '@/threeApp/scene/effectsManager';
-import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
 
 import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
 import { Watermark3d } from '@/watermark/watermark3d';

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
-import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
 
 export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
   private divWrap: HTMLDivElement;

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { ContextSingleton } from '@/threeApp/core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
 import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
 import { EffectsManager } from '@/threeApp/scene/effectsManager';
 import { OutlineSelection } from '@/threeApp/selection/outlineSelection';
