@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { threeApp } from '../threeApp';
+import { ClippingBvh } from '../clipping/clippingBvh';
 import { SelectionAdapter } from '../mergedModel/selectionAdapter';
 import { OutlineSelection } from '../mergedModel/outlineSelection';
 import { SceneManager } from '../scene/sceneManager';
@@ -13,7 +13,7 @@ export class SelectionMergedGeometries {
   private static lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, depthTest: false, opacity: 0.1 });
 
   public static setMergedObjects(meshes: THREE.Mesh[], lines: (THREE.Line | THREE.LineSegments)[]) {
-    this.meshMaterial.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
+    this.meshMaterial.clippingPlanes = ClippingBvh.inst().getClippingPlanes();
     this.meshMaterial.needsUpdate = true;
 
     this.mergedMeshes.clear();

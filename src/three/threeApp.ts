@@ -17,15 +17,7 @@ import { RenderWorker } from './render/initRenderWorker';
 
 class ThreeApp {
   modelFileLoader: ModelFileLoader;
-  modelLoader: ModelLoader;
-  mouseManager: MouseManager;
-  selectionHandler: SelectionHandler;
-  outlineSelection: OutlineSelection;
-  bvhManager: BVHManager;
-  clippingBvh: ClippingBvh;
   renderWorker: RenderWorker;
-  effectsManager: EffectsManager;
-  animationManager: AnimationManager;
 
   constructor() {}
 
@@ -42,23 +34,22 @@ class ThreeApp {
     } else {
       await SceneManager.inst().init({ container });
       this.modelFileLoader = new ModelFileLoader();
-      this.modelLoader = new ModelLoader();
-      this.selectionHandler = new SelectionHandler();
-      this.mouseManager = new MouseManager(this.selectionHandler);
-      this.outlineSelection = new OutlineSelection();
-      this.bvhManager = new BVHManager();
-      this.clippingBvh = new ClippingBvh();
-      this.animationManager = new AnimationManager();
+      ModelLoader.inst();
+      SelectionHandler.inst();
+      MouseManager.inst();
+      OutlineSelection.inst();
+      BVHManager.inst();
+      ClippingBvh.inst();
+      AnimationManager.inst();
 
-      this.effectsManager = new EffectsManager();
-      this.effectsManager.init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer, container });
-      this.outlineSelection.init({ outlinePass: this.effectsManager.outlinePass, composer: this.effectsManager.composer });
-      this.mouseManager.init(SceneManager.inst().camera, SceneManager.inst().renderer.domElement);
-      this.bvhManager.init();
+      EffectsManager.inst().init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer, container });
+      OutlineSelection.inst().init({ outlinePass: EffectsManager.inst().outlinePass, composer: EffectsManager.inst().composer });
+      MouseManager.inst().init(SceneManager.inst().camera, SceneManager.inst().renderer.domElement);
+      BVHManager.inst().init();
 
       new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
 
-      this.modelLoader.setMerge({ merge: true });
+      ModelLoader.inst().setMerge({ merge: true });
     }
   }
 

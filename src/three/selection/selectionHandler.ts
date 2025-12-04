@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 
-import { threeApp } from '@/three/threeApp';
+import { ContextSingleton } from '@/three/core/ContextSingleton';
+import { ClippingBvh } from '@/three/clipping/clippingBvh';
+import { EffectsManager } from '@/three/scene/effectsManager';
+import { OutlineSelection } from '@/three/selection/outlineSelection';
 import { SelectedByData } from '@/three/loaders/data/selectedByData';
 import { SelectionMergedGeometries } from '@/three/selection/selectionMergedGeometries';
 
@@ -25,12 +28,13 @@ const LINE_OPACITY = 0.1;
  * Класс для управления выделением объектов в сцене
  * Отвечает за визуальное выделение объектов и управление их материалами
  */
-export class SelectionHandler {
+export class SelectionHandler extends ContextSingleton<SelectionHandler> {
   private activeObj: ActiveObjects = { items: [] };
   private selectionMaterial: THREE.MeshStandardMaterial;
   private lineMaterial: THREE.LineBasicMaterial;
 
   constructor() {
+    super();
     // Инициализация материалов для выделения (создаются один раз)
     this.selectionMaterial = new THREE.MeshStandardMaterial({
       color: SELECTION_COLOR,
@@ -66,7 +70,7 @@ export class SelectionHandler {
     let objs = SelectedByData.getSelectedNode({ obj });
 
     // Обновляем clipping planes для материала выделения
-    this.selectionMaterial.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
+    this.selectionMaterial.clippingPlanes = ClippingBvh.inst().getClippingPlanes();
     this.selectionMaterial.needsUpdate = true;
 
     // Если объект не найден в структуре gltf, используем сам объект
@@ -101,8 +105,8 @@ export class SelectionHandler {
     });
 
     // Добавляем outline для мешей, если эффекты включены
-    if (obj instanceof THREE.Mesh && threeApp.effectsManager?.enabled) {
-      threeApp.outlineSelection.addOutlineObject(obj);
+    if (obj instanceof THREE.Mesh && EffectsManager.inst()?.enabled) {
+      OutlineSelection.inst().addOutlineObject(obj);
     }
   }
 
@@ -131,8 +135,8 @@ export class SelectionHandler {
       }
     });
 
-    if (threeApp.effectsManager?.enabled) {
-      threeApp.outlineSelection.clearOutlineObjects();
+    if (EffectsManager.inst()?.enabled) {
+      OutlineSelection.inst().clearOutlineObjects();
     }
 
     this.clearActiveObj();

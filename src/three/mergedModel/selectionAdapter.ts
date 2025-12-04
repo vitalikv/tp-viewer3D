@@ -1,4 +1,4 @@
-import { threeApp } from '../threeApp';
+import { ModelLoader } from '../model/modelLoader';
 
 export class SelectionAdapter {
   private static structureCache: any[] = [];
@@ -6,7 +6,7 @@ export class SelectionAdapter {
   private static fragmentGuidIndex: Map<string, any[]> = new Map();
 
   public static initializeCache() {
-    const structure = threeApp.modelLoader.initData.getTree();
+    const structure = ModelLoader.inst().initData.getTree();
     this.structureCache = this.convertGroups(structure);
     this.buildIndexes(this.structureCache);
   }
@@ -133,7 +133,7 @@ export class SelectionAdapter {
       return [node];
     }
 
-    const jsonData = threeApp.modelLoader.json2;
+    const jsonData = ModelLoader.inst().json2;
 
     const itemJson = this.findInJsonDataByFragmentGuid(fragment_guid.toLowerCase(), jsonData);
 

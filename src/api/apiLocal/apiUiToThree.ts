@@ -1,69 +1,71 @@
-import { threeApp } from '../../three/threeApp';
 import { SceneManager } from '../../three/scene/sceneManager';
+import { ModelLoader } from '../../three/model/modelLoader';
+import { ClippingBvh } from '../../three/clipping/clippingBvh';
+import { AnimationManager } from '../../three/animation/animationManager';
 
 export class ApiUiToThree {
   public static setPlanePosition(x: number, y: number, z: number) {
-    if (!threeApp.clippingBvh) return;
+    if (!ClippingBvh.inst()) return;
 
-    threeApp.clippingBvh.setPlanePosition(x, y, z);
+    ClippingBvh.inst().setPlanePosition(x, y, z);
     SceneManager.inst().render();
   }
 
   public static setPlaneRotation(x: number, y: number, z: number) {
-    if (!threeApp.clippingBvh) return;
+    if (!ClippingBvh.inst()) return;
 
-    threeApp.clippingBvh.setPlaneRotation(x, y, z);
+    ClippingBvh.inst().setPlaneRotation(x, y, z);
     SceneManager.inst().render();
   }
 
   public static resetPlane() {
-    if (!threeApp.clippingBvh) return;
+    if (!ClippingBvh.inst()) return;
 
-    threeApp.clippingBvh.resetPlane();
+    ClippingBvh.inst().resetPlane();
     SceneManager.inst().render();
   }
 
   public static getStateClippingBvh() {
-    if (!threeApp.clippingBvh) return;
+    if (!ClippingBvh.inst()) return;
 
-    const useBVH = threeApp.clippingBvh.getUseBVH();
-    const helperBVH = threeApp.clippingBvh.getHelperBVH();
-    const model = threeApp.clippingBvh.getModel();
-    const wireframe = threeApp.clippingBvh.getWireframe();
-    const showPlane = threeApp.clippingBvh.getShowPlane();
+    const useBVH = ClippingBvh.inst().getUseBVH();
+    const helperBVH = ClippingBvh.inst().getHelperBVH();
+    const model = ClippingBvh.inst().getModel();
+    const wireframe = ClippingBvh.inst().getWireframe();
+    const showPlane = ClippingBvh.inst().getShowPlane();
 
     return { useBVH, helperBVH, model, wireframe, showPlane };
   }
 
   public static activateClippingBvh() {
-    if (!threeApp.clippingBvh) return;
+    if (!ClippingBvh.inst()) return;
 
-    const model = threeApp.modelLoader.getModel();
-    threeApp.clippingBvh.initClipping({ model });
+    const model = ModelLoader.inst().getModel();
+    ClippingBvh.inst().initClipping({ model });
     SceneManager.inst().render();
   }
 
   public static deActivateClippingBvh() {
-    if (!threeApp.clippingBvh) return;
+    if (!ClippingBvh.inst()) return;
 
-    threeApp.clippingBvh.destroy();
+    ClippingBvh.inst().destroy();
     SceneManager.inst().render();
   }
 
   public static playAnimation() {
-    threeApp.animationManager.play();
+    AnimationManager.inst().play();
   }
 
   public static pauseAnimation() {
-    threeApp.animationManager.pause();
+    AnimationManager.inst().pause();
   }
 
   public static setAnimationPosStart() {
-    threeApp.animationManager.setAnimationPosStart();
+    AnimationManager.inst().setAnimationPosStart();
   }
 
   public static setAnimationPosEnd() {
-    threeApp.animationManager.setAnimationPosEnd();
+    AnimationManager.inst().setAnimationPosEnd();
   }
 
   public static resetAnimation() {
@@ -71,6 +73,6 @@ export class ApiUiToThree {
   }
 
   public static setAnimationIndex(index: number) {
-    threeApp.animationManager.setAnimationIndex(index);
+    AnimationManager.inst().setAnimationIndex(index);
   }
 }

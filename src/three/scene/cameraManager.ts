@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import type { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
-import { threeApp } from '../threeApp';
 import { Watermark3d } from '../../watermark/watermark3d';
 import { SceneManager } from './sceneManager';
+import { EffectsManager } from './effectsManager';
 
 export class CameraManager {
   private cam3D: THREE.PerspectiveCamera;
@@ -90,8 +90,8 @@ export class CameraManager {
     this.renderer.setSize(rect.width, rect.height);
 
     // не работает при вкл renderWorker
-    if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
-      threeApp.effectsManager.setSize();
+    if (EffectsManager.inst() && EffectsManager.inst().enabled) {
+      EffectsManager.inst().setSize();
     }
 
     SceneManager.inst().render();
@@ -139,9 +139,9 @@ export class CameraManager {
     SceneManager.inst().controls['_gizmos'].position.copy(gizmosPos);
     SceneManager.inst().controls.update();
 
-    if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
-      threeApp.effectsManager.renderPass.camera = camera;
-      threeApp.effectsManager.outlinePass.renderCamera = camera;
+    if (EffectsManager.inst() && EffectsManager.inst().enabled) {
+      EffectsManager.inst().renderPass.camera = camera;
+      EffectsManager.inst().outlinePass.renderCamera = camera;
     }
 
     SceneManager.inst().render();

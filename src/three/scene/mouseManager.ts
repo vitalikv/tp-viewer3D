@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 
-import { threeApp } from '../threeApp';
+import { ContextSingleton } from '../core/ContextSingleton';
 import { SelectionMergedGeometries } from '../selection/selectionMergedGeometries';
 import { SelectionHandler } from '../selection/selectionHandler';
+import { ModelLoader } from '../model/modelLoader';
 
 type SelectionMode = 'merge' | 'tflex';
 
@@ -12,7 +13,7 @@ const RAYCASTER_FAR = 1000;
  * Класс для обработки событий мыши и raycasting
  * Отвечает только за отслеживание позиции мыши и определение пересечений с объектами
  */
-export class MouseManager {
+export class MouseManager extends ContextSingleton<MouseManager> {
   private raycaster: THREE.Raycaster;
   private mouse: THREE.Vector2;
   private domElement: HTMLElement | null = null;
@@ -21,8 +22,9 @@ export class MouseManager {
   private isMove = false;
   private selectionHandler: SelectionHandler;
 
-  constructor(selectionHandler: SelectionHandler) {
-    this.selectionHandler = selectionHandler;
+  constructor() {
+    super();
+    this.selectionHandler = SelectionHandler.inst();
   }
 
   public init(camera: THREE.Camera, domElement: HTMLElement): void {
@@ -89,7 +91,7 @@ export class MouseManager {
 
         const { obj, intersect } = await this.intersectObj(event);
 
-        const mode: SelectionMode = threeApp.modelLoader.getMerge() ? 'merge' : 'tflex';
+        const mode: SelectionMode = ModelLoader.inst().getMerge() ? 'merge' : 'tflex';
 
         this.selectionHandler.handleSelection(obj, intersect, mode);
       }
@@ -129,7 +131,7 @@ export class MouseManager {
     this.calculateMousePosition(event);
     this.updateRaycaster();
 
-    const model = threeApp.modelLoader.getModel();
+    const model = ModelLoader.inst().getModel();
     if (!model) {
       return { obj, intersect };
     }

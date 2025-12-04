@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { threeApp } from '../threeApp';
+import { ContextSingleton } from '../core/ContextSingleton';
 import { ApiThreeToUi } from '../../api/apiLocal/apiThreeToUi';
 import { MergeAnimation } from '../mergedModel/mergeAnimation';
 import { OutlineSelection } from '../mergedModel/outlineSelection';
 import { SceneManager } from '../scene/sceneManager';
 
-export class AnimationManager {
+export class AnimationManager extends ContextSingleton<AnimationManager> {
   private mixers: THREE.AnimationMixer[] = [];
   private clock: THREE.Clock;
   private isPlaying: boolean = false;
@@ -20,6 +20,7 @@ export class AnimationManager {
   private mergedModel: THREE.Object3D | null = null;
 
   constructor() {
+    super();
     this.clock = new THREE.Clock();
   }
 

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { MeshBVH, MeshBVHHelper, CONTAINED } from 'three-mesh-bvh';
-import { threeApp } from '../threeApp';
 import { SceneManager } from '../scene/sceneManager';
+import { ContextSingleton } from '../core/ContextSingleton';
 
 type MeshBVHEntry = {
   mesh: THREE.Mesh;
@@ -9,7 +9,7 @@ type MeshBVHEntry = {
   helper?: MeshBVHHelper;
 };
 
-export class ClippingBvh {
+export class ClippingBvh extends ContextSingleton<ClippingBvh> {
   private model: THREE.Object3D | null = null;
   private meshBvhs: MeshBVHEntry[] = [];
   private clippingPlanes: THREE.Plane[] = [];

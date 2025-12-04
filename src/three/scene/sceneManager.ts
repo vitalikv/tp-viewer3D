@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import Stats from 'stats.js';
 
-import { threeApp } from '../threeApp';
 import { CameraManager } from './cameraManager';
+import { ClippingBvh } from '../clipping/clippingBvh';
+import { EffectsManager } from './effectsManager';
 import { ContextSingleton } from '../core/ContextSingleton';
 
 import { WatermarkCanvas } from '../../watermark/watermarkCanvas';
@@ -202,10 +203,10 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     if (!this.renderer) return;
     this.stats.begin();
 
-    if (threeApp.clippingBvh) threeApp.clippingBvh.performClipping();
+    if (ClippingBvh.inst()) ClippingBvh.inst().performClipping();
     // не работает при вкл renderWorker
-    if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
-      const renderCalls = threeApp.effectsManager.render();
+    if (EffectsManager.inst() && EffectsManager.inst().enabled) {
+      const renderCalls = EffectsManager.inst().render();
       Watermark3d.renderOverlay();
 
       ApiThreeToUi.updateDrawCalls(renderCalls);

@@ -1,13 +1,16 @@
 import * as THREE from 'three';
 import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js';
-import { threeApp } from '../threeApp';
 import { SceneManager } from '../scene/sceneManager';
+import { ContextSingleton } from '../core/ContextSingleton';
+import { AnimationManager } from '../animation/animationManager';
+import { ClippingBvh } from '../clipping/clippingBvh';
+import { BVHManager } from '../bvh/bvhManager';
 import { InitData } from '../loaders/data/InitData';
 import { InitMergedModel } from '../mergedModel/initMergedModel';
 import { MergeEnvironment } from '../mergedModel/mergeEnvironment';
 import { MergeAnimation } from '../mergedModel/mergeAnimation';
 
-export class ModelLoader {
+export class ModelLoader extends ContextSingleton<ModelLoader> {
   private loader: GLTFLoader;
   private dracoLoader: DRACOLoader;
   private isMerge = false;
@@ -20,6 +23,7 @@ export class ModelLoader {
   public mergedLines: Set<THREE.Line | THREE.LineSegments> = new Set();
 
   constructor() {
+    super();
     this.loader = new GLTFLoader();
     this.dracoLoader = new DRACOLoader();
     this.dracoLoader.setDecoderPath('three/examples/jsm/libs/draco/');
@@ -132,8 +136,8 @@ export class ModelLoader {
     this.model = model;
     this.jsonGltf = gltf;
 
-    if (gltf.animations && gltf.animations.length > 0 && threeApp.animationManager) {
-      threeApp.animationManager.initAnimations(gltf.animations, model);
+    if (gltf.animations && gltf.animations.length > 0 && AnimationManager.inst()) {
+      AnimationManager.inst().initAnimations(gltf.animations, model);
       console.log('🎬 Анимации инициализированы');
     }
 
@@ -167,13 +171,13 @@ export class ModelLoader {
         if (material) {
           const materials = Array.isArray(material) ? material : [material];
           materials.forEach((material) => {
-            material.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
+            material.clippingPlanes = ClippingBvh.inst().getClippingPlanes();
           });
         }
       }
     });
 
-    threeApp.bvhManager.setupBVH(model);
+    BVHManager.inst().setupBVH(model);
   }
 
   private async loadJSON() {
@@ -197,8 +201,8 @@ export class ModelLoader {
     MergeAnimation.clearAnimationData();
 
     // Очистка анимаций
-    if (threeApp.animationManager) {
-      threeApp.animationManager.dispose();
+    if (AnimationManager.inst()) {
+      AnimationManager.inst().dispose();
     }
   }
 }

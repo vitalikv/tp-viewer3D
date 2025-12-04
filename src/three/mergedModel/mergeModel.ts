@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { threeApp } from '../threeApp';
+import { ClippingBvh } from '../clipping/clippingBvh';
 import { MergeAnimation } from './mergeAnimation';
 
 export class MergeModel {
@@ -77,7 +77,7 @@ export class MergeModel {
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
 
       materials.forEach((material, idx) => {
-        material.clippingPlanes = threeApp.clippingBvh.getClippingPlanes();
+        material.clippingPlanes = ClippingBvh.inst().getClippingPlanes();
 
         const key = material.uuid || `mat_${idx}`;
 

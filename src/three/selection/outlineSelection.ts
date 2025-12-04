@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { ContextSingleton } from '../core/ContextSingleton';
 
-export class OutlineSelection {
+export class OutlineSelection extends ContextSingleton<OutlineSelection> {
   private outlinePass: OutlinePass;
   private composer: EffectComposer;
 

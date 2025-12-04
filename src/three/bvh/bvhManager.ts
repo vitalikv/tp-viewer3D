@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast, MeshBVHHelper } from 'three-mesh-bvh';
 
-import { threeApp } from '../threeApp';
 import { SceneManager } from '../scene/sceneManager';
+import { ContextSingleton } from '../core/ContextSingleton';
 
-export class BVHManager {
+export class BVHManager extends ContextSingleton<BVHManager> {
   public init() {
     if (!THREE.BufferGeometry.prototype.computeBoundsTree) {
       THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;

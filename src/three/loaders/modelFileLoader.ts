@@ -1,6 +1,6 @@
-import { threeApp } from '../threeApp';
 import { SvgApp } from '../../svgApp/svgApp';
 import { ModelWorker } from './modelWorker';
+import { ModelLoader } from '../model/modelLoader';
 
 export class ModelFileLoader {
   constructor() {
@@ -42,7 +42,7 @@ export class ModelFileLoader {
     };
 
     reader.onload = (e) => {
-      threeApp.modelLoader.handleFileLoad(e);
+      ModelLoader.inst().handleFileLoad(e);
       progressElement.style.display = 'none';
 
       event.target.value = '';
