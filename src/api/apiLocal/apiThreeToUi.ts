@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { uiMain } from '../../ui/uiMain';
+import { uiMain } from '@/ui/uiMain';
 
 export class ApiThreeToUi {
   public static updatePlayerMenu(animations: THREE.AnimationClip[]) {

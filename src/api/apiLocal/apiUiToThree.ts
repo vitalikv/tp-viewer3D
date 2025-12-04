@@ -1,7 +1,7 @@
-import { SceneManager } from '../../three/scene/sceneManager';
-import { ModelLoader } from '../../three/model/modelLoader';
-import { ClippingBvh } from '../../three/clipping/clippingBvh';
-import { AnimationManager } from '../../three/animation/animationManager';
+import { SceneManager } from '@/three/scene/sceneManager';
+import { ModelLoader } from '@/three/model/modelLoader';
+import { ClippingBvh } from '@/three/clipping/clippingBvh';
+import { AnimationManager } from '@/three/animation/animationManager';
 
 export class ApiUiToThree {
   public static setPlanePosition(x: number, y: number, z: number) {

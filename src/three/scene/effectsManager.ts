@@ -5,7 +5,7 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
-import { ContextSingleton } from '../core/ContextSingleton';
+import { ContextSingleton } from '@/three/core/ContextSingleton';
 
 export class EffectsManager extends ContextSingleton<EffectsManager> {
   public composer!: EffectComposer;

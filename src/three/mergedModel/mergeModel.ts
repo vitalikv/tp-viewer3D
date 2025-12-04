@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { ClippingBvh } from '../clipping/clippingBvh';
+import { ClippingBvh } from '@/three/clipping/clippingBvh';
 import { MergeAnimation } from './mergeAnimation';
 
 export class MergeModel {

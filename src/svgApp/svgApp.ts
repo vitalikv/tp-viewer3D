@@ -1,6 +1,6 @@
 import { SvgUseHandler } from './svgUseHandler';
-import { WatermarkSvg } from '../watermark/watermarkSvg';
-import { WatermarkCanvas } from '../watermark/watermarkCanvas';
+import { WatermarkSvg } from '@/watermark/watermarkSvg';
+import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
 
 export class SvgApp {
   constructor() {

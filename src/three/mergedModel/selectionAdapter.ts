@@ -1,4 +1,4 @@
-import { ModelLoader } from '../model/modelLoader';
+import { ModelLoader } from '@/three/model/modelLoader';
 
 export class SelectionAdapter {
   private static structureCache: any[] = [];

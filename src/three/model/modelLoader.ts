@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js';
-import { SceneManager } from '../scene/sceneManager';
-import { ContextSingleton } from '../core/ContextSingleton';
-import { AnimationManager } from '../animation/animationManager';
-import { ClippingBvh } from '../clipping/clippingBvh';
-import { BVHManager } from '../bvh/bvhManager';
-import { InitData } from '../loaders/data/InitData';
-import { InitMergedModel } from '../mergedModel/initMergedModel';
-import { MergeEnvironment } from '../mergedModel/mergeEnvironment';
-import { MergeAnimation } from '../mergedModel/mergeAnimation';
+import { SceneManager } from '@/three/scene/sceneManager';
+import { ContextSingleton } from '@/three/core/ContextSingleton';
+import { AnimationManager } from '@/three/animation/animationManager';
+import { ClippingBvh } from '@/three/clipping/clippingBvh';
+import { BVHManager } from '@/three/bvh/bvhManager';
+import { InitData } from '@/three/loaders/data/InitData';
+import { InitMergedModel } from '@/three/mergedModel/initMergedModel';
+import { MergeEnvironment } from '@/three/mergedModel/mergeEnvironment';
+import { MergeAnimation } from '@/three/mergedModel/mergeAnimation';
 
 export class ModelLoader extends ContextSingleton<ModelLoader> {
   private loader: GLTFLoader;

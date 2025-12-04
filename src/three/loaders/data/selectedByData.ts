@@ -1,5 +1,5 @@
-import { SceneManager } from '../../scene/sceneManager';
-import { ModelLoader } from '../../model/modelLoader';
+import { SceneManager } from '@/three/scene/sceneManager';
+import { ModelLoader } from '@/three/model/modelLoader';
 
 export class SelectedByData {
   public static getSelectedNode({ obj }) {

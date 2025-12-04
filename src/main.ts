@@ -1,3 +1,3 @@
-import { uiMain } from './ui/uiMain';
+import { uiMain } from '@/ui/uiMain';
 
 uiMain.init();

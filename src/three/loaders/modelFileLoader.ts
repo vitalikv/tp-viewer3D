@@ -1,6 +1,6 @@
-import { SvgApp } from '../../svgApp/svgApp';
+import { SvgApp } from '@/svgApp/svgApp';
 import { ModelWorker } from './modelWorker';
-import { ModelLoader } from '../model/modelLoader';
+import { ModelLoader } from '@/three/model/modelLoader';
 
 export class ModelFileLoader {
   constructor() {

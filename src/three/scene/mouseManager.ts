@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
-import { ContextSingleton } from '../core/ContextSingleton';
-import { SelectionMergedGeometries } from '../selection/selectionMergedGeometries';
-import { SelectionHandler } from '../selection/selectionHandler';
-import { ModelLoader } from '../model/modelLoader';
+import { ContextSingleton } from '@/three/core/ContextSingleton';
+import { SelectionMergedGeometries } from '@/three/selection/selectionMergedGeometries';
+import { SelectionHandler } from '@/three/selection/selectionHandler';
+import { ModelLoader } from '@/three/model/modelLoader';
 
 type SelectionMode = 'merge' | 'tflex';
 

@@ -3,13 +3,13 @@ import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import Stats from 'stats.js';
 
 import { CameraManager } from './cameraManager';
-import { ClippingBvh } from '../clipping/clippingBvh';
+import { ClippingBvh } from '@/three/clipping/clippingBvh';
 import { EffectsManager } from './effectsManager';
-import { ContextSingleton } from '../core/ContextSingleton';
+import { ContextSingleton } from '@/three/core/ContextSingleton';
 
-import { WatermarkCanvas } from '../../watermark/watermarkCanvas';
-import { Watermark3d } from '../../watermark/watermark3d';
-import { ApiThreeToUi } from '../../api/apiLocal/apiThreeToUi';
+import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
+import { Watermark3d } from '@/watermark/watermark3d';
+import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
 
 export class SceneManager extends ContextSingleton<SceneManager> {
   stats = null;

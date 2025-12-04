@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
-import { Watermark3d } from '../../watermark/watermark3d';
+import { Watermark3d } from '@/watermark/watermark3d';
 import { SceneManager } from './sceneManager';
 import { EffectsManager } from './effectsManager';
 

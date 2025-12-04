@@ -1,5 +1,5 @@
 import { uiMain } from './uiMain';
-import { ApiUiToThree } from '../api/apiLocal/apiUiToThree';
+import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
 
 export class UiClippingButton {
   private button: HTMLButtonElement;

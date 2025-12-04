@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
 import { SelectionAdapter } from './selectionAdapter';
-import { MergeModel } from '../mergedModel/mergeModel';
-import { SelectionMergedGeometries } from '../selection/selectionMergedGeometries';
+import { MergeModel } from '@/three/mergedModel/mergeModel';
+import { SelectionMergedGeometries } from '@/three/selection/selectionMergedGeometries';
 
 export class InitMergedModel {
   public static init({ model }: { model: THREE.Group }) {

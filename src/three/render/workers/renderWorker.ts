@@ -4,7 +4,7 @@ import { VirtualOrbitControls } from './orbitControlsWorker';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 
-import { SceneManager } from '../../scene/sceneManager';
+import { SceneManager } from '@/three/scene/sceneManager';
 
 // Расширяем тип сообщений
 type WorkerMessage = { type: 'init'; canvas: OffscreenCanvas; container: any } | { type: 'resize'; width: number; height: number; dpr?: number } | { type: 'event'; event: any } | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string }; // Добавляем новый тип

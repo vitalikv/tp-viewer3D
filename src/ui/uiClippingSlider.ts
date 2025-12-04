@@ -1,5 +1,5 @@
-import { threeApp } from '../three/threeApp';
-import { ApiUiToThree } from '../api/apiLocal/apiUiToThree';
+import { threeApp } from '@/three/threeApp';
+import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
 
 export class UiClippingSlider {
   private act = false;

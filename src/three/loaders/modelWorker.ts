@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SceneManager } from '../scene/sceneManager';
+import { SceneManager } from '@/three/scene/sceneManager';
 
 export class ModelWorker {
   private worker: Worker;

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { WatermarkCanvas } from './watermarkCanvas';
+import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
 
 export class Watermark3d {
   private static renderer: THREE.WebGLRenderer;

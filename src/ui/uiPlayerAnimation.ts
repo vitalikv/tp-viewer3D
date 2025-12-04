@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ApiUiToThree } from '../api/apiLocal/apiUiToThree';
+import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
 
 export class UiPlayerAnimation {
   private divWrap: HTMLDivElement;

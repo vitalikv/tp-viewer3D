@@ -1,4 +1,4 @@
-import { threeApp } from '../../threeApp';
+import { threeApp } from '@/three/threeApp';
 
 export class ModelFileLoader2 {
   progressElement;
