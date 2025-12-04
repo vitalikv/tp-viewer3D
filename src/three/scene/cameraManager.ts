@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import { threeApp } from '../threeApp';
 import { Watermark3d } from '../../watermark/watermark3d';
+import { SceneManager } from './sceneManager';
 
 export class CameraManager {
   private cam3D: THREE.PerspectiveCamera;
@@ -37,7 +38,7 @@ export class CameraManager {
   }
 
   private createCam3D() {
-    const rect = threeApp.sceneManager.getClientRect();
+    const rect = SceneManager.inst().getClientRect();
     const aspect = rect.width / rect.height;
 
     const camera = new THREE.PerspectiveCamera(this.options.fov, aspect, this.options.near, this.options.far);
@@ -50,7 +51,7 @@ export class CameraManager {
   }
 
   private createCamTop() {
-    const rect = threeApp.sceneManager.getClientRect();
+    const rect = SceneManager.inst().getClientRect();
 
     const halfFovV = THREE.MathUtils.DEG2RAD * 45 * 0.5;
     const halfFovH = Math.atan((rect.width / rect.height) * Math.tan(halfFovV));
@@ -70,7 +71,7 @@ export class CameraManager {
   private handleResize = () => {
     Watermark3d.renderWatermark();
 
-    const rect = threeApp.sceneManager.getClientRect();
+    const rect = SceneManager.inst().getClientRect();
 
     this.cam3D.aspect = rect.width / rect.height;
     this.cam3D.updateProjectionMatrix();
@@ -93,7 +94,7 @@ export class CameraManager {
       threeApp.effectsManager.setSize();
     }
 
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   };
 
   public setActiveCamera({ camera }) {
@@ -127,27 +128,27 @@ export class CameraManager {
     //uiMain.uiBtnCamera.clickOnBtn({ type });
 
     const camera = this.getActiveCamera();
-    const gizmosPos = threeApp.sceneManager.controls['_gizmos'].position.clone();
+    const gizmosPos = SceneManager.inst().controls['_gizmos'].position.clone();
 
     camera.position.copy(cameraOld.position.clone());
     camera.quaternion.copy(cameraOld.quaternion.clone());
     camera.up.copy(cameraOld.up.clone());
     camera.updateProjectionMatrix();
 
-    threeApp.sceneManager.controls.object = camera;
-    threeApp.sceneManager.controls['_gizmos'].position.copy(gizmosPos);
-    threeApp.sceneManager.controls.update();
+    SceneManager.inst().controls.object = camera;
+    SceneManager.inst().controls['_gizmos'].position.copy(gizmosPos);
+    SceneManager.inst().controls.update();
 
     if (threeApp.effectsManager && threeApp.effectsManager.enabled) {
       threeApp.effectsManager.renderPass.camera = camera;
       threeApp.effectsManager.outlinePass.renderCamera = camera;
     }
 
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public zoomCameraToFitModel(options: { center: THREE.Vector3; radius: number; maxDim: number }) {
-    const sceneManager = threeApp.sceneManager;
+    const sceneManager = SceneManager.inst();
     if (!sceneManager) return;
 
     const camera = this.getActiveCamera();

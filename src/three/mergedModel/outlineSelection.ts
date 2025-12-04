@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { threeApp } from '../threeApp';
+import { SceneManager } from '../scene/sceneManager';
 
 interface OutlineMeshData {
   outlineMesh: THREE.Mesh;
@@ -67,7 +68,7 @@ export class OutlineSelection {
             group,
           });
 
-          threeApp.sceneManager.scene.add(outlineMesh);
+          SceneManager.inst().scene.add(outlineMesh);
           threeApp.outlineSelection.addOutlineObject(outlineMesh);
         }
       });

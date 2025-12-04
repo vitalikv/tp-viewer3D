@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast, MeshBVHHelper } from 'three-mesh-bvh';
 
 import { threeApp } from '../threeApp';
+import { SceneManager } from '../scene/sceneManager';
 
 export class BVHManager {
   public init() {
@@ -30,7 +31,7 @@ export class BVHManager {
       if (child.geometry) {
         const helper = new MeshBVHHelper(child);
         helper.color.set(0x0000ff);
-        threeApp.sceneManager.scene.add(helper);
+        SceneManager.inst().scene.add(helper);
       }
     });
   }

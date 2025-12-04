@@ -1,4 +1,5 @@
 import { threeApp } from '../../threeApp';
+import { SceneManager } from '../../scene/sceneManager';
 
 export class SelectedByData {
   public static getSelectedNode({ obj }) {
@@ -152,7 +153,7 @@ export class SelectedByData {
   private static finds3dObjsInCurrScene(selected: any[]) {
     if (selected.length === 0) return [];
 
-    const scene = threeApp.sceneManager.scene;
+    const scene = SceneManager.inst().scene;
 
     const selectedUuids = new Set(selected.map((obj) => obj.uuid));
     const refs3dObj: any[] = [];

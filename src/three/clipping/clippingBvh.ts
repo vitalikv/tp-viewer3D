@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { MeshBVH, MeshBVHHelper, CONTAINED } from 'three-mesh-bvh';
 import { threeApp } from '../threeApp';
+import { SceneManager } from '../scene/sceneManager';
 
 type MeshBVHEntry = {
   mesh: THREE.Mesh;
@@ -97,7 +98,7 @@ export class ClippingBvh {
     };
 
     this.wireframeModel = cloneModel(model);
-    threeApp.sceneManager.scene.add(this.wireframeModel);
+    SceneManager.inst().scene.add(this.wireframeModel);
   }
 
   private createPlaneMesh() {
@@ -107,7 +108,7 @@ export class ClippingBvh {
     this.planeMesh.scale.setScalar(1.5);
     (this.planeMesh.material as THREE.MeshBasicMaterial).color.set(0x80deea);
     this.planeMesh.renderOrder = 2;
-    threeApp.sceneManager.scene.add(this.planeMesh);
+    SceneManager.inst().scene.add(this.planeMesh);
 
     this.setPlanePosition(this.posPlane.x, this.posPlane.y, this.posPlane.z);
     this.setPlaneRotation(this.rotPlane.x, this.rotPlane.y, this.rotPlane.z);
@@ -128,7 +129,7 @@ export class ClippingBvh {
     this.outlineLines.frustumCulled = false;
     this.outlineLines.renderOrder = 3;
 
-    threeApp.sceneManager.scene.add(this.outlineLines);
+    SceneManager.inst().scene.add(this.outlineLines);
   }
 
   private compositeModelBvh(modelRoot: THREE.Object3D) {
@@ -180,7 +181,7 @@ export class ClippingBvh {
 
       item.helper = helper;
 
-      threeApp.sceneManager.scene.add(helper);
+      SceneManager.inst().scene.add(helper);
     });
   }
 
@@ -394,7 +395,7 @@ export class ClippingBvh {
   public setUseBVH(enabled: boolean) {
     this.params.useBVH = enabled;
     this.performClipping();
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public getHelperBVH() {
@@ -417,7 +418,7 @@ export class ClippingBvh {
     }
 
     this.performClipping();
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public getModel() {
@@ -432,7 +433,7 @@ export class ClippingBvh {
     });
 
     this.performClipping();
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public getWireframe() {
@@ -453,7 +454,7 @@ export class ClippingBvh {
     }
 
     this.performClipping();
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public getInvertPlane() {
@@ -463,7 +464,7 @@ export class ClippingBvh {
   public setInvertPlane(enabled: boolean) {
     this.params.invertPlane = enabled;
     this.performClipping();
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public getShowPlane() {
@@ -479,6 +480,6 @@ export class ClippingBvh {
     }
 
     this.performClipping();
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 }

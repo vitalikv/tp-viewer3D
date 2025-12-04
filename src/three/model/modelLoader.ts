@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js';
 import { threeApp } from '../threeApp';
+import { SceneManager } from '../scene/sceneManager';
 import { InitData } from '../loaders/data/InitData';
 import { InitMergedModel } from '../mergedModel/initMergedModel';
 import { MergeEnvironment } from '../mergedModel/mergeEnvironment';
@@ -127,7 +128,7 @@ export class ModelLoader {
       console.log('модель без мержа');
     }
 
-    threeApp.sceneManager.scene.add(model);
+    SceneManager.inst().scene.add(model);
     this.model = model;
     this.jsonGltf = gltf;
 
@@ -136,7 +137,7 @@ export class ModelLoader {
       console.log('🎬 Анимации инициализированы');
     }
 
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   };
 
   private centerModel(model) {
@@ -149,7 +150,7 @@ export class ModelLoader {
     const sphere = box.getBoundingSphere(new THREE.Sphere());
     const radius = sphere.radius || maxDim * 0.5;
 
-    threeApp.sceneManager.cameraManager.zoomCameraToFitModel({ center: new THREE.Vector3(0, 0, 0), radius, maxDim });
+    SceneManager.inst().cameraManager.zoomCameraToFitModel({ center: new THREE.Vector3(0, 0, 0), radius, maxDim });
   }
 
   private modelMerged({ model }) {

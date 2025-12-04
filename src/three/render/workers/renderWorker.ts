@@ -64,7 +64,7 @@ class RenderWorker {
     this.renderer.setPixelRatio(this.dpr);
     this.renderer.setSize(width, height, false);
 
-    const sceneManager = new SceneManager();
+    const sceneManager = SceneManager.inst('worker'); // Используем отдельный контекст для worker'а
     container.virtDom = true;
     sceneManager.initWorker({ container });
     this.scene = sceneManager.scene;

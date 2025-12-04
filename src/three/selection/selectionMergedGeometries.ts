@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { threeApp } from '../threeApp';
 import { SelectionAdapter } from '../mergedModel/selectionAdapter';
 import { OutlineSelection } from '../mergedModel/outlineSelection';
+import { SceneManager } from '../scene/sceneManager';
 
 export class SelectionMergedGeometries {
   private static originalMaterials = new Map<string, THREE.Material | THREE.Material[]>();
@@ -150,7 +151,7 @@ export class SelectionMergedGeometries {
       this.selectedByUuid(element.uuid);
     }
 
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public static clearSelection() {

@@ -1,25 +1,26 @@
 import { threeApp } from '../../three/threeApp';
+import { SceneManager } from '../../three/scene/sceneManager';
 
 export class ApiUiToThree {
   public static setPlanePosition(x: number, y: number, z: number) {
     if (!threeApp.clippingBvh) return;
 
     threeApp.clippingBvh.setPlanePosition(x, y, z);
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public static setPlaneRotation(x: number, y: number, z: number) {
     if (!threeApp.clippingBvh) return;
 
     threeApp.clippingBvh.setPlaneRotation(x, y, z);
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public static resetPlane() {
     if (!threeApp.clippingBvh) return;
 
     threeApp.clippingBvh.resetPlane();
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public static getStateClippingBvh() {
@@ -39,14 +40,14 @@ export class ApiUiToThree {
 
     const model = threeApp.modelLoader.getModel();
     threeApp.clippingBvh.initClipping({ model });
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public static deActivateClippingBvh() {
     if (!threeApp.clippingBvh) return;
 
     threeApp.clippingBvh.destroy();
-    threeApp.sceneManager.render();
+    SceneManager.inst().render();
   }
 
   public static playAnimation() {

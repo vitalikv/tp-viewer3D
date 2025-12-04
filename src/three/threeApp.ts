@@ -16,7 +16,6 @@ import { ModelFileLoader2 } from './loaders/workers/modelFileLoader2';
 import { RenderWorker } from './render/initRenderWorker';
 
 class ThreeApp {
-  sceneManager: SceneManager;
   modelFileLoader: ModelFileLoader;
   modelLoader: ModelLoader;
   mouseManager: MouseManager;
@@ -41,8 +40,7 @@ class ThreeApp {
       new ModelFileLoader2();
       this.renderWorker = new RenderWorker({ container });
     } else {
-      this.sceneManager = new SceneManager();
-      this.sceneManager.init({ container });
+      await SceneManager.inst().init({ container });
       this.modelFileLoader = new ModelFileLoader();
       this.modelLoader = new ModelLoader();
       this.selectionHandler = new SelectionHandler();
@@ -53,12 +51,12 @@ class ThreeApp {
       this.animationManager = new AnimationManager();
 
       this.effectsManager = new EffectsManager();
-      this.effectsManager.init({ scene: this.sceneManager.scene, camera: this.sceneManager.camera, renderer: this.sceneManager.renderer, container });
+      this.effectsManager.init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer, container });
       this.outlineSelection.init({ outlinePass: this.effectsManager.outlinePass, composer: this.effectsManager.composer });
-      this.mouseManager.init(this.sceneManager.camera, this.sceneManager.renderer.domElement);
+      this.mouseManager.init(SceneManager.inst().camera, SceneManager.inst().renderer.domElement);
       this.bvhManager.init();
 
-      new ViewCube({ container, controls: this.sceneManager.controls, animate: () => this.sceneManager.render() });
+      new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
 
       this.modelLoader.setMerge({ merge: true });
     }

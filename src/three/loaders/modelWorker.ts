@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { threeApp } from '../threeApp';
+import { SceneManager } from '../scene/sceneManager';
 
 export class ModelWorker {
   private worker: Worker;
@@ -11,9 +12,13 @@ export class ModelWorker {
 
   constructor() {
     this.worker = new Worker(new URL('workers/gltfWorker.ts', import.meta.url), { type: 'module' });
-    this.scene = threeApp.sceneManager.scene;
-    this.camera = threeApp.sceneManager.camera;
-    this.controls = threeApp.sceneManager.controls;
+    const sceneManager = SceneManager.inst();
+    if (!sceneManager.scene || !sceneManager.camera || !sceneManager.controls) {
+      throw new Error('SceneManager must be initialized before creating ModelWorker');
+    }
+    this.scene = sceneManager.scene;
+    this.camera = sceneManager.camera;
+    this.controls = sceneManager.controls;
     // this.loadingElement = loadingElement;
     console.log(this.worker, this.scene);
     this.setupWorkerListeners();

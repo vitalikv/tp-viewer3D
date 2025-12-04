@@ -3,6 +3,7 @@ import { threeApp } from '../threeApp';
 import { ApiThreeToUi } from '../../api/apiLocal/apiThreeToUi';
 import { MergeAnimation } from '../mergedModel/mergeAnimation';
 import { OutlineSelection } from '../mergedModel/outlineSelection';
+import { SceneManager } from '../scene/sceneManager';
 
 export class AnimationManager {
   private mixers: THREE.AnimationMixer[] = [];
@@ -253,8 +254,8 @@ export class AnimationManager {
   }
 
   private renderScene(): void {
-    if (threeApp.sceneManager && threeApp.sceneManager.renderer) {
-      threeApp.sceneManager.render();
+    if (SceneManager.inst() && SceneManager.inst().renderer) {
+      SceneManager.inst().render();
     }
   }
 
