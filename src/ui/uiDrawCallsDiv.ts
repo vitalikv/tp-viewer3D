@@ -7,7 +7,7 @@ export class UiDrawCallsDiv extends ContextSingleton<UiDrawCallsDiv> {
 
   public init(wrapContainer: HTMLDivElement) {
     if (!this.act) return;
-    this.container = this.crDivSlider();
+    this.container = this.crDiv();
     wrapContainer.append(this.container);
 
     this.eventStop({ div: this.container });
@@ -15,7 +15,7 @@ export class UiDrawCallsDiv extends ContextSingleton<UiDrawCallsDiv> {
     this.divInfo = this.container.querySelector('#counterDrawCalls');
   }
 
-  private crDivSlider() {
+  private crDiv() {
     let div = document.createElement('div');
     div.innerHTML = this.html();
     div = div.children[0] as HTMLDivElement;

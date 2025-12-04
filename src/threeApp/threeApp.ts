@@ -27,8 +27,8 @@ export class ThreeApp {
     this.initWatermark();
 
     if (isRenderWorker) {
-      new ModelFileLoader2();
-      this.renderWorker = new RenderWorker({ container });
+      // new ModelFileLoader2();
+      // this.renderWorker = new RenderWorker({ container });
     } else {
       await SceneManager.inst().init({ container });
       ModelLoader.inst();
@@ -52,7 +52,7 @@ export class ThreeApp {
 
   private initWatermark() {
     const params: IWatermarkParams = {
-      activated: false, // вкл/выкл watermark
+      activated: true, // вкл/выкл watermark
       contentType: 'datetime', // 'datetime' | 'text' показывать время или текст
       text: '', // если указанно в contentType: 'text', то можно задать свой текст
       textColor: '#000000', // цвет текста

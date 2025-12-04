@@ -1,4 +1,4 @@
-import { SvgApp } from '@/svgApp/svgApp';
+import { SvgPages } from '@/svgApp/svgPages';
 import { ModelLoader } from '@/threeApp/model/modelLoader';
 import { ContextSingleton } from '@/core/ContextSingleton';
 
@@ -118,8 +118,7 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
 
     reader.onload = (e) => {
       progressElement.style.display = 'none';
-      const svgApp = new SvgApp();
-      svgApp.createSvgPage(e.target.result as string);
+      SvgPages.inst().addSvgPage(e.target.result as string);
       event.target.value = '';
     };
 

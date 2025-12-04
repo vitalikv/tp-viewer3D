@@ -7,7 +7,7 @@ export class WatermarkSvg {
   private static watermarkCanvas: HTMLCanvasElement | undefined = undefined;
   private static divSvgContainer: HTMLElement | undefined = undefined;
 
-  public static init(divSvgContainer: HTMLElement, svg: SVGElement) {
+  public static init(divSvgContainer: HTMLElement, svg: SVGElement | undefined) {
     this.watermarkCanvas = WatermarkCanvas.getWatermarkCanvas();
     if (!this.watermarkCanvas) return;
 

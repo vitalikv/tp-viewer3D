@@ -1,44 +1,35 @@
-import { SvgUseHandler } from '@/svgApp/svgUseHandler';
+import { SvgPages } from '@/svgApp/svgPages';
 import { WatermarkSvg } from '@/watermark/watermarkSvg';
-import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
 
 export class SvgApp {
-  constructor() {
+  private svgContainer: HTMLDivElement;
+
+  public init() {
     window.addEventListener('resize', this.handleResize);
-  }
+    const container = document.body.querySelector('#container') as HTMLDivElement;
 
-  public async createSvgPage(svgHTML: string) {
-    const divSvgContainer = document.createElement('div');
-    document.getElementById('container')?.append(divSvgContainer);
+    this.svgContainer = document.createElement('div');
+    this.svgContainer.style.position = 'absolute';
+    this.svgContainer.style.width = '100%';
+    this.svgContainer.style.height = '100%';
+    this.svgContainer.style.top = '0';
+    this.svgContainer.style.background = '#ffffff';
+    this.svgContainer.style.zIndex = '3';
+    this.svgContainer.setAttribute('nameId', 'svgContainer');
+    container.append(this.svgContainer);
 
-    divSvgContainer.style.position = 'absolute';
-    divSvgContainer.style.width = '100%';
-    divSvgContainer.style.height = '100%';
-    divSvgContainer.style.top = '0';
-    divSvgContainer.style.background = '#ffffff';
-    divSvgContainer.innerHTML = svgHTML;
+    SvgPages.inst().init(this.svgContainer);
 
-    const svg = divSvgContainer.children[0] as SVGElement;
-    svg.style.position = 'absolute';
-    svg.style.width = '100%';
-    svg.style.height = '100%';
-    svg.style.top = '0';
-    svg.style.background = '#ffffff';
+    WatermarkSvg.init(this.svgContainer, undefined);
 
-    await WatermarkCanvas.init(divSvgContainer);
-
-    new SvgUseHandler(svg);
-
-    WatermarkSvg.init(divSvgContainer, svg);
-
-    divSvgContainer.addEventListener('wheel', () => {
-      console.log(888);
+    this.svgContainer.addEventListener('wheel', () => {
       WatermarkSvg.updateWatermark();
     });
+
+    this.svgContainer.style.display = 'none';
   }
 
   private handleResize = () => {
-    console.log(9999);
     WatermarkSvg.updateWatermark();
   };
 }
