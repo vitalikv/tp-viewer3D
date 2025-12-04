@@ -1,5 +1,4 @@
 import { SceneManager } from '@/three/scene/sceneManager';
-import { ModelFileLoader } from '@/three/loaders/modelFileLoader';
 import { ModelLoader } from '@/three/model/modelLoader';
 import { MouseManager } from '@/three/scene/mouseManager';
 import { SelectionHandler } from '@/three/selection/selectionHandler';
@@ -15,8 +14,7 @@ import { ViewCube } from '@/three/scene/viewCube';
 import { ModelFileLoader2 } from '@/three/loaders/workers/modelFileLoader2';
 import { RenderWorker } from '@/three/render/initRenderWorker';
 
-class ThreeApp {
-  modelFileLoader: ModelFileLoader;
+export class ThreeApp {
   renderWorker: RenderWorker;
 
   constructor() {}
@@ -26,14 +24,13 @@ class ThreeApp {
 
     const container = document.getElementById('container');
 
-    await this.initWatermark();
+    this.initWatermark();
 
     if (isRenderWorker) {
       new ModelFileLoader2();
       this.renderWorker = new RenderWorker({ container });
     } else {
       await SceneManager.inst().init({ container });
-      this.modelFileLoader = new ModelFileLoader();
       ModelLoader.inst();
       SelectionHandler.inst();
       MouseManager.inst();
@@ -74,6 +71,3 @@ class ThreeApp {
     WatermarkCanvas.setParams(params);
   }
 }
-
-export const threeApp = new ThreeApp();
-threeApp.init();

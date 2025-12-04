@@ -1,18 +1,74 @@
 import { SvgApp } from '@/svgApp/svgApp';
-import { ModelWorker } from './modelWorker';
 import { ModelLoader } from '@/three/model/modelLoader';
 
-export class ModelFileLoader {
-  constructor() {
-    this.setupEventListeners();
+export class UiFileLoader {
+  private container: HTMLElement;
+  private div: HTMLDivElement;
+  private fileInput: HTMLInputElement;
+
+  constructor(container: HTMLDivElement) {
+    this.container = container;
+    this.div = this.crDiv();
+    this.container.append(this.div);
+    this.eventStop({ div: this.div });
+
+    this.initEvent();
   }
 
-  setupEventListeners() {
-    const fileInput = document.getElementById('file-input');
-    fileInput.addEventListener('change', this.handleFileInput);
+  private crDiv() {
+    let div = document.createElement('div');
+    div.innerHTML = this.html();
+    div = div.children[0] as HTMLDivElement;
+
+    return div;
   }
 
-  handleFileInput = (event) => {
+  private html() {
+    const css1 = `
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 100;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);`;
+
+    const css2 = `
+    position: absolute;
+    top: 70px;
+    left: 20px;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    display: none;`;
+
+    const html = `
+    <div>
+        <input type="file" id="file-input" style="${css1}" accept=".gltf,.glb,.svg" />
+        <div id="progress" style="${css2}"></div>
+    </div>`;
+
+    return html;
+  }
+
+  private eventStop({ div }) {
+    const arrEvent = ['onmousedown', 'onwheel', 'onmousewheel', 'onmousemove', 'ontouchstart', 'ontouchend', 'ontouchmove'];
+
+    arrEvent.forEach((events) => {
+      div[events] = (e) => {
+        e.stopPropagation();
+      };
+    });
+  }
+
+  private initEvent() {
+    this.fileInput = this.container.querySelector('#file-input') as HTMLInputElement;
+    this.fileInput.addEventListener('change', this.handleFileInput);
+  }
+
+  private handleFileInput = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -42,9 +98,8 @@ export class ModelFileLoader {
     };
 
     reader.onload = (e) => {
-      ModelLoader.inst().handleFileLoad(e);
       progressElement.style.display = 'none';
-
+      ModelLoader.inst().handleFileLoad(e);
       event.target.value = '';
     };
 
@@ -62,21 +117,11 @@ export class ModelFileLoader {
 
     reader.onload = (e) => {
       progressElement.style.display = 'none';
-
       const svgApp = new SvgApp();
       svgApp.createSvgPage(e.target.result as string);
-
       event.target.value = '';
     };
 
     reader.readAsText(file);
   }
-
-  handleFileInput2 = (event) => {
-    const file = (event.target as HTMLInputElement).files?.[0];
-
-    const modelWorkerHandler = new ModelWorker();
-
-    if (file) modelWorkerHandler.loadModel(file);
-  };
 }
