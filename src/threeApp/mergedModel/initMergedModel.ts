@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 import { SelectionAdapter } from './selectionAdapter';
 import { MergeModel } from '@/threeApp/mergedModel/mergeModel';
-import { SelectionMergedGeometries } from '@/threeApp/selection/selectionMergedGeometries';
+import { SelectionMergedModel } from '@/threeApp/selection/selectionMergedModel';
 
 export class InitMergedModel {
   public static init({ model }: { model: THREE.Group }) {
@@ -28,7 +28,7 @@ export class InitMergedModel {
 
     this.setupBVH(groupMeshes);
 
-    SelectionMergedGeometries.setMergedObjects(allMeshes, allLines);
+    SelectionMergedModel.setMergedObjects(allMeshes, allLines);
 
     SelectionAdapter.initializeCache();
 

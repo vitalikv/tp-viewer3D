@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
 import { MergeAnimation } from '@/threeApp/mergedModel/mergeAnimation';
-import { OutlineSelection } from '@/threeApp/mergedModel/outlineSelection';
+import { OutlineMergedModel } from '@/threeApp/selection/outlineMergedModel';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
 
 export class AnimationManager extends ContextSingleton<AnimationManager> {
@@ -228,14 +228,14 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
   public setAnimationPosStart(): void {
     this.updateAnimationPose(0);
-    OutlineSelection.updateOutlineMeshes();
+    OutlineMergedModel.updateOutlineMeshes();
   }
 
   public setAnimationPosEnd(): void {
     const endTime = this.getAnimationDuration();
     const rebuild = endTime > 0;
     this.updateAnimationPose(endTime, { rebuildMergedModelBVH: rebuild, resetActions: false });
-    OutlineSelection.updateOutlineMeshes();
+    OutlineMergedModel.updateOutlineMeshes();
   }
 
   public play() {
@@ -319,7 +319,7 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
           this.applyAnimationsToMergedGeometry();
         }
 
-        OutlineSelection.updateOutlineMeshes();
+        OutlineMergedModel.updateOutlineMeshes();
       }
 
       this.renderScene();

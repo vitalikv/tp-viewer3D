@@ -1,5 +1,5 @@
 import { SvgPages } from '@/svgApp/svgPages';
-import { ModelLoader } from '@/threeApp/model/modelLoader';
+import { InitModel } from '@/threeApp/model/initModel';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { UiFileMenu } from './uiFileMenu';
 
@@ -102,7 +102,7 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
     reader.onload = async (e) => {
       progressElement.style.display = 'none';
 
-      const result = await ModelLoader.inst().handleFileLoad(e);
+      const result = await InitModel.inst().handleFileLoad(e);
       if (result) {
         UiFileMenu.inst().addItem(`${file.name}`, 'gltf', undefined);
         SvgPages.inst().hideContainerSvg();

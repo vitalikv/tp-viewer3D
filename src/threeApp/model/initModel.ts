@@ -5,12 +5,12 @@ import { ContextSingleton } from '@/core/ContextSingleton';
 import { AnimationManager } from '@/threeApp/animation/animationManager';
 import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
 import { BVHManager } from '@/threeApp/bvh/bvhManager';
-import { InitData } from '@/threeApp/loaders/data/InitData';
+import { InitData } from '@/threeApp/model/structure/InitData';
 import { InitMergedModel } from '@/threeApp/mergedModel/initMergedModel';
 import { MergeEnvironment } from '@/threeApp/mergedModel/mergeEnvironment';
 import { MergeAnimation } from '@/threeApp/mergedModel/mergeAnimation';
 
-export class ModelLoader extends ContextSingleton<ModelLoader> {
+export class InitModel extends ContextSingleton<InitModel> {
   private loader: GLTFLoader;
   private dracoLoader: DRACOLoader;
   private isMerge = false;
@@ -96,18 +96,15 @@ export class ModelLoader extends ContextSingleton<ModelLoader> {
     const decoder = new TextDecoder('utf-8');
     const jsonString = decoder.decode(contents);
 
-    let generator = '';
-
     try {
       const jsonData = JSON.parse(jsonString);
-      generator = jsonData.asset.generator;
+      const generator = jsonData.asset.generator;
       console.log('Распарсенный JSON:', generator, jsonData);
 
-      // Проверка наличия анимаций в модели
       if (jsonData.animations && Array.isArray(jsonData.animations) && jsonData.animations.length > 0) {
-        console.log(`✅ Модель содержит анимации. Количество анимаций: ${jsonData.animations.length}`);
+        console.log(` Модель содержит анимации. Количество анимаций: ${jsonData.animations.length}`);
       } else {
-        console.log('ℹ️ Модель не содержит анимаций');
+        console.log(' Модель не содержит анимаций');
       }
     } catch (err) {
       console.error('Ошибка парсинга JSON:', err);
@@ -204,10 +201,8 @@ export class ModelLoader extends ContextSingleton<ModelLoader> {
     this.mergedMeshes.clear();
     this.mergedLines.clear();
 
-    // Очистка данных анимации для смерженной модели
     MergeAnimation.clearAnimationData();
 
-    // Очистка анимаций
     if (AnimationManager.inst()) {
       AnimationManager.inst().dispose();
     }

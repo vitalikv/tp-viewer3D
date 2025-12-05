@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { SelectionMergedGeometries } from '@/threeApp/selection/selectionMergedGeometries';
+import { SelectionMergedModel } from '@/threeApp/selection/selectionMergedModel';
 import { SelectionHandler } from '@/threeApp/selection/selectionHandler';
-import { ModelLoader } from '@/threeApp/model/modelLoader';
+import { InitModel } from '@/threeApp/model/initModel';
 
 type SelectionMode = 'merge' | 'tflex';
 
@@ -79,7 +79,7 @@ export class MouseManager extends ContextSingleton<MouseManager> {
   private pointerUp = async (event: PointerEvent): Promise<void> => {
     try {
       if (!this.isMove) {
-        SelectionMergedGeometries.clearSelection();
+        SelectionMergedModel.clearSelection();
         this.selectionHandler.resetSelection();
 
         this.calculateMousePosition(event);
@@ -87,7 +87,7 @@ export class MouseManager extends ContextSingleton<MouseManager> {
 
         const { obj, intersect } = await this.intersectObj(event);
 
-        const mode: SelectionMode = ModelLoader.inst().getMerge() ? 'merge' : 'tflex';
+        const mode: SelectionMode = InitModel.inst().getMerge() ? 'merge' : 'tflex';
 
         this.selectionHandler.handleSelection(obj, intersect, mode);
       }
@@ -126,7 +126,7 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     this.calculateMousePosition(event);
     this.updateRaycaster();
 
-    const model = ModelLoader.inst().getModel();
+    const model = InitModel.inst().getModel();
     if (!model) {
       return { obj, intersect };
     }

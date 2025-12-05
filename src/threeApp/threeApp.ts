@@ -1,5 +1,5 @@
 import { SceneManager } from '@/threeApp/scene/sceneManager';
-import { ModelLoader } from '@/threeApp/model/modelLoader';
+import { InitModel } from '@/threeApp/model/initModel';
 import { MouseManager } from '@/threeApp/scene/mouseManager';
 import { SelectionHandler } from '@/threeApp/selection/selectionHandler';
 import { BVHManager } from '@/threeApp/bvh/bvhManager';
@@ -31,7 +31,7 @@ export class ThreeApp {
       // this.renderWorker = new RenderWorker({ container });
     } else {
       await SceneManager.inst().init({ container });
-      ModelLoader.inst();
+      InitModel.inst();
       SelectionHandler.inst();
       MouseManager.inst();
       OutlineSelection.inst();
@@ -46,7 +46,7 @@ export class ThreeApp {
 
       //new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
 
-      ModelLoader.inst().setMerge({ merge: true });
+      InitModel.inst().setMerge({ merge: true });
     }
   }
 

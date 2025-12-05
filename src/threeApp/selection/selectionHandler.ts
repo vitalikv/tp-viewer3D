@@ -4,8 +4,8 @@ import { ContextSingleton } from '@/core/ContextSingleton';
 import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
 import { EffectsManager } from '@/threeApp/scene/effectsManager';
 import { OutlineSelection } from '@/threeApp/selection/outlineSelection';
-import { SelectedByData } from '@/threeApp/loaders/data/selectedByData';
-import { SelectionMergedGeometries } from '@/threeApp/selection/selectionMergedGeometries';
+import { SelectedByData } from '@/threeApp/model/structure/selectedByData';
+import { SelectionMergedModel } from '@/threeApp/selection/selectionMergedModel';
 
 interface ActiveObjectItem {
   obj: THREE.Mesh | THREE.Line | THREE.LineSegments;
@@ -103,7 +103,7 @@ export class SelectionHandler extends ContextSingleton<SelectionHandler> {
 
     if (!isMesh && !isLine) return;
 
-    SelectionMergedGeometries.handleObjectClick(intersect);
+    SelectionMergedModel.handleObjectClick(intersect);
   }
 
   public resetSelection(): void {

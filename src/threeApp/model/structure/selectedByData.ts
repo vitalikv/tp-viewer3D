@@ -1,5 +1,5 @@
 import { SceneManager } from '@/threeApp/scene/sceneManager';
-import { ModelLoader } from '@/threeApp/model/modelLoader';
+import { InitModel } from '@/threeApp/model/initModel';
 
 export class SelectedByData {
   public static getSelectedNode({ obj }) {
@@ -7,7 +7,7 @@ export class SelectedByData {
 
     const targetUUID = obj.uuid;
     const targetParentUUID = obj.parent.uuid;
-    const structure = ModelLoader.inst().initData.getStructure();
+    const structure = InitModel.inst().initData.getStructure();
 
     console.log('uuid: ', targetUUID, 'parentUuid: ', targetParentUUID);
 
@@ -93,7 +93,7 @@ export class SelectedByData {
       throw new Error('Не передан fragment_guid для выбора');
     }
 
-    const jsonData = ModelLoader.inst().json2;
+    const jsonData = InitModel.inst().json2;
 
     const itemJson = this.findsArrObjFromArrByProp(fragment_guid.toLowerCase(), 'fragment_guid', jsonData)[0];
 
@@ -115,7 +115,7 @@ export class SelectedByData {
   }
 
   private static getUIIDbyACIGuidandFragmentGuid(type = '3d', jsonData, aciguid: string) {
-    const structure = ModelLoader.inst().initData.getStructure();
+    const structure = InitModel.inst().initData.getStructure();
 
     if (type === '3d') {
       const objAss = this.findsArrObjFromArrByProp(aciguid, 'guid', jsonData);

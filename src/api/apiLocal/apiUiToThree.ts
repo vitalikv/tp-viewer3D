@@ -1,5 +1,5 @@
 import { SceneManager } from '@/threeApp/scene/sceneManager';
-import { ModelLoader } from '@/threeApp/model/modelLoader';
+import { InitModel } from '@/threeApp/model/initModel';
 import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
 import { AnimationManager } from '@/threeApp/animation/animationManager';
 
@@ -30,7 +30,7 @@ export class ApiUiToThree {
   }
 
   public static activateClippingBvh() {
-    const model = ModelLoader.inst().getModel();
+    const model = InitModel.inst().getModel();
     ClippingBvh.inst().initClipping({ model });
     SceneManager.inst().render();
   }

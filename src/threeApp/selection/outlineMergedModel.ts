@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { OutlineSelection as OutlineSelectionMain } from '@/threeApp/selection/outlineSelection';
+import { OutlineSelection } from '@/threeApp/selection/outlineSelection';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
 
 interface OutlineMeshData {
@@ -12,7 +12,7 @@ interface OutlineMeshData {
   group: { start: number; count: number };
 }
 
-export class OutlineSelection {
+export class OutlineMergedModel {
   private static outlineMeshes: THREE.Mesh[] = [];
   private static outlineMeshData: OutlineMeshData[] = [];
   private static outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.0 });
@@ -68,7 +68,7 @@ export class OutlineSelection {
           });
 
           SceneManager.inst().scene.add(outlineMesh);
-          OutlineSelectionMain.inst().addOutlineObject(outlineMesh);
+          OutlineSelection.inst().addOutlineObject(outlineMesh);
         }
       });
     });

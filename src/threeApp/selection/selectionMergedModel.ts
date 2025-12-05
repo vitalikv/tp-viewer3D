@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
 import { SelectionAdapter } from '@/threeApp/mergedModel/selectionAdapter';
-import { OutlineSelection } from '@/threeApp/mergedModel/outlineSelection';
+import { OutlineMergedModel } from '@/threeApp/selection/outlineMergedModel';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
 
-export class SelectionMergedGeometries {
+export class SelectionMergedModel {
   private static originalMaterials = new Map<string, THREE.Material | THREE.Material[]>();
   private static mergedMeshes: Map<string, THREE.Mesh[]> = new Map();
   private static mergedLines: Map<string, (THREE.Line | THREE.LineSegments)[]> = new Map();
@@ -101,7 +101,7 @@ export class SelectionMergedGeometries {
     const targetMeshes = this.mergedMeshes.get(targetUuid) || [];
     const targetLines = this.mergedLines.get(targetUuid) || [];
 
-    OutlineSelection.createOutlineMeshes(targetUuid, this.mergedMeshes);
+    OutlineMergedModel.createOutlineMeshes(targetUuid, this.mergedMeshes);
 
     [...targetMeshes, ...targetLines].forEach((mesh) => {
       const geometry = mesh.geometry;
@@ -165,7 +165,7 @@ export class SelectionMergedGeometries {
 
     this.originalMaterials.clear();
 
-    OutlineSelection.clearOutlineMeshes();
+    OutlineMergedModel.clearOutlineMeshes();
     console.log('----------');
   }
 
