@@ -105,4 +105,20 @@ export class ApiUiToThree {
   public static setAnimationIndex(index: number) {
     AnimationManager.inst().setAnimationIndex(index);
   }
+
+  public static hasAnimations(): boolean {
+    return AnimationManager.inst().hasAnimations();
+  }
+
+  public static getAnimationMaxDuration(): number {
+    return AnimationManager.inst().getAnimationMaxDuration();
+  }
+
+  public static setAnimationTime(time: number) {
+    AnimationManager.inst().setAnimationTime(time);
+  }
+
+  public static rebuildAnimationBVH() {
+    AnimationManager.inst().rebuildBVHIfNeeded();
+  }
 }

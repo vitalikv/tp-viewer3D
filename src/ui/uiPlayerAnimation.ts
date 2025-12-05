@@ -10,12 +10,14 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
   private playerCaret: HTMLDivElement;
   private playerTimeLine: HTMLDivElement;
   private playerMenu: HTMLDivElement;
+  private playerStep: HTMLDivElement;
+  private isDragging: boolean = false;
 
   public init(container: HTMLDivElement) {
     this.divWrap = this.crDiv();
     container.append(this.divWrap);
 
-    this.eventStop({ div: this.divWrap });
+    //this.eventStop({ div: this.divWrap });
     this.eventPlayer();
   }
 
@@ -182,11 +184,15 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
     this.playerCaret = this.divWrap.querySelector('[nameId="playerCaret"]') as HTMLDivElement;
     this.playerTimeLine = this.divWrap.querySelector('#player-time-line') as HTMLDivElement;
     this.playerMenu = this.divWrap.querySelector('[nameId="playerMenu"]') as HTMLDivElement;
+    this.playerStep = this.playerTimeLine.querySelector('div') as HTMLDivElement;
     const btnPlayerMenu = this.divWrap.querySelector('[nameId="btnPlayerMenu"]') as HTMLDivElement;
     const animationPosStart = this.divWrap.querySelector('[nameId="animationPosStart"]') as HTMLDivElement;
     const animationPosEnd = this.divWrap.querySelector('[nameId="animationPosEnd"]') as HTMLDivElement;
 
     this.btnPlay.onmousedown = () => {
+      if (!ApiUiToThree.hasAnimations()) {
+        return;
+      }
       this.updateBtnPlay(true);
       ApiUiToThree.playAnimation();
     };
@@ -206,6 +212,129 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
 
     animationPosEnd.onmousedown = () => {
       ApiUiToThree.setAnimationPosEnd();
+    };
+
+    this.setupCaretDrag();
+    this.setupTimelineClick();
+  }
+
+  private setupCaretDrag() {
+    if (!this.playerCaret || !this.playerTimeLine) {
+      return;
+    }
+
+    let dragOffset = 0;
+
+    const updateCaretPosition = (clientX: number, useOffset: boolean = false) => {
+      if (!ApiUiToThree.hasAnimations()) {
+        return;
+      }
+
+      const rect = this.playerTimeLine.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const lineWidth = this.playerTimeLine.clientWidth;
+      const caretWidth = this.playerCaret.offsetWidth;
+      const maxTranslate = Math.max(0, lineWidth - caretWidth);
+
+      let targetX = x;
+      if (useOffset) {
+        targetX = x - dragOffset;
+      } else {
+        targetX = x - caretWidth / 2;
+      }
+
+      const clampedX = Math.max(0, Math.min(targetX, lineWidth));
+      const translateX = Math.max(0, Math.min(clampedX, maxTranslate));
+      const percent = maxTranslate > 0 ? (translateX / maxTranslate) * 100 : 0;
+
+      this.playerCaret.style.transform = `translateX(${translateX}px)`;
+
+      const maxDuration = ApiUiToThree.getAnimationMaxDuration();
+      if (maxDuration > 0) {
+        const time = (percent / 100) * maxDuration;
+        ApiUiToThree.setAnimationTime(time);
+        this.updateBtnPlay(false);
+      }
+    };
+
+    let onMouseMoveHandler: ((e: MouseEvent) => void) | null = null;
+    let onMouseUpHandler: (() => void) | null = null;
+
+    onMouseMoveHandler = (e: MouseEvent) => {
+      if (!this.isDragging) {
+        return;
+      }
+      updateCaretPosition(e.clientX, true);
+    };
+
+    onMouseUpHandler = () => {
+      this.isDragging = false;
+      dragOffset = 0;
+
+      // Пересчитываем BVH после окончания перетаскивания
+      if (ApiUiToThree.hasAnimations()) {
+        ApiUiToThree.rebuildAnimationBVH();
+      }
+
+      if (onMouseMoveHandler) {
+        window.removeEventListener('mousemove', onMouseMoveHandler);
+      }
+      if (onMouseUpHandler) {
+        window.removeEventListener('mouseup', onMouseUpHandler);
+      }
+    };
+
+    const startDrag = (e: MouseEvent) => {
+      if (!ApiUiToThree.hasAnimations()) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+
+      const caretRect = this.playerCaret.getBoundingClientRect();
+      const caretCenterX = caretRect.left + caretRect.width / 2;
+      dragOffset = e.clientX - caretCenterX;
+
+      this.isDragging = true;
+      updateCaretPosition(e.clientX, true);
+      if (onMouseMoveHandler) {
+        window.addEventListener('mousemove', onMouseMoveHandler);
+      }
+      if (onMouseUpHandler) {
+        window.addEventListener('mouseup', onMouseUpHandler);
+      }
+    };
+
+    this.playerCaret.addEventListener('mousedown', startDrag);
+    this.playerCaret.style.userSelect = 'none';
+    this.playerCaret.style.pointerEvents = 'auto';
+  }
+
+  private setupTimelineClick() {
+    this.playerStep.onmousedown = (e) => {
+      if (!ApiUiToThree.hasAnimations()) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+
+      const rect = this.playerTimeLine.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const lineWidth = this.playerTimeLine.clientWidth;
+      const caretWidth = this.playerCaret.offsetWidth;
+      const maxTranslate = Math.max(0, lineWidth - caretWidth);
+      const clampedX = Math.max(0, Math.min(x, lineWidth));
+      const translateX = Math.max(0, Math.min(clampedX - caretWidth / 2, maxTranslate));
+      const percent = maxTranslate > 0 ? (translateX / maxTranslate) * 100 : 0;
+
+      this.playerCaret.style.transform = `translateX(${translateX}px)`;
+
+      const maxDuration = ApiUiToThree.getAnimationMaxDuration();
+      if (maxDuration > 0) {
+        const time = (percent / 100) * maxDuration;
+        ApiUiToThree.setAnimationTime(time);
+        this.updateBtnPlay(false);
+      }
     };
   }
 

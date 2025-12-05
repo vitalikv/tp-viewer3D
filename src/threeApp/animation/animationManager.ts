@@ -54,7 +54,6 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
       this.mixers.push(mixer);
     } else {
-      // Обычная модель без мержа
       this.isMergedModel = false;
       const mixer = new THREE.AnimationMixer(model);
       this.animationActions = [];
@@ -75,6 +74,10 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
     this.setAnimationIndex(0);
     this.isPlaying = false;
+
+    const maxDuration = this.getAnimationDuration();
+    this.animationMaxDuration = maxDuration;
+
     console.log(` Инициализировано ${animations.length} анимаций`);
 
     return true;
@@ -128,6 +131,10 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     this.stopAnimationLoop();
 
     this.isPlaying = false;
+
+    if (this.isMergedModel && this.mergedModel) {
+      this.rebuildMergedModelBVH();
+    }
   }
 
   public reset(): void {
@@ -182,6 +189,9 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
       if (actionIndex !== this.currentActionIndex) {
         action.stop();
         action.reset();
+        action.enabled = false;
+      } else {
+        action.enabled = true;
       }
     });
 
@@ -191,22 +201,16 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
     selectedAction.paused = false;
     selectedAction.play();
-    selectedAction.paused = false;
 
     this.mixers.forEach((mixer) => {
       mixer.timeScale = 1.0;
-
-      const deltaTime = clampedTime - mixer.time;
-      if (deltaTime > 0) {
-        mixer.update(deltaTime);
-      } else {
-        mixer.setTime(clampedTime);
-      }
-
+      mixer.setTime(clampedTime);
+      mixer.update(0);
       mixer.timeScale = 0.0;
     });
 
     selectedAction.paused = true;
+    selectedAction.time = clampedTime;
 
     if (this.isMergedModel && this.animationRoot) {
       this.animationRoot.updateMatrixWorld(true);
@@ -229,6 +233,10 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
   public setAnimationPosStart(): void {
     this.updateAnimationPose(0);
     OutlineMergedModel.updateOutlineMeshes();
+
+    if (this.isMergedModel && this.mergedModel) {
+      this.rebuildMergedModelBVH();
+    }
   }
 
   public setAnimationPosEnd(): void {
@@ -236,6 +244,10 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     const rebuild = endTime > 0;
     this.updateAnimationPose(endTime, { rebuildMergedModelBVH: rebuild, resetActions: false });
     OutlineMergedModel.updateOutlineMeshes();
+
+    if (this.isMergedModel && this.mergedModel) {
+      this.rebuildMergedModelBVH();
+    }
   }
 
   public play() {
@@ -403,6 +415,39 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
         child.geometry.computeBoundsTree({ indirect: true });
       }
     });
+  }
+
+  public hasAnimations(): boolean {
+    return this.animationClips.length > 0 && this.animationActions.length > 0;
+  }
+
+  public getAnimationMaxDuration(): number {
+    return this.animationMaxDuration;
+  }
+
+  public setAnimationTime(time: number): void {
+    if (!this.hasAnimations()) {
+      return;
+    }
+
+    const maxDuration = this.getAnimationDuration();
+    const clampedTime = Math.max(0, Math.min(time, maxDuration));
+
+    if (this.animationMaxDuration === 0) {
+      this.animationMaxDuration = maxDuration;
+    }
+
+    this.animationElapsedTime = clampedTime;
+
+    this.updateAnimationPose(clampedTime, { resetActions: false, rebuildMergedModelBVH: false });
+    this.logPlaybackProgress();
+    OutlineMergedModel.updateOutlineMeshes();
+  }
+
+  public rebuildBVHIfNeeded(): void {
+    if (this.isMergedModel && this.mergedModel) {
+      this.rebuildMergedModelBVH();
+    }
   }
 
   public dispose(): void {
