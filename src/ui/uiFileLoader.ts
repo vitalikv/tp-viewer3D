@@ -2,6 +2,7 @@ import { SvgPages } from '@/svgApp/svgPages';
 import { InitModel } from '@/threeApp/model/initModel';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { UiFileMenu } from './uiFileMenu';
+import { threeApp } from '@/main';
 
 export class UiFileLoader extends ContextSingleton<UiFileLoader> {
   private container: HTMLElement;
@@ -91,27 +92,54 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
   };
 
   private readGltfFile(file, progressElement, event) {
-    const reader = new FileReader();
-    reader.onprogress = (e) => {
-      if (e.lengthComputable) {
-        const percent = Math.round((e.loaded / e.total) * 100);
-        progressElement.textContent = `Loading: ${percent}%`;
-      }
-    };
+    // Проверяем, используется ли renderWorker
+    if (threeApp?.renderWorker) {
+      // Используем воркер для загрузки модели
+      threeApp.renderWorker.loadModel(file, {
+        onProgress: (text) => {
+          if (text) {
+            progressElement.style.display = 'block';
+            progressElement.textContent = text;
+          } else {
+            progressElement.style.display = 'none';
+          }
+        },
+        onLoaded: (filename) => {
+          progressElement.style.display = 'none';
+          UiFileMenu.inst().addItem(filename, 'gltf', undefined);
+          SvgPages.inst().hideContainerSvg();
+          event.target.value = '';
+        },
+        onError: (error) => {
+          progressElement.style.display = 'none';
+          alert(`Ошибка загрузки модели: ${error}`);
+          event.target.value = '';
+        },
+      });
+    } else {
+      // Используем старый способ загрузки
+      const reader = new FileReader();
+      reader.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progressElement.textContent = `Loading: ${percent}%`;
+        }
+      };
 
-    reader.onload = async (e) => {
-      progressElement.style.display = 'none';
+      reader.onload = async (e) => {
+        progressElement.style.display = 'none';
 
-      const result = await InitModel.inst().handleFileLoad(e);
-      if (result) {
-        UiFileMenu.inst().addItem(`${file.name}`, 'gltf', undefined);
-        SvgPages.inst().hideContainerSvg();
-      }
+        const result = await InitModel.inst().handleFileLoad(e);
+        if (result) {
+          UiFileMenu.inst().addItem(`${file.name}`, 'gltf', undefined);
+          SvgPages.inst().hideContainerSvg();
+        }
 
-      event.target.value = '';
-    };
+        event.target.value = '';
+      };
 
-    reader.readAsArrayBuffer(file);
+      reader.readAsArrayBuffer(file);
+    }
   }
 
   private readSvgFile(file, progressElement, event) {

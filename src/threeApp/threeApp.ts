@@ -11,7 +11,6 @@ import { AnimationManager } from '@/threeApp/animation/animationManager';
 
 import { ViewCube } from '@/threeApp/scene/viewCube';
 
-import { ModelFileLoader2 } from '@/threeApp/loaders/workers/modelFileLoader2';
 import { RenderWorker } from '@/threeApp/render/initRenderWorker';
 
 export class ThreeApp {
