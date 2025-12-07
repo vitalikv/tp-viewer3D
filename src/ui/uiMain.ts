@@ -3,6 +3,7 @@ import { UiFileMenu } from '@/ui/uiFileMenu';
 import { UiClippingButton } from '@/ui/uiClippingButton';
 import { UiDrawCallsDiv } from '@/ui/uiDrawCallsDiv';
 import { UiPlayerAnimation } from '@/ui/uiPlayerAnimation';
+import { UiLoadTimeDiv } from '@/ui/uiLoadTimeDiv';
 
 export class UiMain {
   public init() {
@@ -13,5 +14,6 @@ export class UiMain {
     UiClippingButton.inst().init(container);
     UiPlayerAnimation.inst().init(container);
     UiDrawCallsDiv.inst().init(container);
+    UiLoadTimeDiv.inst().init(container);
   }
 }

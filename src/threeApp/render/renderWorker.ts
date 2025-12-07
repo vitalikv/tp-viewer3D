@@ -43,7 +43,6 @@ class RenderWorker {
   private setupLoader() {
     this.loader = new GLTFLoader();
 
-    // Опционально: настройка DRACO декодера для сжатых моделей
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
     this.loader.setDRACOLoader(dracoLoader);
@@ -121,42 +120,47 @@ class RenderWorker {
 
   private async loadModel(arrayBuffer: ArrayBuffer, filename: string) {
     try {
+      // Проверка, что мы в воркере
+      const isInWorker = typeof window === 'undefined' || self !== window;
+      console.log('[WORKER] Загрузка модели начата в воркере:', isInWorker, 'Thread:', self.constructor.name);
+
       this.sendProgress('Loading model...');
 
-      // Создаем Blob и URL для загрузки
-      const blob = new Blob([arrayBuffer]);
-      const url = URL.createObjectURL(blob);
-
-      // Загружаем модель
-      const gltf = await this.loadGLTF(url);
+      // Используем parse() вместо load() для работы напрямую с ArrayBuffer в воркере
+      const gltf = await this.parseGLTF(arrayBuffer, filename);
 
       // Обрабатываем загруженную модель
       this.processModel(gltf);
 
-      URL.revokeObjectURL(url);
-      this.sendProgress(null); // Скрываем прогресс
+      this.sendProgress(null);
+      console.log('[WORKER] Модель успешно загружена в воркере');
 
       // Сообщаем об успешной загрузке
       self.postMessage({ type: 'modelLoaded', filename });
     } catch (error) {
-      console.error('Error loading model:', error);
+      console.error('[WORKER] Ошибка загрузки модели:', error);
       this.sendProgress(null);
       self.postMessage({ type: 'modelError', error: error.message });
     }
   }
 
-  private loadGLTF(url: string): Promise<any> {
+  private parseGLTF(arrayBuffer: ArrayBuffer, filename: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.loader.load(
-        url,
-        (gltf) => resolve(gltf),
-        (progress) => {
-          if (progress.lengthComputable) {
-            const percent = Math.round((progress.loaded / progress.total) * 100);
-            this.sendProgress(`Loading: ${percent}%`);
-          }
+      console.log(`[WORKER] Начинаем парсинг GLTF модели: ${filename}, размер: ${arrayBuffer.byteLength} байт`);
+
+      // Используем parse() для работы с ArrayBuffer напрямую в воркере
+      // parse(data, path, onLoad, onError)
+      this.loader.parse(
+        arrayBuffer,
+        '', // baseURL не нужен, так как мы работаем с ArrayBuffer
+        (gltf) => {
+          console.log('[WORKER] GLTF модель распарсена в воркере, объектов:', gltf.scene.children.length);
+          resolve(gltf);
         },
-        (error) => reject(error)
+        (error) => {
+          console.error('[WORKER] Ошибка парсинга GLTF:', error);
+          reject(error);
+        }
       );
     });
   }

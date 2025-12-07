@@ -2,6 +2,7 @@ import { SvgPages } from '@/svgApp/svgPages';
 import { InitModel } from '@/threeApp/model/initModel';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { UiFileMenu } from './uiFileMenu';
+import { UiLoadTimeDiv } from './uiLoadTimeDiv';
 import { threeApp } from '@/main';
 
 export class UiFileLoader extends ContextSingleton<UiFileLoader> {
@@ -92,8 +93,15 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
   };
 
   private readGltfFile(file, progressElement, event) {
+    // Запускаем таймер загрузки
+    UiLoadTimeDiv.inst().startTimer();
+
     // Проверяем, используется ли renderWorker
     if (threeApp?.renderWorker) {
+      // Проверка, что мы в основном потоке
+      const isInMainThread = typeof window !== 'undefined' && self === window;
+      console.log('[MAIN THREAD] Отправка файла в воркер:', file.name, 'Размер:', file.size, 'В основном потоке:', isInMainThread);
+
       // Используем воркер для загрузки модели
       threeApp.renderWorker.loadModel(file, {
         onProgress: (text) => {
@@ -106,12 +114,14 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
         },
         onLoaded: (filename) => {
           progressElement.style.display = 'none';
+          UiLoadTimeDiv.inst().stopTimer();
           UiFileMenu.inst().addItem(filename, 'gltf', undefined);
           SvgPages.inst().hideContainerSvg();
           event.target.value = '';
         },
         onError: (error) => {
           progressElement.style.display = 'none';
+          UiLoadTimeDiv.inst().stopTimer();
           alert(`Ошибка загрузки модели: ${error}`);
           event.target.value = '';
         },
@@ -128,6 +138,7 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
 
       reader.onload = async (e) => {
         progressElement.style.display = 'none';
+        UiLoadTimeDiv.inst().stopTimer();
 
         const result = await InitModel.inst().handleFileLoad(e);
         if (result) {
@@ -136,6 +147,10 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
         }
 
         event.target.value = '';
+      };
+
+      reader.onerror = () => {
+        UiLoadTimeDiv.inst().stopTimer();
       };
 
       reader.readAsArrayBuffer(file);

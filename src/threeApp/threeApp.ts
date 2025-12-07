@@ -26,7 +26,6 @@ export class ThreeApp {
     //this.initWatermark();
 
     if (isRenderWorker) {
-      // new ModelFileLoader2();
       this.renderWorker = new RenderWorker({ container });
     } else {
       await SceneManager.inst().init({ container });
