@@ -1,26 +1,41 @@
 import * as THREE from 'three';
 import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
-import { VirtualOrbitControls } from './orbitControlsWorker';
+import { VirtualControls } from './controlsWorker';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 
-import { SceneManager } from '@/threeApp/scene/sceneManager';
+// Полифилл для requestAnimationFrame в воркере
+if (typeof self.requestAnimationFrame === 'undefined') {
+  let lastTime = 0;
+  self.requestAnimationFrame = function (callback: FrameRequestCallback) {
+    const currentTime = performance.now();
+    const timeToCall = Math.max(0, 16 - (currentTime - lastTime));
+    const id = self.setTimeout(() => {
+      callback(currentTime + timeToCall);
+    }, timeToCall);
+    lastTime = currentTime + timeToCall;
+    return id;
+  };
+
+  self.cancelAnimationFrame = function (id: number) {
+    self.clearTimeout(id);
+  };
+}
 
 // Расширяем тип сообщений
-type WorkerMessage = { type: 'init'; canvas: OffscreenCanvas; container: any } | { type: 'resize'; width: number; height: number; dpr?: number } | { type: 'event'; event: any } | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string }; // Добавляем новый тип
+type WorkerMessage = { type: 'init'; canvas: OffscreenCanvas; container: any } | { type: 'resize'; width: number; height: number; dpr?: number } | { type: 'event'; event: any } | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string };
 
 class RenderWorker {
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
-  private controls!: VirtualOrbitControls;
+  private controls!: VirtualControls;
   private container;
   private dpr = 1;
   private loader!: GLTFLoader;
   private mixers: THREE.AnimationMixer[] = [];
 
   constructor() {
-    console.log(9999);
     this.setupLoader();
     self.onmessage = (e: MessageEvent<WorkerMessage>) => this.handleMessage(e.data);
   }
@@ -40,19 +55,25 @@ class RenderWorker {
         this.init(msg.canvas, msg.container);
         break;
       case 'resize':
-        this.resize(msg.width, msg.height, msg.dpr ?? this.dpr);
+        if (this.renderer && this.camera) {
+          this.resize(msg.width, msg.height, msg.dpr ?? this.dpr);
+        }
         break;
       case 'event':
-        this.controls.dispatchEvent(msg.event);
+        if (this.controls) {
+          this.controls.dispatchEvent(msg.event);
+        }
         break;
-      case 'loadModel': // Обрабатываем загрузку моделей
-        this.loadModel(msg.arrayBuffer, msg.filename);
+      case 'loadModel':
+        if (this.scene) {
+          this.loadModel(msg.arrayBuffer, msg.filename);
+        }
         break;
     }
   }
 
   private init(canvas: OffscreenCanvas, container) {
-    console.log('Worker initialized in thread:', self.name);
+    console.log('Worker initialized');
 
     this.container = container;
     const width = this.container.width;
@@ -64,54 +85,34 @@ class RenderWorker {
     this.renderer.setPixelRatio(this.dpr);
     this.renderer.setSize(width, height, false);
 
-    const sceneManager = SceneManager.inst('worker'); // Используем отдельный контекст для worker'а
-    container.virtDom = true;
-    sceneManager.initWorker({ container });
-    this.scene = sceneManager.scene;
-    this.camera = sceneManager.camera;
+    // Создаем простую сцену
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0xffffff);
+
+    // Создаем камеру
+    const aspect = width / height;
+    this.camera = new THREE.PerspectiveCamera(75, aspect, 0.01, 1000);
+    this.camera.position.set(5, 5, 5);
+    this.camera.lookAt(0, 0, 0);
+
+    // Добавляем свет
+    const ambientLight = new THREE.AmbientLight(0x404040);
+    this.scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(1, 1, 1);
+    this.scene.add(directionalLight);
+
+    // Добавляем сетку для визуализации
+    const gridHelper = new THREE.GridHelper(10, 10);
+    this.scene.add(gridHelper);
 
     // Controls
-    this.controls = new VirtualOrbitControls(this.camera, { width, height }, this.scene);
+    this.controls = new VirtualControls(this.camera, { width, height }, this.scene);
     (this.controls as ArcballControls).enableAnimations = false;
 
     this.controls.addEventListener('change', () => {
-      console.log('change');
-    });
-    this.controls.addEventListener('start', () => console.log('start'));
-    this.controls.addEventListener('end', () => console.log('end'));
-
-    this.controls.dispatchEvent({
-      kind: 'pointer',
-      type: 'pointerdown',
-      clientX: 0,
-      clientY: 0,
-      button: 0,
-      buttons: 1,
-      pointerId: 1,
-    });
-
-    // Перемещение
-    this.controls.dispatchEvent({
-      kind: 'pointer',
-      type: 'pointermove',
-      clientX: 0,
-      clientY: 0,
-      button: 0,
-      buttons: 1,
-      pointerId: 1,
-      movementX: 0,
-      movementY: 0,
-    });
-
-    // Завершение
-    this.controls.dispatchEvent({
-      kind: 'pointer',
-      type: 'pointerup',
-      clientX: 0,
-      clientY: 0,
-      button: 0,
-      buttons: 0,
-      pointerId: 1,
+      // Обновление будет в render loop
     });
 
     // Start render loop
@@ -211,6 +212,11 @@ class RenderWorker {
   }
 
   private resize(width, height, dpr) {
+    if (dpr !== undefined) {
+      this.dpr = dpr;
+      this.renderer.setPixelRatio(this.dpr);
+    }
+
     if (this.camera instanceof THREE.PerspectiveCamera) {
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();

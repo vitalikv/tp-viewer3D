@@ -1,10 +1,10 @@
 export class RenderWorker {
   public worker: Worker;
   private container: HTMLElement;
-  //private canvas: HTMLCanvasElement;
+  private resizeHandler: () => void;
 
   constructor({ container }: { container: HTMLElement }) {
-    this.worker = new Worker(new URL('./workers/renderWorker.ts', import.meta.url), { type: 'module' });
+    this.worker = new Worker(new URL('./renderWorker.ts', import.meta.url), { type: 'module' });
 
     this.container = container;
 
@@ -24,7 +24,7 @@ export class RenderWorker {
 
   private initWorker({ canvas }) {
     const offscreen = canvas.transferControlToOffscreen();
-    //console.log(888, offscreen, { width: this.canvas.width, height: this.canvas.height, dpr: window.devicePixelRatio });
+    console.log(888, offscreen, { dpr: window.devicePixelRatio });
     this.worker.postMessage(
       {
         type: 'init',
@@ -79,7 +79,7 @@ export class RenderWorker {
       { passive: false }
     );
 
-    window.addEventListener('resize', () => {
+    this.resizeHandler = () => {
       const rect = this.getClientRect();
       this.worker.postMessage({
         type: 'resize',
@@ -87,11 +87,14 @@ export class RenderWorker {
         height: rect.height,
         dpr: window.devicePixelRatio,
       });
-    });
+    };
+    window.addEventListener('resize', this.resizeHandler);
   }
 
   public dispose() {
     this.worker.terminate();
-    window.removeEventListener('resize', () => {});
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+    }
   }
 }

@@ -107,7 +107,7 @@ class VirtualDOMElement {
   focus() {}
 }
 
-export class VirtualOrbitControls extends ArcballControls {
+export class VirtualControls extends ArcballControls {
   private virtualElement: VirtualDOMElement;
 
   constructor(camera: THREE.Camera, size: { width: number; height: number }, scene: THREE.Scene) {
@@ -115,7 +115,33 @@ export class VirtualOrbitControls extends ArcballControls {
     super(camera, virtualElement as unknown as HTMLElement, scene);
     this.virtualElement = virtualElement;
 
+    // Переопределяем метод calculatePointersDistance для защиты от ошибок
+    this.overrideCalculatePointersDistance();
+
     this.virtualConnect();
+  }
+
+  private overrideCalculatePointersDistance() {
+    // Сохраняем оригинальный метод
+    const originalMethod = (this as any).calculatePointersDistance;
+
+    // Переопределяем метод с проверкой на undefined
+    (this as any).calculatePointersDistance = function (pointers: any[]) {
+      // Проверяем, что все указатели существуют и имеют clientX
+      if (!pointers || pointers.length === 0) {
+        return 0;
+      }
+
+      // Фильтруем undefined указатели
+      const validPointers = pointers.filter((p: any) => p && typeof p.clientX === 'number');
+
+      if (validPointers.length < 2) {
+        return 0;
+      }
+
+      // Вызываем оригинальный метод с валидными указателями
+      return originalMethod.call(this, validPointers);
+    };
   }
 
   private virtualConnect() {

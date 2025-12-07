@@ -20,7 +20,7 @@ export class ThreeApp {
   constructor() {}
 
   async init() {
-    let isRenderWorker = false;
+    let isRenderWorker = true;
 
     const container = document.getElementById('container');
 
@@ -28,7 +28,7 @@ export class ThreeApp {
 
     if (isRenderWorker) {
       // new ModelFileLoader2();
-      // this.renderWorker = new RenderWorker({ container });
+      this.renderWorker = new RenderWorker({ container });
     } else {
       await SceneManager.inst().init({ container });
       InitModel.inst();
