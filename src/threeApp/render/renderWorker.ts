@@ -4,6 +4,8 @@ import { VirtualControls } from './controlsWorker';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 
+import { SceneManager } from '@/threeApp/scene/sceneManager';
+
 // Полифилл для requestAnimationFrame в воркере
 if (typeof self.requestAnimationFrame === 'undefined') {
   let lastTime = 0;
@@ -28,8 +30,8 @@ type WorkerMessage = { type: 'init'; canvas: OffscreenCanvas; container: any } |
 class RenderWorker {
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
-  private camera!: THREE.PerspectiveCamera;
-  private controls!: VirtualControls;
+  private camera!: THREE.PerspectiveCamera | THREE.OrthographicCamera;
+  private controls!: VirtualControls | ArcballControls;
   private container;
   private dpr = 1;
   private loader!: GLTFLoader;
@@ -61,6 +63,7 @@ class RenderWorker {
       case 'event':
         if (this.controls) {
           this.controls.dispatchEvent(msg.event);
+          SceneManager.inst().render();
         }
         break;
       case 'loadModel':
@@ -71,7 +74,7 @@ class RenderWorker {
     }
   }
 
-  private init(canvas: OffscreenCanvas, container) {
+  private async init(canvas: OffscreenCanvas, container) {
     console.log('Worker initialized');
 
     this.container = container;
@@ -80,42 +83,40 @@ class RenderWorker {
     this.dpr = this.container.dpr;
 
     // Renderer
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    this.renderer.setPixelRatio(this.dpr);
-    this.renderer.setSize(width, height, false);
+    // this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    // this.renderer.setPixelRatio(this.dpr);
+    // this.renderer.setSize(width, height, false);
 
     // Создаем простую сцену
-    this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xffffff);
+    // this.scene = new THREE.Scene();
+    // this.scene.background = new THREE.Color(0xffffff);
 
     // Создаем камеру
-    const aspect = width / height;
-    this.camera = new THREE.PerspectiveCamera(75, aspect, 0.01, 1000);
-    this.camera.position.set(5, 5, 5);
-    this.camera.lookAt(0, 0, 0);
+    // const aspect = width / height;
+    // this.camera = new THREE.PerspectiveCamera(75, aspect, 0.01, 1000);
+    // this.camera.position.set(5, 5, 5);
+    // this.camera.lookAt(0, 0, 0);
 
     // Добавляем свет
-    const ambientLight = new THREE.AmbientLight(0x404040);
-    this.scene.add(ambientLight);
+    // const ambientLight = new THREE.AmbientLight(0x404040);
+    // this.scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(1, 1, 1);
-    this.scene.add(directionalLight);
+    // const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    // directionalLight.position.set(1, 1, 1);
+    // this.scene.add(directionalLight);
 
-    // Добавляем сетку для визуализации
-    const gridHelper = new THREE.GridHelper(10, 10);
-    this.scene.add(gridHelper);
-
-    // Controls
-    this.controls = new VirtualControls(this.camera, { width, height }, this.scene);
-    (this.controls as ArcballControls).enableAnimations = false;
-
-    this.controls.addEventListener('change', () => {
-      // Обновление будет в render loop
-    });
+    // // Добавляем сетку для визуализации
+    // const gridHelper = new THREE.GridHelper(10, 10);
+    // this.scene.add(gridHelper);
 
     // Start render loop
-    this.animate();
+    //this.animate();
+
+    await SceneManager.inst().initWorker({ canvas, container: { width, height, dpr: this.dpr } });
+    this.scene = SceneManager.inst().scene;
+    this.renderer = SceneManager.inst().renderer;
+    this.camera = SceneManager.inst().camera;
+    this.controls = SceneManager.inst().controls;
   }
 
   private async loadModel(arrayBuffer: ArrayBuffer, filename: string) {

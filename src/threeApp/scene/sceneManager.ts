@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
+import { ArcballControls, ArcballControlsEventMap } from 'three/examples/jsm/controls/ArcballControls';
 import Stats from 'stats.js';
 
 import { CameraManager } from '@/threeApp/scene/cameraManager';
@@ -10,17 +10,20 @@ import { ContextSingleton } from '@/core/ContextSingleton';
 import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
 import { Watermark3d } from '@/watermark/watermark3d';
 import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
+import { ControlsManager } from './controlsManager';
 
 export class SceneManager extends ContextSingleton<SceneManager> {
   stats = null;
-  container: HTMLElement | any;
+  canvas: HTMLCanvasElement | OffscreenCanvas;
+  container: { width: number; height: number; dpr: number; virtDom: boolean };
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   renderer: THREE.WebGLRenderer;
   controls: ArcballControls;
   cameraManager: CameraManager;
 
-  public async init({ container }) {
+  public async init({ canvas, container }) {
+    this.canvas = canvas;
     this.container = container;
 
     this.initStats();
@@ -37,18 +40,31 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.render();
   }
 
-  public initWorker({ container }) {
+  public initWorker({ canvas, container }) {
+    this.canvas = canvas;
     this.container = container;
 
     this.initScene();
+    this.initRenderer();
     this.initCamera();
+    this.initControls();
     this.initLights();
     this.initHelpers();
+
+    this.render();
   }
 
   public getClientRect() {
-    //return this.container instanceof HTMLElement ? this.container.getBoundingClientRect() : this.container;
-    return this.container.virtDom ? this.container : this.container.getBoundingClientRect();
+    // const containerElement = document.getElementById('container');
+    // const containerRect = containerElement.getBoundingClientRect();
+    // const containerParams = {
+    //   width: containerRect.width,
+    //   height: containerRect.height,
+    //   dpr: window.devicePixelRatio,
+    //   virtDom: true,
+    // };
+
+    return { width: this.container.width, height: this.container.height };
   }
 
   private initStats() {
@@ -91,10 +107,17 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     const transitionPoint: number = options.transitionPoint;
     const transitionWidth: number = options.transitionWidth;
 
-    const canvas: HTMLCanvasElement = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 1024;
-    const ctx: CanvasRenderingContext2D = canvas.getContext('2d')!;
+    let canvas: HTMLCanvasElement | OffscreenCanvas;
+
+    if (!(document as any)?.isWorker === undefined) {
+      canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 1024;
+    } else {
+      canvas = new OffscreenCanvas(1024, 1024);
+    }
+
+    const ctx = canvas.getContext('2d');
 
     let gradient: CanvasGradient;
     if (direction === 'vertical') {
@@ -164,19 +187,64 @@ export class SceneManager extends ContextSingleton<SceneManager> {
   private initRenderer() {
     const rect = this.getClientRect();
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, stencil: true });
-    this.renderer.setSize(rect.width, rect.height);
+    const canvas = this.canvas;
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, stencil: true });
+    this.renderer.setSize(rect.width, rect.height, false);
     this.renderer.shadowMap.enabled = true;
     this.renderer.localClippingEnabled = true;
-    document.getElementById('container').appendChild(this.renderer.domElement);
   }
 
   private initControls() {
-    this.controls = new ArcballControls(this.camera, this.renderer.domElement, this.scene);
+    // this.controls = new ArcballControls(this.camera, this.renderer.domElement, this.scene);
+    // this.controls.enableAnimations = false;
+    // this.controls.addEventListener('change', () => this.render());
+    // this.controls.addEventListener('start', () => this.render());
+    // this.controls.addEventListener('end', () => this.render());
+
+    this.controls = new ControlsManager(this.camera, this.container as { width: number; height: number }, this.scene);
     this.controls.enableAnimations = false;
-    this.controls.addEventListener('change', () => this.render());
-    this.controls.addEventListener('start', () => this.render());
-    this.controls.addEventListener('end', () => this.render());
+
+    if ((document as any)?.isWorker === undefined) {
+      const pointerEvents = ['pointerdown', 'pointermove', 'pointerup', 'pointercancel'];
+      pointerEvents.forEach((type) => {
+        this.canvas.addEventListener(
+          type,
+          (e: PointerEvent) => {
+            e.preventDefault();
+            this.controls.dispatchEvent({
+              kind: 'pointer',
+              type: type as keyof ArcballControlsEventMap,
+              clientX: e.clientX,
+              clientY: e.clientY,
+              button: e.button,
+              buttons: e.buttons,
+              pointerId: e.pointerId,
+              pointerType: e.pointerType,
+            } as any);
+            this.render();
+          },
+          { passive: false }
+        );
+      });
+
+      this.canvas.addEventListener(
+        'wheel',
+        (event) => {
+          event.preventDefault();
+          this.controls.dispatchEvent({
+            kind: 'wheel',
+            deltaY: event.deltaY,
+            clientX: event.clientX,
+            clientY: event.clientY,
+          } as any);
+          this.render();
+        },
+        { passive: false }
+      );
+    }
   }
 
   private initLights() {
@@ -201,25 +269,25 @@ export class SceneManager extends ContextSingleton<SceneManager> {
 
   public render() {
     if (!this.renderer) return;
-    this.stats.begin();
-
+    //this.stats.begin();
+    console.log('render');
     if (ClippingBvh.inst()) ClippingBvh.inst().performClipping();
     // не работает при вкл renderWorker
     if (EffectsManager.inst() && EffectsManager.inst().enabled) {
       const renderCalls = EffectsManager.inst().render();
       Watermark3d.renderOverlay();
 
-      ApiThreeToUi.updateDrawCalls(renderCalls);
+      //ApiThreeToUi.updateDrawCalls(renderCalls);
     } else {
       const camera = this.cameraManager.getActiveCamera();
       this.renderer.render(this.scene, camera);
       Watermark3d.renderOverlay();
 
-      ApiThreeToUi.updateDrawCalls(this.renderer.info.render.calls);
+      //ApiThreeToUi.updateDrawCalls(this.renderer.info.render.calls);
     }
 
     this.controls.update();
 
-    this.stats.end();
+    //this.stats.end();
   }
 }

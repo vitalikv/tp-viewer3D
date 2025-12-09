@@ -22,7 +22,6 @@ if (typeof window === 'undefined') {
       style: {},
     }),
     documentElement: { style: {} },
-    isWorker: true,
   };
 
   // Эмулируем add/removeEventListener на window
@@ -108,7 +107,7 @@ class VirtualDOMElement {
   focus() {}
 }
 
-export class VirtualControls extends ArcballControls {
+export class ControlsManager extends ArcballControls {
   private virtualElement: VirtualDOMElement;
 
   constructor(camera: THREE.Camera, size: { width: number; height: number }, scene: THREE.Scene) {
@@ -191,6 +190,7 @@ export class VirtualControls extends ArcballControls {
         };
 
       case 'wheel':
+        console.log('wheel', event);
         return {
           ...baseEvent,
           type: 'wheel',

@@ -1,21 +1,20 @@
 export class RenderWorker {
   public worker: Worker;
-  private container: HTMLElement;
+  private container: HTMLCanvasElement;
   private resizeHandler: () => void;
   private progressCallback?: (text: string | null) => void;
   private modelLoadedCallback?: (filename: string) => void;
   private modelErrorCallback?: (error: string) => void;
 
-  constructor({ container }: { container: HTMLElement }) {
+  constructor({ container }: { container: HTMLCanvasElement }) {
     this.worker = new Worker(new URL('./renderWorker.ts', import.meta.url), { type: 'module' });
 
     this.container = container;
 
     const rect = this.getClientRect();
-    const canvas = document.createElement('canvas');
+    const canvas = container;
     canvas.width = rect.width;
     canvas.height = rect.height;
-    container?.appendChild(canvas);
 
     this.initWorker({ canvas });
     this.setupEventListeners();

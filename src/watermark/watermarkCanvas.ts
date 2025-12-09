@@ -15,9 +15,9 @@ export interface IWatermarkParams {
 }
 
 export class WatermarkCanvas {
-  private static container: HTMLElement;
-  private static canvas: HTMLCanvasElement;
-  private static ctx: CanvasRenderingContext2D;
+  private static container: HTMLElement | { width: number; height: number; dpr: number; virtDom: boolean };
+  private static canvas: HTMLCanvasElement | OffscreenCanvas;
+  private static ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
   private static imgLogo: HTMLImageElement | null = null;
 
   private static params: Required<IWatermarkParams> = {
@@ -40,7 +40,7 @@ export class WatermarkCanvas {
     this.params = { ...this.params, ...params } as Required<IWatermarkParams>;
   }
 
-  public static async init(container: HTMLElement) {
+  public static async init(container: HTMLElement | { width: number; height: number; dpr: number; virtDom: boolean }) {
     if (!this.params.activated) return;
 
     this.container = container;
@@ -83,16 +83,30 @@ export class WatermarkCanvas {
   }
 
   private static createCanvas() {
-    this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d')!;
-
     const rect = this.getClientRect();
-    this.canvas.width = rect.width;
-    this.canvas.height = rect.height;
+
+    let canvas: HTMLCanvasElement | OffscreenCanvas;
+
+    if (!(document as any)?.isWorker === undefined) {
+      canvas = document.createElement('canvas');
+      this.canvas.width = rect.width;
+      this.canvas.height = rect.height;
+    } else {
+      this.canvas = new OffscreenCanvas(rect.width, rect.height);
+    }
+
+    const ctx = this.canvas.getContext('2d');
+    this.ctx = ctx;
   }
 
   private static getClientRect() {
-    return this.container.getBoundingClientRect();
+    if (this.container && typeof this.container === 'object' && 'virtDom' in this.container && this.container.virtDom) {
+      return {
+        width: this.container.width,
+        height: this.container.height,
+      };
+    }
+    return (this.container as HTMLElement).getBoundingClientRect();
   }
 
   private static updateTexture() {

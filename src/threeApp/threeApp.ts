@@ -19,16 +19,25 @@ export class ThreeApp {
   constructor() {}
 
   async init() {
-    let isRenderWorker = true;
+    let isRenderWorker = false; // false - воркер, true - основной поток
 
-    const container = document.getElementById('container');
+    const containerElement = document.getElementById('canvas') as HTMLCanvasElement;
+    const containerRect = containerElement.getBoundingClientRect();
+    const containerParams = {
+      width: containerRect.width,
+      height: containerRect.height,
+      left: containerRect.left,
+      top: containerRect.top,
+      dpr: window.devicePixelRatio,
+      virtDom: true,
+    };
 
-    //this.initWatermark();
+    this.initWatermark();
 
     if (isRenderWorker) {
-      this.renderWorker = new RenderWorker({ container });
+      this.renderWorker = new RenderWorker({ container: containerElement });
     } else {
-      await SceneManager.inst().init({ container });
+      await SceneManager.inst().init({ canvas: containerElement, container: containerParams });
       InitModel.inst();
       SelectionHandler.inst();
       MouseManager.inst();
@@ -37,12 +46,13 @@ export class ThreeApp {
       ClippingBvh.inst();
       AnimationManager.inst();
 
-      EffectsManager.inst().init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer, container });
+      EffectsManager.inst().init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer, container: containerParams });
       OutlineSelection.inst().init({ outlinePass: EffectsManager.inst().outlinePass, composer: EffectsManager.inst().composer });
       MouseManager.inst().init(SceneManager.inst().camera, SceneManager.inst().renderer.domElement);
       BVHManager.inst().init();
 
-      //new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
+      const container = document.getElementById('container');
+      new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
 
       InitModel.inst().setMerge({ merge: true });
     }

@@ -15,12 +15,12 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
   private smaaPass: SMAAPass;
   public enabled = false;
 
-  private container!: HTMLElement;
+  private container!: HTMLElement | { width: number; height: number; dpr: number; virtDom: boolean };
   private scene!: THREE.Scene;
   private camera!: THREE.Camera;
   private renderer!: THREE.WebGLRenderer;
 
-  public init({ scene, camera, renderer, container }: { scene: THREE.Scene; camera: THREE.Camera; renderer: THREE.WebGLRenderer; container: HTMLElement }) {
+  public init({ scene, camera, renderer, container }: { scene: THREE.Scene; camera: THREE.Camera; renderer: THREE.WebGLRenderer; container: HTMLElement | { width: number; height: number; dpr: number; virtDom: boolean } }) {
     if (this.enabled) return;
     this.enabled = true;
 
@@ -29,7 +29,7 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
     this.camera = camera;
     this.renderer = renderer;
 
-    const rect = this.container.getBoundingClientRect();
+    const rect = this.getClientRect();
 
     this.initComposer(rect);
     this.initOutlineEffect(rect);
@@ -39,7 +39,17 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
     this.setSize();
   }
 
-  private initComposer(rect: DOMRect) {
+  private getClientRect(): { width: number; height: number } {
+    if (this.container && typeof this.container === 'object' && 'virtDom' in this.container && this.container.virtDom) {
+      return {
+        width: this.container.width,
+        height: this.container.height,
+      };
+    }
+    return (this.container as HTMLElement).getBoundingClientRect();
+  }
+
+  private initComposer(rect: { width: number; height: number }) {
     const renderTarget = new THREE.WebGLRenderTarget(rect.width, rect.height, { samples: 4 });
 
     this.composer = new EffectComposer(this.renderer, renderTarget);
@@ -52,7 +62,7 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
     this.outputPass.renderToScreen = true;
   }
 
-  private initOutlineEffect(rect: DOMRect) {
+  private initOutlineEffect(rect: { width: number; height: number }) {
     const resolution = new THREE.Vector2(rect.width, rect.height);
 
     this.outlinePass = new OutlinePass(resolution, this.scene, this.camera);
@@ -70,7 +80,7 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
     this.composer.addPass(this.outlinePass);
   }
 
-  private initLineEffect(rect: DOMRect) {
+  private initLineEffect(rect: { width: number; height: number }) {
     const lineShader = {
       uniforms: {
         tDiffuse: { value: null },
@@ -126,7 +136,7 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
 
   // сглаживание, но не использую потому что есть const renderTarget = new THREE.WebGLRenderTarget(rect.width, rect.height, { samples: 4 });
   private initSMAA() {
-    const rect = this.container.getBoundingClientRect();
+    const rect = this.getClientRect();
 
     this.smaaPass = new SMAAPass();
     this.smaaPass.setSize(rect.width, rect.height);
@@ -134,7 +144,7 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
   }
 
   public setSize() {
-    const rect = this.container.getBoundingClientRect();
+    const rect = this.getClientRect();
 
     this.composer.setSize(rect.width, rect.height);
 
