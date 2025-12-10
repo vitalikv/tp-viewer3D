@@ -28,7 +28,7 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     if (!animations || animations.length === 0) {
       return false;
     }
-    console.log('animations.length', animations);
+
     ApiThreeToUi.updatePlayerMenu(animations);
 
     this.dispose();

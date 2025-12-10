@@ -1,5 +1,7 @@
 import * as THREE from 'three';
-import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js';
+//import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js'; не работает в воркере
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { AnimationManager } from '@/threeApp/animation/animationManager';
@@ -85,14 +87,12 @@ export class InitModel extends ContextSingleton<InitModel> {
     return duplicates;
   }
 
-  public handleFileLoad = async (e) => {
+  public handleFileLoad = async (contents) => {
     if (this.getModel()) {
       console.log('модель уже загружена');
       return false;
     }
-
-    const contents = e.target.result;
-
+    console.log('contents', contents);
     const decoder = new TextDecoder('utf-8');
     const jsonString = decoder.decode(contents);
 
@@ -187,7 +187,8 @@ export class InitModel extends ContextSingleton<InitModel> {
   private async loadJSON() {
     //return;
     //const response = await fetch('./assets/СЕ-00-00 - Сборка - A.1 (1).json');
-    const response = await fetch('./assets/ТРР-1-000 - Транспортер - A.1 (5).json');
+    const url = new URL('/assets/ТРР-1-000 - Транспортер - A.1 (5).json', import.meta.url);
+    const response = await fetch(url);
     //const response = await fetch('./assets/ТРДДФ-1-000 - Двигатель - A.1.json');
     //const response = await fetch('./assets/РП.00.00 - Редуктор планетарный  - A.1.json');
 

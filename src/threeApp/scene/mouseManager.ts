@@ -16,12 +16,6 @@ export class MouseManager extends ContextSingleton<MouseManager> {
   private camera: THREE.Camera | null = null;
   private isDown = false;
   private isMove = false;
-  private selectionHandler: SelectionHandler;
-
-  constructor() {
-    super();
-    this.selectionHandler = SelectionHandler.inst();
-  }
 
   public init(camera: THREE.Camera, domElement: HTMLElement): void {
     this.camera = camera;
@@ -80,7 +74,7 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     try {
       if (!this.isMove) {
         SelectionMergedModel.clearSelection();
-        this.selectionHandler.resetSelection();
+        SelectionHandler.inst().resetSelection();
 
         this.calculateMousePosition(event);
         this.updateRaycaster();
@@ -89,7 +83,7 @@ export class MouseManager extends ContextSingleton<MouseManager> {
 
         const mode: SelectionMode = InitModel.inst().getMerge() ? 'merge' : 'tflex';
 
-        this.selectionHandler.handleSelection(obj, intersect, mode);
+        SelectionHandler.inst().handleSelection(obj, intersect, mode);
       }
     } catch (error) {
       console.error('Error in pointerUp:', error);

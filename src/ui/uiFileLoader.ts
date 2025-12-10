@@ -140,7 +140,7 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
         progressElement.style.display = 'none';
         UiLoadTimeDiv.inst().stopTimer();
 
-        const result = await InitModel.inst().handleFileLoad(e);
+        const result = await InitModel.inst().handleFileLoad(e.target.result);
         if (result) {
           UiFileMenu.inst().addItem(`${file.name}`, 'gltf', undefined);
           SvgPages.inst().hideContainerSvg();

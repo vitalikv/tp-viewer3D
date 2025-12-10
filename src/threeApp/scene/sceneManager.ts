@@ -40,7 +40,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.render();
   }
 
-  public initWorker({ canvas, container }) {
+  public async initWorker({ canvas, container }) {
     this.canvas = canvas;
     this.container = container;
 
@@ -50,6 +50,9 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.initControls();
     this.initLights();
     this.initHelpers();
+
+    await WatermarkCanvas.init(this.container);
+    Watermark3d.init(this.renderer);
 
     this.render();
   }
@@ -269,25 +272,27 @@ export class SceneManager extends ContextSingleton<SceneManager> {
 
   public render() {
     if (!this.renderer) return;
-    //this.stats.begin();
+    if (this.stats) this.stats.begin();
+
     console.log('render');
+
     if (ClippingBvh.inst()) ClippingBvh.inst().performClipping();
     // не работает при вкл renderWorker
     if (EffectsManager.inst() && EffectsManager.inst().enabled) {
       const renderCalls = EffectsManager.inst().render();
       Watermark3d.renderOverlay();
 
-      //ApiThreeToUi.updateDrawCalls(renderCalls);
+      ApiThreeToUi.updateDrawCalls(renderCalls);
     } else {
       const camera = this.cameraManager.getActiveCamera();
       this.renderer.render(this.scene, camera);
       Watermark3d.renderOverlay();
 
-      //ApiThreeToUi.updateDrawCalls(this.renderer.info.render.calls);
+      ApiThreeToUi.updateDrawCalls(this.renderer.info.render.calls);
     }
 
     this.controls.update();
 
-    //this.stats.end();
+    if (this.stats) this.stats.end();
   }
 }

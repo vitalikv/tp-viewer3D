@@ -22,6 +22,7 @@ if (typeof window === 'undefined') {
       style: {},
     }),
     documentElement: { style: {} },
+    isWorker: true,
   };
 
   // Эмулируем add/removeEventListener на window
