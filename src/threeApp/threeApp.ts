@@ -14,15 +14,16 @@ import { ViewCube } from '@/threeApp/scene/viewCube';
 import { RenderWorker } from '@/threeApp/render/initRenderWorker';
 
 export class ThreeApp {
-  renderWorker: RenderWorker;
-
-  constructor() {}
+  public isRenderWorker = true;
 
   async init() {
-    let isRenderWorker = true; // false - воркер, true - основной поток
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
-    const containerElement = document.getElementById('canvas') as HTMLCanvasElement;
-    const containerRect = containerElement.getBoundingClientRect();
+    canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+    });
+
+    const containerRect = canvas.getBoundingClientRect();
     const containerParams = {
       width: containerRect.width,
       height: containerRect.height,
@@ -32,12 +33,12 @@ export class ThreeApp {
       virtDom: true,
     };
 
-    this.initWatermark();
+    //this.initWatermark();
 
-    if (isRenderWorker) {
-      this.renderWorker = new RenderWorker({ container: containerElement });
+    if (this.isRenderWorker) {
+      RenderWorker.inst().init({ canvas });
     } else {
-      await SceneManager.inst().init({ canvas: containerElement, container: containerParams });
+      await SceneManager.inst().init({ canvas, container: containerParams });
       InitModel.inst();
       SelectionHandler.inst();
       MouseManager.inst();
@@ -55,6 +56,14 @@ export class ThreeApp {
       new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
 
       InitModel.inst().setMerge({ merge: true });
+
+      const resizeHandler = () => {
+        const rect = canvas.getBoundingClientRect();
+        SceneManager.inst().setSizeContainer({ width: rect.width, height: rect.height, left: rect.left, top: rect.top });
+        SceneManager.inst().cameraManager.resize();
+      };
+      const resizeObserver = new ResizeObserver(resizeHandler);
+      resizeObserver.observe(canvas);
     }
   }
 

@@ -30,7 +30,7 @@ if (typeof self.requestAnimationFrame === 'undefined') {
 }
 
 // Расширяем тип сообщений
-type WorkerMessage = { type: 'init'; canvas: OffscreenCanvas; container: any } | { type: 'resize'; width: number; height: number; dpr?: number } | { type: 'event'; event: any } | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string };
+type WorkerMessage = { type: 'init'; canvas: OffscreenCanvas; container: any } | { type: 'resize'; width: number; height: number; left: number; top: number } | { type: 'event'; event: any } | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string };
 
 class RenderWorker {
   private renderer!: THREE.WebGLRenderer;
@@ -51,7 +51,7 @@ class RenderWorker {
         break;
       case 'resize':
         if (this.renderer && this.camera) {
-          this.resize(msg.width, msg.height, msg.dpr ?? this.dpr);
+          this.resize(msg.width, msg.height, msg.left, msg.top);
         }
         break;
       case 'event':
@@ -126,20 +126,9 @@ class RenderWorker {
     self.postMessage({ type: 'progress', data: text });
   }
 
-  private resize(width, height, dpr) {
-    if (dpr !== undefined) {
-      this.dpr = dpr;
-      this.renderer.setPixelRatio(this.dpr);
-    }
-
-    if (this.camera instanceof THREE.PerspectiveCamera) {
-      this.camera.aspect = width / height;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(width, height, false);
-    }
-
-    (this.controls as any).setSize(width, height);
-    MouseManager.inst()?.updateContainerSize({ width, height });
+  private resize(width: number, height: number, left: number, top: number) {
+    SceneManager.inst().setSizeContainer({ width, height, left, top });
+    SceneManager.inst().cameraManager.resize();
   }
 }
 

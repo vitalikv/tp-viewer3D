@@ -1,8 +1,10 @@
+import { ContextSingleton } from '@/core/ContextSingleton';
+
 import { SvgPages } from '@/svgApp/svgPages';
 import { InitModel } from '@/threeApp/model/initModel';
-import { ContextSingleton } from '@/core/ContextSingleton';
 import { UiFileMenu } from './uiFileMenu';
 import { UiLoadTimeDiv } from './uiLoadTimeDiv';
+import { RenderWorker } from '@/threeApp/render/initRenderWorker';
 import { threeApp } from '@/main';
 
 export class UiFileLoader extends ContextSingleton<UiFileLoader> {
@@ -97,13 +99,13 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
     UiLoadTimeDiv.inst().startTimer();
 
     // Проверяем, используется ли renderWorker
-    if (threeApp?.renderWorker) {
+    if (threeApp.isRenderWorker) {
       // Проверка, что мы в основном потоке
       const isInMainThread = typeof window !== 'undefined' && self === window;
       console.log('[MAIN THREAD] Отправка файла в воркер:', file.name, 'Размер:', file.size, 'В основном потоке:', isInMainThread);
 
       // Используем воркер для загрузки модели
-      threeApp.renderWorker.loadModel(file, {
+      RenderWorker.inst().loadModel(file, {
         onProgress: (text) => {
           if (text) {
             progressElement.style.display = 'block';

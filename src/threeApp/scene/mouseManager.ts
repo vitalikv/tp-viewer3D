@@ -4,6 +4,7 @@ import { ContextSingleton } from '@/core/ContextSingleton';
 import { SelectionMergedModel } from '@/threeApp/selection/selectionMergedModel';
 import { SelectionHandler } from '@/threeApp/selection/selectionHandler';
 import { InitModel } from '@/threeApp/model/initModel';
+import { SceneManager } from './sceneManager';
 
 type SelectionMode = 'merge' | 'tflex';
 
@@ -134,15 +135,7 @@ export class MouseManager extends ContextSingleton<MouseManager> {
   };
 
   private calculateMousePosition(event: PointerEvent) {
-    if (this.isWorker && this.containerSize) {
-      this.mouse.x = (event.clientX / this.containerSize.width) * 2 - 1;
-      this.mouse.y = -(event.clientY / this.containerSize.height) * 2 + 1;
-      return;
-    }
-
-    if (!this.domElement) return;
-
-    const rect = this.domElement.getBoundingClientRect();
+    const rect = SceneManager.inst().getClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   }
@@ -181,7 +174,11 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     return { obj, intersect };
   }
 
-  public updateContainerSize(size: { width: number; height: number }): void {
+  public updateContainerSize(size: { width: number; height: number }) {
     this.containerSize = size;
+  }
+
+  public updateCamera(camera: THREE.Camera) {
+    this.camera = camera;
   }
 }

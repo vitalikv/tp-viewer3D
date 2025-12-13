@@ -1,12 +1,11 @@
 import * as THREE from 'three';
 import { ArcballControls, ArcballControlsEventMap } from 'three/examples/jsm/controls/ArcballControls';
 import Stats from 'stats.js';
+import { ContextSingleton } from '@/core/ContextSingleton';
 
 import { CameraManager } from '@/threeApp/scene/cameraManager';
 import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
 import { EffectsManager } from '@/threeApp/scene/effectsManager';
-import { ContextSingleton } from '@/core/ContextSingleton';
-
 import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
 import { Watermark3d } from '@/watermark/watermark3d';
 import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
@@ -15,7 +14,7 @@ import { ControlsManager } from './controlsManager';
 export class SceneManager extends ContextSingleton<SceneManager> {
   stats = null;
   canvas: HTMLCanvasElement | OffscreenCanvas;
-  container: { width: number; height: number; dpr: number; virtDom: boolean };
+  container: { width: number; height: number; left: number; top: number; dpr: number; virtDom: boolean };
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   renderer: THREE.WebGLRenderer;
@@ -57,17 +56,15 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.render();
   }
 
-  public getClientRect() {
-    // const containerElement = document.getElementById('container');
-    // const containerRect = containerElement.getBoundingClientRect();
-    // const containerParams = {
-    //   width: containerRect.width,
-    //   height: containerRect.height,
-    //   dpr: window.devicePixelRatio,
-    //   virtDom: true,
-    // };
+  public setSizeContainer({ width, height, left, top }: { width: number; height: number; left: number; top: number }) {
+    this.container.left = left;
+    this.container.top = top;
+    this.container.width = width;
+    this.container.height = height;
+  }
 
-    return { width: this.container.width, height: this.container.height };
+  public getClientRect() {
+    return { left: this.container.left, top: this.container.top, width: this.container.width, height: this.container.height };
   }
 
   private initStats() {
@@ -190,11 +187,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
   private initRenderer() {
     const rect = this.getClientRect();
 
-    const canvas = this.canvas;
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, stencil: true });
+    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, stencil: true });
     this.renderer.setSize(rect.width, rect.height, false);
     this.renderer.shadowMap.enabled = true;
     this.renderer.localClippingEnabled = true;

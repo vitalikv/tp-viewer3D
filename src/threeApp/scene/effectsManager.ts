@@ -1,18 +1,22 @@
 import * as THREE from 'three';
+import { ContextSingleton } from '@/core/ContextSingleton';
+
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
-import { ContextSingleton } from '@/core/ContextSingleton';
+
+import { SceneManager } from '@/threeApp/scene/sceneManager';
 
 export class EffectsManager extends ContextSingleton<EffectsManager> {
   public composer!: EffectComposer;
   public outlinePass!: OutlinePass;
-  private renderPass!: RenderPass;
+  public renderPass!: RenderPass;
   private outputPass!: OutputPass;
   private smaaPass: SMAAPass;
+  private linePass!: ShaderPass;
   public enabled = false;
 
   private container!: { width: number; height: number; dpr: number; virtDom: boolean };
@@ -40,10 +44,7 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
   }
 
   private getClientRect(): { width: number; height: number } {
-    return {
-      width: this.container.width,
-      height: this.container.height,
-    };
+    return SceneManager.inst().getClientRect();
   }
 
   private initComposer(rect: { width: number; height: number }) {
@@ -122,13 +123,13 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
     `,
     };
 
-    const linePass = new ShaderPass(lineShader);
-    linePass.renderToScreen = true;
-    linePass.material.depthTest = false;
-    linePass.material.depthWrite = false;
-    linePass.material.transparent = true;
-    linePass.uniforms.maskTexture.value = this.outlinePass.renderTargetMaskBuffer.texture;
-    this.composer.addPass(linePass);
+    this.linePass = new ShaderPass(lineShader);
+    this.linePass.renderToScreen = true;
+    this.linePass.material.depthTest = false;
+    this.linePass.material.depthWrite = false;
+    this.linePass.material.transparent = true;
+    this.linePass.uniforms.maskTexture.value = this.outlinePass.renderTargetMaskBuffer.texture;
+    this.composer.addPass(this.linePass);
   }
 
   // сглаживание, но не использую потому что есть const renderTarget = new THREE.WebGLRenderTarget(rect.width, rect.height, { samples: 4 });
@@ -144,6 +145,10 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
     const rect = this.getClientRect();
 
     this.composer.setSize(rect.width, rect.height);
+
+    if (this.linePass) {
+      this.linePass.uniforms.resolution.value.set(rect.width, rect.height);
+    }
 
     if (this.smaaPass) {
       this.smaaPass.setSize(rect.width, rect.height);

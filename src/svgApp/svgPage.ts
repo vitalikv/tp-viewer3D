@@ -17,6 +17,8 @@ export class SvgPage {
     container.append(this.div);
 
     const svg = this.div.children[0] as SVGElement;
+    svg.style.width = '100%';
+    svg.style.height = '100%';
     new SvgUseHandler(svg);
   }
 

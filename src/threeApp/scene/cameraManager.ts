@@ -3,6 +3,7 @@ import type { ArcballControls } from 'three/examples/jsm/controls/ArcballControl
 import { Watermark3d } from '@/watermark/watermark3d';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
 import { EffectsManager } from '@/threeApp/scene/effectsManager';
+import { MouseManager } from '@/threeApp/scene/mouseManager';
 
 export class CameraManager {
   private camPerspective: THREE.PerspectiveCamera;
@@ -26,8 +27,6 @@ export class CameraManager {
         this.setCamera({ type });
       }
     });
-
-    window.addEventListener('resize', this.handleResize);
   }
 
   private initCameras() {
@@ -68,7 +67,7 @@ export class CameraManager {
     return camera;
   }
 
-  private handleResize = () => {
+  public resize = () => {
     Watermark3d.renderWatermark();
 
     const rect = SceneManager.inst().getClientRect();
@@ -87,7 +86,7 @@ export class CameraManager {
     this.camOrthographic.bottom = -halfH;
     this.camOrthographic.updateProjectionMatrix();
 
-    this.renderer.setSize(rect.width, rect.height);
+    this.renderer.setSize(rect.width, rect.height, false);
 
     // не работает при вкл renderWorker
     if (EffectsManager.inst() && EffectsManager.inst().enabled) {
@@ -140,6 +139,9 @@ export class CameraManager {
       EffectsManager.inst().outlinePass.renderCamera = camera;
     }
 
+    MouseManager.inst().updateCamera(camera);
+
+    this.resize();
     SceneManager.inst().render();
   }
 

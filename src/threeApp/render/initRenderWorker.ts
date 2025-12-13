@@ -1,18 +1,19 @@
-export class RenderWorker {
+import { ContextSingleton } from '@/core/ContextSingleton';
+
+export class RenderWorker extends ContextSingleton<RenderWorker> {
   public worker: Worker;
   private container: HTMLCanvasElement;
-  private resizeHandler: () => void;
+  private resizeObserver?: ResizeObserver;
   private progressCallback?: (text: string | null) => void;
   private modelLoadedCallback?: (filename: string) => void;
   private modelErrorCallback?: (error: string) => void;
 
-  constructor({ container }: { container: HTMLCanvasElement }) {
+  public init({ canvas }: { canvas: HTMLCanvasElement }) {
     this.worker = new Worker(new URL('./renderWorker.ts', import.meta.url), { type: 'module' });
 
-    this.container = container;
+    this.container = canvas;
 
     const rect = this.getClientRect();
-    const canvas = container;
     canvas.width = rect.width;
     canvas.height = rect.height;
 
@@ -82,16 +83,18 @@ export class RenderWorker {
       { passive: false }
     );
 
-    this.resizeHandler = () => {
+    const resizeHandler = () => {
       const rect = this.getClientRect();
       this.worker.postMessage({
         type: 'resize',
         width: rect.width,
         height: rect.height,
-        dpr: window.devicePixelRatio,
+        left: rect.left,
+        top: rect.top,
       });
     };
-    window.addEventListener('resize', this.resizeHandler);
+    this.resizeObserver = new ResizeObserver(resizeHandler);
+    this.resizeObserver.observe(this.container);
   }
 
   private setupWorkerMessageHandler() {
@@ -144,8 +147,8 @@ export class RenderWorker {
 
   public dispose() {
     this.worker.terminate();
-    if (this.resizeHandler) {
-      window.removeEventListener('resize', this.resizeHandler);
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
     }
   }
 }
