@@ -1,6 +1,6 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
 
-export class RenderWorker extends ContextSingleton<RenderWorker> {
+export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasManager> {
   public worker: Worker;
   private container: HTMLCanvasElement;
   private resizeObserver?: ResizeObserver;
@@ -9,7 +9,7 @@ export class RenderWorker extends ContextSingleton<RenderWorker> {
   private modelErrorCallback?: (error: string) => void;
 
   public init({ canvas }: { canvas: HTMLCanvasElement }) {
-    this.worker = new Worker(new URL('./renderWorker.ts', import.meta.url), { type: 'module' });
+    this.worker = new Worker(new URL('./offscreenCanvasWorker.ts', import.meta.url), { type: 'module' });
 
     this.container = canvas;
 
@@ -152,3 +152,4 @@ export class RenderWorker extends ContextSingleton<RenderWorker> {
     }
   }
 }
+

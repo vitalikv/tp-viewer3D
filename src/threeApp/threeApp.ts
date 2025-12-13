@@ -11,10 +11,10 @@ import { AnimationManager } from '@/threeApp/animation/animationManager';
 
 import { ViewCube } from '@/threeApp/scene/viewCube';
 
-import { RenderWorker } from '@/threeApp/render/initRenderWorker';
+import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
 export class ThreeApp {
-  public isRenderWorker = false;
+  public isRenderWorker = true;
 
   async init() {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -36,7 +36,7 @@ export class ThreeApp {
     //this.initWatermark();
 
     if (this.isRenderWorker) {
-      RenderWorker.inst().init({ canvas });
+      OffscreenCanvasManager.inst().init({ canvas });
     } else {
       await SceneManager.inst().init({ canvas, container: containerParams });
       InitModel.inst();

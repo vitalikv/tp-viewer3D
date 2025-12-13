@@ -4,7 +4,7 @@ import { SvgPages } from '@/svgApp/svgPages';
 import { InitModel } from '@/threeApp/model/initModel';
 import { UiFileMenu } from './uiFileMenu';
 import { UiLoadTimeDiv } from './uiLoadTimeDiv';
-import { RenderWorker } from '@/threeApp/render/initRenderWorker';
+import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 import { threeApp } from '@/main';
 
 export class UiFileLoader extends ContextSingleton<UiFileLoader> {
@@ -105,7 +105,7 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
       console.log('[MAIN THREAD] Отправка файла в воркер:', file.name, 'Размер:', file.size, 'В основном потоке:', isInMainThread);
 
       // Используем воркер для загрузки модели
-      RenderWorker.inst().loadModel(file, {
+      OffscreenCanvasManager.inst().loadModel(file, {
         onProgress: (text) => {
           if (text) {
             progressElement.style.display = 'block';

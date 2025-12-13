@@ -2,6 +2,7 @@ import { SceneManager } from '@/threeApp/scene/sceneManager';
 import { InitModel } from '@/threeApp/model/initModel';
 import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
 import { AnimationManager } from '@/threeApp/animation/animationManager';
+import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
 export class ApiUiToThree {
   public static setPlanePosition(x: number, y: number, z: number) {
@@ -30,9 +31,15 @@ export class ApiUiToThree {
   }
 
   public static activateClippingBvh() {
-    const model = InitModel.inst().getModel();
-    ClippingBvh.inst().initClipping({ model });
-    SceneManager.inst().render();
+    // Проверяем, используется ли воркер, через проверку наличия OffscreenCanvasManager и его worker
+    const offscreenCanvasManager = OffscreenCanvasManager.inst();
+    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
+      offscreenCanvasManager.worker.postMessage({ type: 'activateClippingBvh' });
+    } else {
+      const model = InitModel.inst().getModel();
+      ClippingBvh.inst().initClipping({ model });
+      SceneManager.inst().render();
+    }
   }
 
   public static deActivateClippingBvh() {

@@ -30,9 +30,9 @@ if (typeof self.requestAnimationFrame === 'undefined') {
 }
 
 // Расширяем тип сообщений
-type WorkerMessage = { type: 'init'; canvas: OffscreenCanvas; container: any } | { type: 'resize'; width: number; height: number; left: number; top: number } | { type: 'event'; event: any } | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string };
+type WorkerMessage = { type: 'init'; canvas: OffscreenCanvas; container: any } | { type: 'resize'; width: number; height: number; left: number; top: number } | { type: 'event'; event: any } | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string } | { type: 'activateClippingBvh' };
 
-class RenderWorker {
+class OffscreenCanvasWorker {
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera | THREE.OrthographicCamera;
@@ -70,6 +70,15 @@ class RenderWorker {
       case 'loadModel':
         if (this.scene) {
           this.loadModel(msg.arrayBuffer, msg.filename);
+        }
+        break;
+      case 'activateClippingBvh':
+        if (this.scene) {
+          const model = InitModel.inst().getModel();
+          if (model) {
+            ClippingBvh.inst().initClipping({ model });
+            SceneManager.inst().render();
+          }
         }
         break;
     }
@@ -134,4 +143,5 @@ class RenderWorker {
   }
 }
 
-new RenderWorker();
+new OffscreenCanvasWorker();
+
