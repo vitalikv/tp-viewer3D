@@ -9,6 +9,7 @@ import { OutlineSelection } from '../selection/outlineSelection';
 import { ClippingBvh } from '../clipping/clippingBvh';
 import { SelectionHandler } from '../selection/selectionHandler';
 import { MouseManager } from '../scene/mouseManager';
+import { EffectsManager } from '../scene/effectsManager';
 
 // Полифилл для requestAnimationFrame в воркере
 if (typeof self.requestAnimationFrame === 'undefined') {
@@ -58,6 +59,13 @@ class RenderWorker {
           this.controls.dispatchEvent(msg.event);
           SceneManager.inst().render();
         }
+        if (msg.event.kind === 'pointer' && MouseManager.inst()) {
+          MouseManager.inst().handlePointerEvent(msg.event.type, {
+            clientX: msg.event.clientX,
+            clientY: msg.event.clientY,
+            button: msg.event.button,
+          });
+        }
         break;
       case 'loadModel':
         if (this.scene) {
@@ -88,6 +96,11 @@ class RenderWorker {
     BVHManager.inst();
     ClippingBvh.inst();
     AnimationManager.inst();
+
+    EffectsManager.inst().init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer, container: this.container });
+    OutlineSelection.inst().init({ outlinePass: EffectsManager.inst().outlinePass, composer: EffectsManager.inst().composer });
+    MouseManager.inst().initWorker(this.camera, { width, height });
+    BVHManager.inst().init();
 
     InitModel.inst().setMerge({ merge: true });
   }
@@ -125,7 +138,8 @@ class RenderWorker {
       this.renderer.setSize(width, height, false);
     }
 
-    this.controls.setSize(width, height);
+    (this.controls as any).setSize(width, height);
+    MouseManager.inst()?.updateContainerSize({ width, height });
   }
 }
 

@@ -19,7 +19,7 @@ export class ThreeApp {
   constructor() {}
 
   async init() {
-    let isRenderWorker = false; // false - воркер, true - основной поток
+    let isRenderWorker = true; // false - воркер, true - основной поток
 
     const containerElement = document.getElementById('canvas') as HTMLCanvasElement;
     const containerRect = containerElement.getBoundingClientRect();

@@ -85,8 +85,8 @@ export class SceneManager extends ContextSingleton<SceneManager> {
 
     const texture = this.createAdvancedGradient({
       color1: '#ffffff',
-      color2: '#ffffff',
-      // color2: '#c0c0c0',
+      //color2: '#ffffff',
+      color2: '#c0c0c0',
       direction: 'radial',
       transitionSharpness: 0.7, // Очень плавный
       transitionPoint: 0.4, // Центр

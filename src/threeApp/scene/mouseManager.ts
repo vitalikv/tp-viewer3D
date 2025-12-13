@@ -14,12 +14,15 @@ export class MouseManager extends ContextSingleton<MouseManager> {
   private mouse: THREE.Vector2;
   private domElement: HTMLElement | null = null;
   private camera: THREE.Camera | null = null;
+  private containerSize: { width: number; height: number } | null = null;
   private isDown = false;
   private isMove = false;
+  private isWorker = false;
 
   public init(camera: THREE.Camera, domElement: HTMLElement): void {
     this.camera = camera;
     this.domElement = domElement;
+    this.isWorker = false;
 
     this.raycaster = new THREE.Raycaster();
     this.raycaster.params.Line.threshold = 0.0;
@@ -36,6 +39,20 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     window.addEventListener('keydown', this.keyDown);
   }
 
+  public initWorker(camera: THREE.Camera, containerSize: { width: number; height: number }): void {
+    this.camera = camera;
+    this.containerSize = containerSize;
+    this.isWorker = true;
+
+    this.raycaster = new THREE.Raycaster();
+    this.raycaster.params.Line.threshold = 0.0;
+    this.raycaster.params.Points.threshold = 0.0;
+    this.raycaster.far = RAYCASTER_FAR;
+    this.raycaster.firstHitOnly = true;
+
+    this.mouse = new THREE.Vector2();
+  }
+
   public dispose(): void {
     if (this.domElement) {
       this.domElement.removeEventListener('pointerdown', this.pointerDown);
@@ -47,6 +64,29 @@ export class MouseManager extends ContextSingleton<MouseManager> {
 
     this.domElement = null;
     this.camera = null;
+    this.containerSize = null;
+  }
+
+  public handlePointerEvent(type: string, eventData: { clientX: number; clientY: number; button?: number }): void {
+    if (!this.isWorker) return;
+
+    const syntheticEvent = {
+      clientX: eventData.clientX,
+      clientY: eventData.clientY,
+      button: eventData.button ?? 0,
+    } as PointerEvent;
+
+    switch (type) {
+      case 'pointerdown':
+        this.pointerDown();
+        break;
+      case 'pointermove':
+        this.pointerMove(syntheticEvent);
+        break;
+      case 'pointerup':
+        this.pointerUp(syntheticEvent);
+        break;
+    }
   }
 
   private keyDown = (event: KeyboardEvent) => {
@@ -94,6 +134,12 @@ export class MouseManager extends ContextSingleton<MouseManager> {
   };
 
   private calculateMousePosition(event: PointerEvent) {
+    if (this.isWorker && this.containerSize) {
+      this.mouse.x = (event.clientX / this.containerSize.width) * 2 - 1;
+      this.mouse.y = -(event.clientY / this.containerSize.height) * 2 + 1;
+      return;
+    }
+
     if (!this.domElement) return;
 
     const rect = this.domElement.getBoundingClientRect();
@@ -133,5 +179,9 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     }
 
     return { obj, intersect };
+  }
+
+  public updateContainerSize(size: { width: number; height: number }): void {
+    this.containerSize = size;
   }
 }

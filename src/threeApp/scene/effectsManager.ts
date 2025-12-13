@@ -15,12 +15,12 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
   private smaaPass: SMAAPass;
   public enabled = false;
 
-  private container!: HTMLElement | { width: number; height: number; dpr: number; virtDom: boolean };
+  private container!: { width: number; height: number; dpr: number; virtDom: boolean };
   private scene!: THREE.Scene;
   private camera!: THREE.Camera;
   private renderer!: THREE.WebGLRenderer;
 
-  public init({ scene, camera, renderer, container }: { scene: THREE.Scene; camera: THREE.Camera; renderer: THREE.WebGLRenderer; container: HTMLElement | { width: number; height: number; dpr: number; virtDom: boolean } }) {
+  public init({ scene, camera, renderer, container }: { scene: THREE.Scene; camera: THREE.Camera; renderer: THREE.WebGLRenderer; container: { width: number; height: number; dpr: number; virtDom: boolean } }) {
     if (this.enabled) return;
     this.enabled = true;
 
@@ -40,13 +40,10 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
   }
 
   private getClientRect(): { width: number; height: number } {
-    if (this.container && typeof this.container === 'object' && 'virtDom' in this.container && this.container.virtDom) {
-      return {
-        width: this.container.width,
-        height: this.container.height,
-      };
-    }
-    return (this.container as HTMLElement).getBoundingClientRect();
+    return {
+      width: this.container.width,
+      height: this.container.height,
+    };
   }
 
   private initComposer(rect: { width: number; height: number }) {
@@ -56,7 +53,7 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
     this.composer.setPixelRatio(this.renderer.getPixelRatio());
     this.renderPass = new RenderPass(this.scene, this.camera);
     this.composer.addPass(this.renderPass);
-
+    console.log('initComposer', this.composer);
     this.outputPass = new OutputPass();
     this.composer.addPass(this.outputPass);
     this.outputPass.renderToScreen = true;
