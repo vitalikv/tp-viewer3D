@@ -14,7 +14,7 @@ import { ViewCube } from '@/threeApp/scene/viewCube';
 import { RenderWorker } from '@/threeApp/render/initRenderWorker';
 
 export class ThreeApp {
-  public isRenderWorker = true;
+  public isRenderWorker = false;
 
   async init() {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;

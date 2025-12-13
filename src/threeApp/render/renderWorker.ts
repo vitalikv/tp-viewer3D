@@ -81,9 +81,11 @@ class RenderWorker {
     this.container = container;
     const width = this.container.width;
     const height = this.container.height;
+    const left = this.container.left;
+    const top = this.container.top;
     this.dpr = this.container.dpr;
 
-    await SceneManager.inst().initWorker({ canvas, container: { width, height, dpr: this.dpr } });
+    await SceneManager.inst().initWorker({ canvas, container: { width, height, left, top } });
     this.scene = SceneManager.inst().scene;
     this.renderer = SceneManager.inst().renderer;
     this.camera = SceneManager.inst().camera;
@@ -99,7 +101,7 @@ class RenderWorker {
 
     EffectsManager.inst().init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer, container: this.container });
     OutlineSelection.inst().init({ outlinePass: EffectsManager.inst().outlinePass, composer: EffectsManager.inst().composer });
-    MouseManager.inst().initWorker(this.camera, { width, height });
+    MouseManager.inst().init(SceneManager.inst().camera);
     BVHManager.inst().init();
 
     InitModel.inst().setMerge({ merge: true });
