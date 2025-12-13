@@ -104,6 +104,17 @@ class ArcballControls extends Controls {
      */
     this.scene = scene;
 
+    // Информация о размерах контейнера для работы в воркере
+    this._containerRect = {
+      width: 0,
+      height: 0,
+      left: 0,
+      top: 0,
+    };
+
+    // Флаг для определения работы в воркере
+    this._isWorker = typeof window === 'undefined' || (typeof OffscreenCanvas !== 'undefined' && domElement instanceof OffscreenCanvas);
+
     /**
      * The control's focus point.
      *
@@ -418,27 +429,135 @@ class ArcballControls extends Controls {
   connect(element) {
     super.connect(element);
 
-    this.domElement.style.touchAction = 'none';
-    this._devPxRatio = window.devicePixelRatio;
+    //this.domElement.style.touchAction = 'none';
+    if (typeof window !== 'undefined' && window.devicePixelRatio) {
+      this._devPxRatio = window.devicePixelRatio;
+    } else {
+      this._devPxRatio = 1;
+    }
 
-    this.domElement.addEventListener('contextmenu', this._onContextMenu);
-    this.domElement.addEventListener('wheel', this._onWheel, { passive: false });
-    this.domElement.addEventListener('pointerdown', this._onPointerDown);
-    this.domElement.addEventListener('pointercancel', this._onPointerCancel);
+    // В воркере не подписываемся на события напрямую
+    if (!this._isWorker && element && typeof element.addEventListener === 'function') {
+      this.domElement.addEventListener('contextmenu', this._onContextMenu);
+      this.domElement.addEventListener('wheel', this._onWheel, { passive: false });
+      this.domElement.addEventListener('pointerdown', this._onPointerDown);
+      this.domElement.addEventListener('pointercancel', this._onPointerCancel);
 
-    window.addEventListener('resize', this._onWindowResize);
+      if (typeof window !== 'undefined') {
+        window.addEventListener('resize', this._onWindowResize);
+      }
+    }
   }
 
   disconnect() {
-    this.domElement.removeEventListener('pointerdown', this._onPointerDown);
-    this.domElement.removeEventListener('pointercancel', this._onPointerCancel);
-    this.domElement.removeEventListener('wheel', this._onWheel);
-    this.domElement.removeEventListener('contextmenu', this._onContextMenu);
+    if (!this._isWorker && this.domElement && typeof this.domElement.removeEventListener === 'function') {
+      this.domElement.removeEventListener('pointerdown', this._onPointerDown);
+      this.domElement.removeEventListener('pointercancel', this._onPointerCancel);
+      this.domElement.removeEventListener('wheel', this._onWheel);
+      this.domElement.removeEventListener('contextmenu', this._onContextMenu);
+    }
 
-    window.removeEventListener('pointermove', this._onPointerMove);
-    window.removeEventListener('pointerup', this._onPointerUp);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('pointermove', this._onPointerMove);
+      window.removeEventListener('pointerup', this._onPointerUp);
+      window.removeEventListener('resize', this._onWindowResize);
+    }
+  }
 
-    window.removeEventListener('resize', this._onWindowResize);
+  // Методы для обработки событий в воркере
+  setContainerRect(rect) {
+    this._containerRect = {
+      width: rect.width || 0,
+      height: rect.height || 0,
+      left: rect.left || 0,
+      top: rect.top || 0,
+    };
+  }
+
+  handlePointerDown(event) {
+    if (this._isWorker) {
+      // Создаем объект события, совместимый с оригинальным обработчиком
+      const domEvent = {
+        clientX: event.clientX,
+        clientY: event.clientY,
+        button: event.button,
+        buttons: event.buttons,
+        pointerId: event.pointerId,
+        pointerType: event.pointerType || 'mouse',
+        ctrlKey: event.ctrlKey || false,
+        metaKey: event.metaKey || false,
+        shiftKey: event.shiftKey || false,
+        isPrimary: event.isPrimary !== undefined ? event.isPrimary : true,
+        preventDefault: () => {},
+        stopPropagation: () => {},
+      };
+      this._onPointerDown(domEvent);
+    }
+  }
+
+  handlePointerMove(event) {
+    if (this._isWorker) {
+      const domEvent = {
+        clientX: event.clientX,
+        clientY: event.clientY,
+        button: event.button,
+        buttons: event.buttons,
+        pointerId: event.pointerId,
+        pointerType: event.pointerType || 'mouse',
+        ctrlKey: event.ctrlKey || false,
+        metaKey: event.metaKey || false,
+        shiftKey: event.shiftKey || false,
+        preventDefault: () => {},
+        stopPropagation: () => {},
+      };
+      this._onPointerMove(domEvent);
+    }
+  }
+
+  handlePointerUp(event) {
+    if (this._isWorker) {
+      const domEvent = {
+        clientX: event.clientX,
+        clientY: event.clientY,
+        button: event.button,
+        buttons: event.buttons,
+        pointerId: event.pointerId,
+        pointerType: event.pointerType || 'mouse',
+        isPrimary: event.isPrimary !== undefined ? event.isPrimary : true,
+        timeStamp: event.timeStamp || performance.now(),
+        preventDefault: () => {},
+        stopPropagation: () => {},
+      };
+      this._onPointerUp(domEvent);
+    }
+  }
+
+  handlePointerCancel(event) {
+    if (this._isWorker) {
+      const domEvent = {
+        pointerId: event.pointerId,
+        preventDefault: () => {},
+        stopPropagation: () => {},
+      };
+      this._onPointerCancel(domEvent);
+    }
+  }
+
+  handleWheel(event) {
+    if (this._isWorker) {
+      const domEvent = {
+        clientX: event.clientX,
+        clientY: event.clientY,
+        deltaY: event.deltaY,
+        deltaX: event.deltaX || 0,
+        ctrlKey: event.ctrlKey || false,
+        metaKey: event.metaKey || false,
+        shiftKey: event.shiftKey || false,
+        preventDefault: () => {},
+        stopPropagation: () => {},
+      };
+      this._onWheel(domEvent);
+    }
   }
 
   onSinglePanStart(event, operation) {
@@ -733,7 +852,8 @@ class ArcballControls extends Controls {
           const w = Math.abs((this._wPrev + this._wCurr) / 2);
 
           const self = this;
-          this._animationId = window.requestAnimationFrame(function (t) {
+          const requestAnim = typeof window !== 'undefined' ? window.requestAnimationFrame : self.requestAnimationFrame;
+          this._animationId = requestAnim(function (t) {
             self.updateTbState(STATE.ANIMATION_ROTATE, true);
             const rotationAxis = self.calculateRotationAxis(self._cursorPosPrev, self._cursorPosCurr);
 
@@ -774,11 +894,15 @@ class ArcballControls extends Controls {
       if (hitP != null && this.enableAnimations) {
         const self = this;
         if (this._animationId != -1) {
-          window.cancelAnimationFrame(this._animationId);
+          const cancelAnim = typeof window !== 'undefined' ? window.cancelAnimationFrame : self.cancelAnimationFrame;
+          if (cancelAnim) {
+            cancelAnim(this._animationId);
+          }
         }
 
         this._timeStart = -1;
-        this._animationId = window.requestAnimationFrame(function (t) {
+        const requestAnim = typeof window !== 'undefined' ? window.requestAnimationFrame : self.requestAnimationFrame;
+        this._animationId = requestAnim(function (t) {
           self.updateTbState(STATE.ANIMATION_FOCUS, true);
           self.onFocusAnim(t, hitP, self._cameraMatrixState, self._gizmoMatrixState);
         });
@@ -887,15 +1011,17 @@ class ArcballControls extends Controls {
       this.dispatchEvent(_startEvent);
       this.updateTbState(STATE.SCALE, true);
 
-      this._startFingerDistance = this.calculatePointersDistance(this._touchCurrent[0], this._touchCurrent[1]);
-      this._currentFingerDistance = this._startFingerDistance;
+      if (this._touchCurrent.length >= 2 && this._touchCurrent[0] && this._touchCurrent[1]) {
+        this._startFingerDistance = this.calculatePointersDistance(this._touchCurrent[0], this._touchCurrent[1]);
+        this._currentFingerDistance = this._startFingerDistance;
+      }
 
       this.activateGizmos(false);
     }
   }
 
   onPinchMove() {
-    if (this.enabled && this.enableZoom) {
+    if (this.enabled && this.enableZoom && this._touchCurrent.length >= 2 && this._touchCurrent[0] && this._touchCurrent[1]) {
       this.setCenter((this._touchCurrent[0].clientX + this._touchCurrent[1].clientX) / 2, (this._touchCurrent[0].clientY + this._touchCurrent[1].clientY) / 2);
       const minDistance = 12; //minimum distance between fingers (in css pixels)
 
@@ -1346,6 +1472,9 @@ class ArcballControls extends Controls {
    * @returns {number} The distance between the two pointers.
    */
   calculatePointersDistance(p0, p1) {
+    if (!p0 || !p1 || typeof p0.clientX !== 'number' || typeof p1.clientX !== 'number') {
+      return 0;
+    }
     return Math.sqrt(Math.pow(p1.clientX - p0.clientX, 2) + Math.pow(p1.clientY - p0.clientY, 2));
   }
 
@@ -1460,7 +1589,10 @@ class ArcballControls extends Controls {
 
   dispose() {
     if (this._animationId != -1) {
-      window.cancelAnimationFrame(this._animationId);
+      const cancelAnim = typeof window !== 'undefined' ? window.cancelAnimationFrame : self.cancelAnimationFrame;
+      if (cancelAnim) {
+        cancelAnim(this._animationId);
+      }
     }
 
     this.disconnect();
@@ -1521,7 +1653,28 @@ class ArcballControls extends Controls {
    * @returns {Vector2} Cursor normalized position inside the canvas.
    */
   getCursorNDC(cursorX, cursorY, canvas) {
-    const canvasRect = canvas.getBoundingClientRect();
+    let canvasRect;
+    if (this._isWorker && this._containerRect.width > 0) {
+      // В воркере координаты уже скорректированы относительно canvas, поэтому left и top = 0
+      canvasRect = {
+        left: 0,
+        top: 0,
+        width: this._containerRect.width,
+        height: this._containerRect.height,
+        bottom: this._containerRect.height,
+      };
+    } else if (canvas && typeof canvas.getBoundingClientRect === 'function') {
+      canvasRect = canvas.getBoundingClientRect();
+    } else {
+      // Fallback на размеры domElement
+      canvasRect = {
+        left: 0,
+        top: 0,
+        width: canvas ? canvas.clientWidth || canvas.width || 1 : 1,
+        height: canvas ? canvas.clientHeight || canvas.height || 1 : 1,
+        bottom: canvas ? canvas.clientHeight || canvas.height || 1 : 1,
+      };
+    }
     this._v2_1.setX(((cursorX - canvasRect.left) / canvasRect.width) * 2 - 1);
     this._v2_1.setY(((canvasRect.bottom - cursorY) / canvasRect.height) * 2 - 1);
     return this._v2_1.clone();
@@ -1718,7 +1871,8 @@ class ArcballControls extends Controls {
 
         this.dispatchEvent(_changeEvent);
         const self = this;
-        this._animationId = window.requestAnimationFrame(function (t) {
+        const requestAnim = typeof window !== 'undefined' ? window.requestAnimationFrame : self.requestAnimationFrame;
+        this._animationId = requestAnim(function (t) {
           self.onFocusAnim(t, point, cameraMatrix, gizmoMatrix.clone());
         });
       }
@@ -1757,7 +1911,8 @@ class ArcballControls extends Controls {
         this.applyTransformMatrix(this.rotate(rotationAxis, this._angleCurrent));
         this.dispatchEvent(_changeEvent);
         const self = this;
-        this._animationId = window.requestAnimationFrame(function (t) {
+        const requestAnim = typeof window !== 'undefined' ? window.requestAnimationFrame : self.requestAnimationFrame;
+        this._animationId = requestAnim(function (t) {
           self.onRotationAnim(t, rotationAxis, w0);
         });
       } else {
@@ -2501,8 +2656,10 @@ function onPointerDown(event) {
         this._input = INPUT.ONE_FINGER;
         this.onSinglePanStart(event, 'ROTATE');
 
-        window.addEventListener('pointermove', this._onPointerMove);
-        window.addEventListener('pointerup', this._onPointerUp);
+        if (typeof window !== 'undefined') {
+          window.addEventListener('pointermove', this._onPointerMove);
+          window.addEventListener('pointerup', this._onPointerUp);
+        }
 
         break;
 
@@ -2534,8 +2691,10 @@ function onPointerDown(event) {
 
     this._mouseOp = this.getOpFromAction(event.button, modifier);
     if (this._mouseOp != null) {
-      window.addEventListener('pointermove', this._onPointerMove);
-      window.addEventListener('pointerup', this._onPointerUp);
+      if (typeof window !== 'undefined') {
+        window.addEventListener('pointermove', this._onPointerMove);
+        window.addEventListener('pointerup', this._onPointerUp);
+      }
 
       //singleStart
       this._input = INPUT.CURSOR;
@@ -2556,17 +2715,17 @@ function onPointerMove(event) {
         break;
 
       case INPUT.ONE_FINGER_SWITCHED:
-        const movement = this.calculatePointersDistance(this._touchCurrent[0], event) * this._devPxRatio;
+        if (this._touchCurrent.length > 0 && this._touchCurrent[0]) {
+          const movement = this.calculatePointersDistance(this._touchCurrent[0], event) * this._devPxRatio;
 
-        if (movement >= this._switchSensibility) {
-          //singleMove
-          this._input = INPUT.ONE_FINGER;
-          this.updateTouchEvent(event);
+          if (movement >= this._switchSensibility) {
+            //singleMove
+            this._input = INPUT.ONE_FINGER;
+            this.updateTouchEvent(event);
 
-          this.onSinglePanStart(event, 'ROTATE');
-          break;
+            this.onSinglePanStart(event, 'ROTATE');
+          }
         }
-
         break;
 
       case INPUT.TWO_FINGER:
@@ -2603,10 +2762,13 @@ function onPointerMove(event) {
   }
 
   //checkDistance
-  if (this._downValid) {
-    const movement = this.calculatePointersDistance(this._downEvents[this._downEvents.length - 1], event) * this._devPxRatio;
-    if (movement > this._movementThreshold) {
-      this._downValid = false;
+  if (this._downValid && this._downEvents.length > 0) {
+    const lastEvent = this._downEvents[this._downEvents.length - 1];
+    if (lastEvent) {
+      const movement = this.calculatePointersDistance(lastEvent, event) * this._devPxRatio;
+      if (movement > this._movementThreshold) {
+        this._downValid = false;
+      }
     }
   }
 }
@@ -2627,8 +2789,10 @@ function onPointerUp(event) {
       case INPUT.ONE_FINGER:
       case INPUT.ONE_FINGER_SWITCHED:
         //singleEnd
-        window.removeEventListener('pointermove', this._onPointerMove);
-        window.removeEventListener('pointerup', this._onPointerUp);
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('pointermove', this._onPointerMove);
+          window.removeEventListener('pointerup', this._onPointerUp);
+        }
 
         this._input = INPUT.NONE;
         this.onSinglePanEnd();
@@ -2648,8 +2812,10 @@ function onPointerUp(event) {
 
       case INPUT.MULT_FINGER:
         if (this._touchCurrent.length == 0) {
-          window.removeEventListener('pointermove', this._onPointerMove);
-          window.removeEventListener('pointerup', this._onPointerUp);
+          if (typeof window !== 'undefined') {
+            window.removeEventListener('pointermove', this._onPointerMove);
+            window.removeEventListener('pointerup', this._onPointerUp);
+          }
 
           //multCancel
           this._input = INPUT.NONE;
@@ -2659,8 +2825,10 @@ function onPointerUp(event) {
         break;
     }
   } else if (event.pointerType != 'touch' && this._input == INPUT.CURSOR) {
-    window.removeEventListener('pointermove', this._onPointerMove);
-    window.removeEventListener('pointerup', this._onPointerUp);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('pointermove', this._onPointerMove);
+      window.removeEventListener('pointerup', this._onPointerUp);
+    }
 
     this._input = INPUT.NONE;
     this.onSinglePanEnd();
@@ -2668,8 +2836,13 @@ function onPointerUp(event) {
   }
 
   if (event.isPrimary) {
-    if (this._downValid) {
-      const downTime = event.timeStamp - this._downEvents[this._downEvents.length - 1].timeStamp;
+    if (this._downValid && this._downEvents.length > 0) {
+      const lastEvent = this._downEvents[this._downEvents.length - 1];
+      if (!lastEvent) {
+        this._downValid = false;
+        return;
+      }
+      const downTime = event.timeStamp - lastEvent.timeStamp;
 
       if (downTime <= this._maxDownTime) {
         if (this._nclicks == 0) {
@@ -2678,7 +2851,10 @@ function onPointerUp(event) {
           this._clickStart = performance.now();
         } else {
           const clickInterval = event.timeStamp - this._clickStart;
-          const movement = this.calculatePointersDistance(this._downEvents[1], this._downEvents[0]) * this._devPxRatio;
+          let movement = 0;
+          if (this._downEvents.length >= 2 && this._downEvents[0] && this._downEvents[1]) {
+            movement = this.calculatePointersDistance(this._downEvents[1], this._downEvents[0]) * this._devPxRatio;
+          }
 
           if (clickInterval <= this._maxInterval && movement <= this._posThreshold) {
             //second valid click detected

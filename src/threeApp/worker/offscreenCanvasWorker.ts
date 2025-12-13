@@ -38,7 +38,6 @@ class OffscreenCanvasWorker {
   private camera!: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   private controls!: ArcballControls;
   private container;
-  private dpr = 1;
 
   constructor() {
     self.onmessage = (e: MessageEvent<WorkerMessage>) => this.handleMessage(e.data);
@@ -56,15 +55,26 @@ class OffscreenCanvasWorker {
         break;
       case 'event':
         if (this.controls) {
-          this.controls.dispatchEvent(msg.event);
-          SceneManager.inst().render();
-        }
-        if (msg.event.kind === 'pointer' && MouseManager.inst()) {
-          MouseManager.inst().handlePointerEvent(msg.event.type, {
-            clientX: msg.event.clientX,
-            clientY: msg.event.clientY,
-            button: msg.event.button,
-          });
+          const event = msg.event;
+          const controls = this.controls as any;
+          if (event.kind === 'pointer') {
+            switch (event.type) {
+              case 'pointerdown':
+                controls.handlePointerDown(event);
+                break;
+              case 'pointermove':
+                controls.handlePointerMove(event);
+                break;
+              case 'pointerup':
+                controls.handlePointerUp(event);
+                break;
+              case 'pointercancel':
+                controls.handlePointerCancel(event);
+                break;
+            }
+          } else if (event.kind === 'wheel') {
+            controls.handleWheel(event);
+          }
         }
         break;
       case 'loadModel':
@@ -92,13 +102,20 @@ class OffscreenCanvasWorker {
     const height = this.container.height;
     const left = this.container.left;
     const top = this.container.top;
-    this.dpr = this.container.dpr;
 
     await SceneManager.inst().initWorker({ canvas, container: { width, height, left, top } });
     this.scene = SceneManager.inst().scene;
     this.renderer = SceneManager.inst().renderer;
     this.camera = SceneManager.inst().camera;
     this.controls = SceneManager.inst().controls;
+
+    // Устанавливаем размеры контейнера для controls
+    if (this.controls) {
+      const controls = this.controls as any;
+      if (typeof controls.setContainerRect === 'function') {
+        controls.setContainerRect({ width, height, left, top });
+      }
+    }
 
     InitModel.inst();
     SelectionHandler.inst();
@@ -140,8 +157,15 @@ class OffscreenCanvasWorker {
   private resize(width: number, height: number, left: number, top: number) {
     SceneManager.inst().setSizeContainer({ width, height, left, top });
     SceneManager.inst().cameraManager.resize();
+
+    // Обновляем размеры контейнера для controls
+    if (this.controls) {
+      const controls = this.controls as any;
+      if (typeof controls.setContainerRect === 'function') {
+        controls.setContainerRect({ width, height, left, top });
+      }
+    }
   }
 }
 
 new OffscreenCanvasWorker();
-

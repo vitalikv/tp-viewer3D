@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { ArcballControls, ArcballControlsEventMap } from 'three/examples/jsm/controls/ArcballControls';
+//import { ArcballControls, ArcballControlsEventMap } from 'three/examples/jsm/controls/ArcballControls';
+import { ArcballControls } from '@/threeApp/worker/ArcballControls';
 import Stats from 'stats.js';
 import { ContextSingleton } from '@/core/ContextSingleton';
 
@@ -194,12 +195,12 @@ export class SceneManager extends ContextSingleton<SceneManager> {
   }
 
   private initControls() {
-    // this.controls = new ArcballControls(this.camera, this.renderer.domElement, this.scene);
-    // this.controls.enableAnimations = false;
-    // this.controls.addEventListener('change', () => this.render());
-    // this.controls.addEventListener('start', () => this.render());
-    // this.controls.addEventListener('end', () => this.render());
-
+    this.controls = new ArcballControls(this.camera, this.canvas, this.scene);
+    this.controls.enableAnimations = true;
+    this.controls.addEventListener('change', () => this.render());
+    this.controls.addEventListener('start', () => this.render());
+    this.controls.addEventListener('end', () => this.render());
+    return;
     this.controls = new ControlsManager(this.camera, this.container as { width: number; height: number }, this.scene);
     this.controls.enableAnimations = false;
 
