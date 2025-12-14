@@ -65,7 +65,7 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     }
   };
 
-  public handlePointerEvent(type: string, eventData: { clientX: number; clientY: number; button?: number }): void {
+  public handlePointerEvent(type: string, eventData: { clientX: number; clientY: number; button?: number }) {
     if (!this.isWorker) return;
 
     const syntheticEvent = {

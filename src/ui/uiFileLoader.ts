@@ -5,7 +5,6 @@ import { InitModel } from '@/threeApp/model/initModel';
 import { UiFileMenu } from './uiFileMenu';
 import { UiLoadTimeDiv } from './uiLoadTimeDiv';
 import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
-import { threeApp } from '@/main';
 
 export class UiFileLoader extends ContextSingleton<UiFileLoader> {
   private container: HTMLElement;
@@ -94,12 +93,15 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
     }
   };
 
-  private readGltfFile(file, progressElement, event) {
+  private readGltfFile = (file, progressElement, event) => {
     // Запускаем таймер загрузки
     UiLoadTimeDiv.inst().startTimer();
 
     // Проверяем, используется ли renderWorker
-    if (threeApp.isRenderWorker) {
+    const offscreenCanvasManager = OffscreenCanvasManager.inst();
+    const isWorker = offscreenCanvasManager && offscreenCanvasManager.worker ? true : false;
+    console.log('isWorker', isWorker);
+    if (isWorker) {
       // Проверка, что мы в основном потоке
       const isInMainThread = typeof window !== 'undefined' && self === window;
       console.log('[MAIN THREAD] Отправка файла в воркер:', file.name, 'Размер:', file.size, 'В основном потоке:', isInMainThread);
@@ -157,7 +159,7 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
 
       reader.readAsArrayBuffer(file);
     }
-  }
+  };
 
   private readSvgFile(file, progressElement, event) {
     const reader = new FileReader();

@@ -31,7 +31,6 @@ export class ApiUiToThree {
   }
 
   public static activateClippingBvh() {
-    // Проверяем, используется ли воркер, через проверку наличия OffscreenCanvasManager и его worker
     const offscreenCanvasManager = OffscreenCanvasManager.inst();
     if (offscreenCanvasManager && offscreenCanvasManager.worker) {
       offscreenCanvasManager.worker.postMessage({ type: 'activateClippingBvh' });

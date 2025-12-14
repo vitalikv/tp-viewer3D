@@ -5,6 +5,8 @@ import { SceneManager } from '@/threeApp/scene/sceneManager';
 import { EffectsManager } from '@/threeApp/scene/effectsManager';
 import { MouseManager } from '@/threeApp/scene/mouseManager';
 
+import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
+
 export class CameraManager {
   private camPerspective: THREE.PerspectiveCamera;
   private camOrthographic: THREE.OrthographicCamera;
@@ -20,13 +22,17 @@ export class CameraManager {
   }
 
   private initEvents() {
-    window.addEventListener('keydown', (event) => {
-      if (event.code === 'Enter') {
-        const camera = this.getActiveCamera();
-        const type = camera instanceof THREE.PerspectiveCamera ? 'Orthographic' : 'Perspective';
-        this.setCamera({ type });
-      }
-    });
+    const isWorker = OffscreenCanvasManager.inst().isWorker;
+
+    if (!isWorker) {
+      window.addEventListener('keydown', (event) => {
+        if (event.code === 'Enter') {
+          const camera = this.getActiveCamera();
+          const type = camera instanceof THREE.PerspectiveCamera ? 'Orthographic' : 'Perspective';
+          this.setCamera({ type });
+        }
+      });
+    }
   }
 
   private initCameras() {

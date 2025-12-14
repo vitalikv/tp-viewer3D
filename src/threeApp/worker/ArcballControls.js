@@ -104,7 +104,6 @@ class ArcballControls extends Controls {
      */
     this.scene = scene;
 
-    // Информация о размерах контейнера для работы в воркере
     this._containerRect = {
       width: 0,
       height: 0,
@@ -112,7 +111,6 @@ class ArcballControls extends Controls {
       top: 0,
     };
 
-    // Флаг для определения работы в воркере
     this._isWorker = typeof window === 'undefined' || (typeof OffscreenCanvas !== 'undefined' && domElement instanceof OffscreenCanvas);
 
     /**
@@ -436,7 +434,6 @@ class ArcballControls extends Controls {
       this._devPxRatio = 1;
     }
 
-    // В воркере не подписываемся на события напрямую
     if (!this._isWorker && element && typeof element.addEventListener === 'function') {
       this.domElement.addEventListener('contextmenu', this._onContextMenu);
       this.domElement.addEventListener('wheel', this._onWheel, { passive: false });
@@ -464,7 +461,6 @@ class ArcballControls extends Controls {
     }
   }
 
-  // Методы для обработки событий в воркере
   setContainerRect(rect) {
     this._containerRect = {
       width: rect.width || 0,
@@ -476,7 +472,6 @@ class ArcballControls extends Controls {
 
   handlePointerDown(event) {
     if (this._isWorker) {
-      // Создаем объект события, совместимый с оригинальным обработчиком
       const domEvent = {
         clientX: event.clientX,
         clientY: event.clientY,
@@ -1655,7 +1650,6 @@ class ArcballControls extends Controls {
   getCursorNDC(cursorX, cursorY, canvas) {
     let canvasRect;
     if (this._isWorker && this._containerRect.width > 0) {
-      // В воркере координаты уже скорректированы относительно canvas, поэтому left и top = 0
       canvasRect = {
         left: 0,
         top: 0,

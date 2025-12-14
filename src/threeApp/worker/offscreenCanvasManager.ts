@@ -1,6 +1,7 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
 
 export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasManager> {
+  public isWorker = typeof window === 'undefined' && typeof self !== 'undefined';
   public worker: Worker;
   private container: HTMLCanvasElement;
   private resizeObserver?: ResizeObserver;
@@ -152,4 +153,3 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
     }
   }
 }
-

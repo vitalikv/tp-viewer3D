@@ -30,7 +30,6 @@ export class ThreeApp {
       left: containerRect.left,
       top: containerRect.top,
       dpr: window.devicePixelRatio,
-      virtDom: true,
     };
 
     //this.initWatermark();

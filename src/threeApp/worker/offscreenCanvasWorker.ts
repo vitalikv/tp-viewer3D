@@ -76,6 +76,13 @@ class OffscreenCanvasWorker {
             controls.handleWheel(event);
           }
         }
+        if (msg.event.kind === 'pointer' && MouseManager.inst()) {
+          MouseManager.inst().handlePointerEvent(msg.event.type, {
+            clientX: msg.event.clientX,
+            clientY: msg.event.clientY,
+            button: msg.event.button,
+          });
+        }
         break;
       case 'loadModel':
         if (this.scene) {

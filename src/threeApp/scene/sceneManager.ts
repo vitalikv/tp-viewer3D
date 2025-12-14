@@ -10,7 +10,7 @@ import { EffectsManager } from '@/threeApp/scene/effectsManager';
 import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
 import { Watermark3d } from '@/watermark/watermark3d';
 import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
-import { ControlsManager } from './controlsManager';
+import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
 export class SceneManager extends ContextSingleton<SceneManager> {
   stats = null;
@@ -21,6 +21,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
   renderer: THREE.WebGLRenderer;
   controls: ArcballControls;
   cameraManager: CameraManager;
+  private renderScheduled = false;
 
   public async init({ canvas, container }) {
     this.canvas = canvas;
@@ -109,8 +110,9 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     const transitionWidth: number = options.transitionWidth;
 
     let canvas: HTMLCanvasElement | OffscreenCanvas;
+    const isWorker = OffscreenCanvasManager.inst().isWorker;
 
-    if (!(document as any)?.isWorker === undefined) {
+    if (!isWorker) {
       canvas = document.createElement('canvas');
       canvas.width = 1024;
       canvas.height = 1024;
@@ -196,52 +198,31 @@ export class SceneManager extends ContextSingleton<SceneManager> {
 
   private initControls() {
     this.controls = new ArcballControls(this.camera, this.canvas, this.scene);
-    this.controls.enableAnimations = true;
-    this.controls.addEventListener('change', () => this.render());
-    this.controls.addEventListener('start', () => this.render());
-    this.controls.addEventListener('end', () => this.render());
-    return;
-    this.controls = new ControlsManager(this.camera, this.container as { width: number; height: number }, this.scene);
     this.controls.enableAnimations = false;
 
-    if ((document as any)?.isWorker === undefined) {
-      const pointerEvents = ['pointerdown', 'pointermove', 'pointerup', 'pointercancel'];
-      pointerEvents.forEach((type) => {
-        this.canvas.addEventListener(
-          type,
-          (e: PointerEvent) => {
-            e.preventDefault();
-            this.controls.dispatchEvent({
-              kind: 'pointer',
-              type: type as keyof ArcballControlsEventMap,
-              clientX: e.clientX,
-              clientY: e.clientY,
-              button: e.button,
-              buttons: e.buttons,
-              pointerId: e.pointerId,
-              pointerType: e.pointerType,
-            } as any);
-            this.render();
-          },
-          { passive: false }
-        );
-      });
+    const isWorker = OffscreenCanvasManager.inst().isWorker;
 
-      this.canvas.addEventListener(
-        'wheel',
-        (event) => {
-          event.preventDefault();
-          this.controls.dispatchEvent({
-            kind: 'wheel',
-            deltaY: event.deltaY,
-            clientX: event.clientX,
-            clientY: event.clientY,
-          } as any);
-          this.render();
-        },
-        { passive: false }
-      );
+    if (isWorker) {
+      const raf = typeof window !== 'undefined' ? window.requestAnimationFrame : typeof self !== 'undefined' ? self.requestAnimationFrame : null;
+      if (raf) {
+        this.controls.addEventListener('change', () => {
+          if (!this.renderScheduled) {
+            this.renderScheduled = true;
+            raf(() => {
+              this.render();
+              this.renderScheduled = false;
+            });
+          }
+        });
+      } else {
+        this.controls.addEventListener('change', () => this.render());
+      }
+    } else {
+      this.controls.addEventListener('change', () => this.render());
     }
+
+    this.controls.addEventListener('start', () => this.render());
+    this.controls.addEventListener('end', () => this.render());
   }
 
   private initLights() {
@@ -270,9 +251,9 @@ export class SceneManager extends ContextSingleton<SceneManager> {
 
     console.log('render');
 
-    if (ClippingBvh.inst()) ClippingBvh.inst().performClipping();
-    // не работает при вкл renderWorker
-    if (EffectsManager.inst() && EffectsManager.inst().enabled) {
+    ClippingBvh.inst().performClipping();
+
+    if (EffectsManager.inst().enabled) {
       const renderCalls = EffectsManager.inst().render();
       Watermark3d.renderOverlay();
 
@@ -284,8 +265,6 @@ export class SceneManager extends ContextSingleton<SceneManager> {
 
       ApiThreeToUi.updateDrawCalls(this.renderer.info.render.calls);
     }
-
-    this.controls.update();
 
     if (this.stats) this.stats.end();
   }
