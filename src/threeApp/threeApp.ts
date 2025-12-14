@@ -8,9 +8,7 @@ import { EffectsManager } from '@/threeApp/scene/effectsManager';
 import { OutlineSelection } from '@/threeApp/selection/outlineSelection';
 import { WatermarkCanvas, IWatermarkParams } from '@/watermark/watermarkCanvas';
 import { AnimationManager } from '@/threeApp/animation/animationManager';
-
 import { ViewCube } from '@/threeApp/scene/viewCube';
-
 import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
 export class ThreeApp {
@@ -32,7 +30,7 @@ export class ThreeApp {
       dpr: window.devicePixelRatio,
     };
 
-    //this.initWatermark();
+    this.initWatermark();
 
     if (this.isRenderWorker) {
       OffscreenCanvasManager.inst().init({ canvas });
@@ -50,11 +48,10 @@ export class ThreeApp {
       OutlineSelection.inst().init({ outlinePass: EffectsManager.inst().outlinePass, composer: EffectsManager.inst().composer });
       MouseManager.inst().init(SceneManager.inst().camera, SceneManager.inst().renderer.domElement);
       BVHManager.inst().init();
+      InitModel.inst().setMerge({ merge: true });
 
       const container = document.getElementById('container');
       new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
-
-      InitModel.inst().setMerge({ merge: true });
 
       const resizeHandler = () => {
         const rect = canvas.getBoundingClientRect();

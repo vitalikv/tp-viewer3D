@@ -418,7 +418,23 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
   }
 
   public hasAnimations(): boolean {
-    return this.animationClips.length > 0 && this.animationActions.length > 0;
+    // Проверяем наличие анимаций по клипам (actions могут быть пустыми при синхронизации из воркера)
+    return this.animationClips.length > 0;
+  }
+
+  // Метод для получения информации об анимациях (для синхронизации с воркером)
+  public getAnimationsInfo(): { animations: Array<{ name: string; duration: number }>; maxDuration: number } {
+    const animations = this.animationClips.map((clip) => ({
+      name: clip.name,
+      duration: clip.duration,
+    }));
+    return { animations, maxDuration: this.animationMaxDuration };
+  }
+
+  // Метод для синхронизации информации об анимациях из воркера
+  public setAnimationsInfo(animations: THREE.AnimationClip[], maxDuration: number): void {
+    this.animationClips = animations;
+    this.animationMaxDuration = maxDuration;
   }
 
   public getAnimationMaxDuration(): number {

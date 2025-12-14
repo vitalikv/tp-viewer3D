@@ -1,3 +1,6 @@
+import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
+import { SceneManager } from '@/threeApp/scene/sceneManager';
+
 export interface IWatermarkParams {
   activated?: boolean;
   contentType?: 'datetime' | 'text';
@@ -85,10 +88,10 @@ export class WatermarkCanvas {
   private static createCanvas() {
     const rect = this.getClientRect();
 
-    let canvas: HTMLCanvasElement | OffscreenCanvas;
+    const isWorker = OffscreenCanvasManager.inst().isWorker;
 
-    if (!(document as any)?.isWorker === undefined) {
-      canvas = document.createElement('canvas');
+    if (!isWorker) {
+      this.canvas = document.createElement('canvas');
       this.canvas.width = rect.width;
       this.canvas.height = rect.height;
     } else {
@@ -100,13 +103,7 @@ export class WatermarkCanvas {
   }
 
   private static getClientRect() {
-    if (this.container && typeof this.container === 'object' && 'virtDom' in this.container && this.container.virtDom) {
-      return {
-        width: this.container.width,
-        height: this.container.height,
-      };
-    }
-    return (this.container as HTMLElement).getBoundingClientRect();
+    return SceneManager.inst().getClientRect();
   }
 
   private static updateTexture() {

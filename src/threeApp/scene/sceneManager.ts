@@ -27,24 +27,8 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.canvas = canvas;
     this.container = container;
 
-    this.initStats();
-    this.initScene();
-    this.initRenderer();
-    this.initCamera();
-    this.initControls();
-    this.initLights();
-    this.initHelpers();
-
-    await WatermarkCanvas.init(this.container);
-    Watermark3d.init(this.renderer);
-
-    this.render();
-  }
-
-  public async initWorker({ canvas, container }) {
-    this.canvas = canvas;
-    this.container = container;
-
+    const isWorker = OffscreenCanvasManager.inst().isWorker;
+    if (!isWorker) this.initStats();
     this.initScene();
     this.initRenderer();
     this.initCamera();

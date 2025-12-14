@@ -11,26 +11,29 @@ import { SelectionHandler } from '../selection/selectionHandler';
 import { MouseManager } from '../scene/mouseManager';
 import { EffectsManager } from '../scene/effectsManager';
 
-// Полифилл для requestAnimationFrame в воркере
-if (typeof self.requestAnimationFrame === 'undefined') {
-  let lastTime = 0;
-  self.requestAnimationFrame = function (callback: FrameRequestCallback) {
-    const currentTime = performance.now();
-    const timeToCall = Math.max(0, 16 - (currentTime - lastTime));
-    const id = self.setTimeout(() => {
-      callback(currentTime + timeToCall);
-    }, timeToCall);
-    lastTime = currentTime + timeToCall;
-    return id;
-  };
-
-  self.cancelAnimationFrame = function (id: number) {
-    self.clearTimeout(id);
-  };
-}
-
-// Расширяем тип сообщений
-type WorkerMessage = { type: 'init'; canvas: OffscreenCanvas; container: any } | { type: 'resize'; width: number; height: number; left: number; top: number } | { type: 'event'; event: any } | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string } | { type: 'activateClippingBvh' };
+type WorkerMessage =
+  | { type: 'init'; canvas: OffscreenCanvas; container: any }
+  | { type: 'resize'; width: number; height: number; left: number; top: number }
+  | { type: 'event'; event: any }
+  | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string }
+  | { type: 'activateClippingBvh' }
+  | { type: 'setPlanePosition'; x: number; y: number; z: number }
+  | { type: 'setPlaneRotation'; x: number; y: number; z: number }
+  | { type: 'resetPlane' }
+  | { type: 'deActivateClippingBvh' }
+  | { type: 'toggleUseBVH' }
+  | { type: 'toggleHelperBVH' }
+  | { type: 'toggleModel' }
+  | { type: 'toggleWireframe' }
+  | { type: 'toggleInvertPlane' }
+  | { type: 'toggleShowPlane' }
+  | { type: 'playAnimation' }
+  | { type: 'pauseAnimation' }
+  | { type: 'setAnimationPosStart' }
+  | { type: 'setAnimationPosEnd' }
+  | { type: 'setAnimationIndex'; index: number }
+  | { type: 'setAnimationTime'; time: number }
+  | { type: 'rebuildAnimationBVH' };
 
 class OffscreenCanvasWorker {
   private renderer!: THREE.WebGLRenderer;
@@ -98,6 +101,101 @@ class OffscreenCanvasWorker {
           }
         }
         break;
+      case 'setPlanePosition':
+        if (this.scene) {
+          ClippingBvh.inst().setPlanePosition(msg.x, msg.y, msg.z);
+          SceneManager.inst().render();
+        }
+        break;
+      case 'setPlaneRotation':
+        if (this.scene) {
+          ClippingBvh.inst().setPlaneRotation(msg.x, msg.y, msg.z);
+          SceneManager.inst().render();
+        }
+        break;
+      case 'resetPlane':
+        if (this.scene) {
+          ClippingBvh.inst().resetPlane();
+          SceneManager.inst().render();
+        }
+        break;
+      case 'deActivateClippingBvh':
+        if (this.scene) {
+          ClippingBvh.inst().destroy();
+          SceneManager.inst().render();
+        }
+        break;
+      case 'toggleUseBVH':
+        if (this.scene) {
+          const act = !ClippingBvh.inst().getUseBVH();
+          ClippingBvh.inst().setUseBVH(act);
+        }
+        break;
+      case 'toggleHelperBVH':
+        if (this.scene) {
+          const act = !ClippingBvh.inst().getHelperBVH();
+          ClippingBvh.inst().setHelperBVH(act);
+        }
+        break;
+      case 'toggleModel':
+        if (this.scene) {
+          const act = !ClippingBvh.inst().getModel();
+          ClippingBvh.inst().setModel(act);
+        }
+        break;
+      case 'toggleWireframe':
+        if (this.scene) {
+          const act = !ClippingBvh.inst().getWireframe();
+          ClippingBvh.inst().setWireframe(act);
+        }
+        break;
+      case 'toggleInvertPlane':
+        if (this.scene) {
+          const act = !ClippingBvh.inst().getInvertPlane();
+          ClippingBvh.inst().setInvertPlane(act);
+        }
+        break;
+      case 'toggleShowPlane':
+        if (this.scene) {
+          const act = !ClippingBvh.inst().getShowPlane();
+          ClippingBvh.inst().setShowPlane(act);
+        }
+        break;
+      case 'playAnimation':
+        if (this.scene) {
+          AnimationManager.inst().play();
+        }
+        break;
+      case 'pauseAnimation':
+        if (this.scene) {
+          AnimationManager.inst().pause();
+        }
+        break;
+      case 'setAnimationPosStart':
+        if (this.scene) {
+          AnimationManager.inst().setAnimationPosStart();
+        }
+        break;
+      case 'setAnimationPosEnd':
+        if (this.scene) {
+          AnimationManager.inst().setAnimationPosEnd();
+        }
+        break;
+      case 'setAnimationIndex':
+        if (this.scene) {
+          AnimationManager.inst().setAnimationIndex(msg.index);
+        }
+        break;
+      case 'setAnimationTime':
+        if (this.scene) {
+          AnimationManager.inst().setAnimationTime(msg.time);
+        }
+        break;
+      case 'rebuildAnimationBVH':
+        if (this.scene) {
+          AnimationManager.inst().rebuildBVHIfNeeded();
+        }
+        break;
     }
   }
 
@@ -110,7 +208,7 @@ class OffscreenCanvasWorker {
     const left = this.container.left;
     const top = this.container.top;
 
-    await SceneManager.inst().initWorker({ canvas, container: { width, height, left, top } });
+    await SceneManager.inst().init({ canvas, container: { width, height, left, top } });
     this.scene = SceneManager.inst().scene;
     this.renderer = SceneManager.inst().renderer;
     this.camera = SceneManager.inst().camera;
@@ -136,7 +234,6 @@ class OffscreenCanvasWorker {
     OutlineSelection.inst().init({ outlinePass: EffectsManager.inst().outlinePass, composer: EffectsManager.inst().composer });
     MouseManager.inst().init(SceneManager.inst().camera);
     BVHManager.inst().init();
-
     InitModel.inst().setMerge({ merge: true });
   }
 
@@ -145,6 +242,13 @@ class OffscreenCanvasWorker {
       this.sendProgress('Loading model...');
 
       await InitModel.inst().handleFileLoad(arrayBuffer);
+
+      // Отправляем информацию об анимациях в основной поток
+      const animationManager = AnimationManager.inst();
+      if (animationManager.hasAnimations()) {
+        const { animations, maxDuration } = animationManager.getAnimationsInfo();
+        self.postMessage({ type: 'animationsInfo', animations, maxDuration });
+      }
 
       this.sendProgress(null);
       console.log('[WORKER] Модель успешно загружена в воркере');
@@ -165,7 +269,6 @@ class OffscreenCanvasWorker {
     SceneManager.inst().setSizeContainer({ width, height, left, top });
     SceneManager.inst().cameraManager.resize();
 
-    // Обновляем размеры контейнера для controls
     if (this.controls) {
       const controls = this.controls as any;
       if (typeof controls.setContainerRect === 'function') {

@@ -1,4 +1,9 @@
+import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
+import { AnimationManager } from '@/threeApp/animation/animationManager';
+import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
+import { UiPlayerAnimation } from '@/ui/uiPlayerAnimation';
+import { UiDrawCallsDiv } from '@/ui/uiDrawCallsDiv';
 
 export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasManager> {
   public isWorker = typeof window === 'undefined' && typeof self !== 'undefined';
@@ -100,13 +105,47 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
 
   private setupWorkerMessageHandler() {
     this.worker.onmessage = (e) => {
-      const { type, data, filename, error } = e.data;
+      const { type, data, filename, error, animations, maxDuration, time, maxTime, percent, isPlaying, value } = e.data;
 
       switch (type) {
         case 'progress':
           if (this.progressCallback) {
             this.progressCallback(data);
           }
+          break;
+        case 'animationsInfo':
+          // Синхронизируем информацию об анимациях из воркера
+          if (animations && animations.length > 0) {
+            const animationClips = animations.map((animData) => {
+              // Создаем упрощенный AnimationClip для синхронизации
+              const clip = new THREE.AnimationClip(animData.name, animData.duration, []);
+              return clip;
+            });
+            AnimationManager.inst().setAnimationsInfo(animationClips, maxDuration || 0);
+            // Обновляем UI меню анимаций
+            ApiThreeToUi.updatePlayerMenu(animationClips);
+          }
+          break;
+        case 'updatePlayerMenu':
+          if (animations && animations.length > 0) {
+            const animationClips = animations.map((animData) => {
+              const clip = new THREE.AnimationClip(animData.name, animData.duration, []);
+              return clip;
+            });
+            UiPlayerAnimation.inst().updatePlayerMenu(animationClips);
+          }
+          break;
+        case 'updatePlayerTime':
+          UiPlayerAnimation.inst().updatePlayerTime(time, maxTime);
+          break;
+        case 'updatePlayerCaret':
+          UiPlayerAnimation.inst().updatePlayerCaret(percent, isPlaying);
+          break;
+        case 'updatePlayerBtnPlay':
+          UiPlayerAnimation.inst().updateBtnPlay(isPlaying);
+          break;
+        case 'updateDrawCalls':
+          UiDrawCallsDiv.inst().updateText(value);
           break;
         case 'modelLoaded':
           if (this.modelLoadedCallback) {
