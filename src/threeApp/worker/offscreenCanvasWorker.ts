@@ -33,7 +33,8 @@ type WorkerMessage =
   | { type: 'setAnimationPosEnd' }
   | { type: 'setAnimationIndex'; index: number }
   | { type: 'setAnimationTime'; time: number }
-  | { type: 'rebuildAnimationBVH' };
+  | { type: 'rebuildAnimationBVH' }
+  | { type: 'setCameraPose'; position: number[]; quaternion: number[]; up: number[] };
 
 class OffscreenCanvasWorker {
   private renderer!: THREE.WebGLRenderer;
@@ -196,6 +197,9 @@ class OffscreenCanvasWorker {
           AnimationManager.inst().rebuildBVHIfNeeded();
         }
         break;
+      case 'setCameraPose':
+        this.applyCameraPose(msg);
+        break;
     }
   }
 
@@ -235,6 +239,11 @@ class OffscreenCanvasWorker {
     MouseManager.inst().init(SceneManager.inst().camera);
     BVHManager.inst().init();
     InitModel.inst().setMerge({ merge: true });
+
+    this.controls.addEventListener('change', () => this.sendCameraState());
+    this.controls.addEventListener('start', () => this.sendCameraState());
+    this.controls.addEventListener('end', () => this.sendCameraState());
+    this.sendCameraState();
   }
 
   private async loadModel(arrayBuffer: ArrayBuffer, filename: string) {
@@ -275,6 +284,31 @@ class OffscreenCanvasWorker {
         controls.setContainerRect({ width, height, left, top });
       }
     }
+  }
+
+  private sendCameraState() {
+    if (!this.camera || !this.controls) return;
+    const gizmo = (this.controls as any)._gizmos;
+    const gizmoPos = gizmo && gizmo.position ? gizmo.position.toArray() : [0, 0, 0];
+    self.postMessage({
+      type: 'cameraState',
+      position: this.camera.position.toArray(),
+      quaternion: this.camera.quaternion.toArray(),
+      up: this.camera.up.toArray(),
+      gizmoPosition: gizmoPos,
+    });
+  }
+
+  private applyCameraPose(msg: Extract<WorkerMessage, { type: 'setCameraPose' }>) {
+    if (!this.camera || !this.controls) return;
+    this.camera.position.fromArray(msg.position);
+    this.camera.quaternion.fromArray(msg.quaternion);
+    this.camera.up.fromArray(msg.up);
+    this.camera.updateProjectionMatrix();
+    this.camera.updateMatrixWorld();
+    this.controls.update();
+    this.sendCameraState();
+    SceneManager.inst().render();
   }
 }
 

@@ -13,6 +13,7 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
   private progressCallback?: (text: string | null) => void;
   private modelLoadedCallback?: (filename: string) => void;
   private modelErrorCallback?: (error: string) => void;
+  private cameraStateCallback?: (data: any) => void;
 
   public init({ canvas }: { canvas: HTMLCanvasElement }) {
     this.worker = new Worker(new URL('./offscreenCanvasWorker.ts', import.meta.url), { type: 'module' });
@@ -157,6 +158,11 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
             this.modelErrorCallback(error);
           }
           break;
+        case 'cameraState':
+          if (this.cameraStateCallback) {
+            this.cameraStateCallback(e.data);
+          }
+          break;
       }
     };
   }
@@ -190,5 +196,13 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
+  }
+
+  public onCameraState(callback) {
+    this.cameraStateCallback = callback;
+  }
+
+  public setCameraPose({ position, quaternion, up }) {
+    this.worker.postMessage({ type: 'setCameraPose', position, quaternion, up });
   }
 }

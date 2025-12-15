@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
 import { InitModel } from '@/threeApp/model/initModel';
@@ -13,7 +14,7 @@ import { ViewCube } from '@/threeApp/scene/viewCube';
 import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
 export class ThreeApp extends ContextSingleton<ThreeApp> {
-  public isWorker = true;
+  public isWorker = false;
 
   async init() {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -61,7 +62,11 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
     }
 
     const container = document.getElementById('container');
-    new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
+    if (this.isWorker) {
+      this.initViewCubeWorker(container);
+    } else {
+      new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
+    }
   }
 
   private initWatermark() {
@@ -83,5 +88,60 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
     };
 
     WatermarkCanvas.setParams(params);
+  }
+
+  private initViewCubeWorker(container) {
+    const camera = new THREE.PerspectiveCamera();
+    const gizmoPos = new THREE.Vector3();
+    const listeners = new Map();
+
+    const addListener = (event, callback) => {
+      const arr = listeners.get(event) || [];
+      arr.push(callback);
+      listeners.set(event, arr);
+    };
+
+    const removeListener = (event, callback) => {
+      const arr = listeners.get(event);
+      if (!arr) return;
+      const idx = arr.indexOf(callback);
+      if (idx >= 0) {
+        arr.splice(idx, 1);
+      }
+    };
+
+    const dispatch = (event) => {
+      const arr = listeners.get(event);
+      if (!arr) return;
+      arr.forEach((cb) => cb());
+    };
+
+    const controlsProxy = {
+      object: camera,
+      _gizmos: { position: gizmoPos },
+      addEventListener: addListener,
+      removeEventListener: removeListener,
+      update: () => {},
+    } as any;
+
+    const viewCube = new ViewCube({
+      container,
+      controls: controlsProxy,
+      animate: () => {},
+      onOrientationChange: ({ position, quaternion, up }) => {
+        OffscreenCanvasManager.inst().setCameraPose({ position, quaternion, up });
+      },
+    });
+
+    OffscreenCanvasManager.inst().onCameraState((data) => {
+      camera.position.fromArray(data.position);
+      camera.quaternion.fromArray(data.quaternion);
+      camera.up.fromArray(data.up);
+      gizmoPos.fromArray(data.gizmoPosition || [0, 0, 0]);
+      camera.updateProjectionMatrix();
+      camera.updateMatrixWorld();
+      dispatch('change');
+      viewCube.updateViewCube();
+    });
   }
 }

@@ -8,10 +8,12 @@ export class ViewCube {
   private facesDiv?: NodeListOf<HTMLDivElement>;
   private verticesDiv?: NodeListOf<HTMLDivElement>;
   private edgesDiv?: NodeListOf<HTMLDivElement>;
+  private onOrientationChange?: (data: { position: number[]; quaternion: number[]; up: number[] }) => void;
 
-  constructor({ container, controls, animate }: { container: HTMLElement; controls: ArcballControls; animate: () => void }) {
+  constructor({ container, controls, animate, onOrientationChange }: { container: HTMLElement; controls: ArcballControls; animate: () => void; onOrientationChange?: (data: { position: number[]; quaternion: number[]; up: number[] }) => void }) {
     this.controls = controls;
     this.animate = animate;
+    this.onOrientationChange = onOrientationChange;
 
     this.createHtmlCube(container);
     this.setupEventListeners();
@@ -382,6 +384,15 @@ export class ViewCube {
       targetUp.set(0, 0, -1);
     } else if (targetQuaternion.equals(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2))) {
       targetUp.set(0, 0, 1);
+    }
+
+    if (this.onOrientationChange) {
+      this.onOrientationChange({
+        position: targetPosition.toArray(),
+        quaternion: targetQuaternion.toArray(),
+        up: targetUp.toArray(),
+      });
+      return;
     }
 
     const animate = () => {
