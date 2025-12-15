@@ -1,5 +1,6 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
 
+import { ThreeApp } from '@/threeApp/threeApp';
 import { SvgPages } from '@/svgApp/svgPages';
 import { InitModel } from '@/threeApp/model/initModel';
 import { UiFileMenu } from './uiFileMenu';
@@ -97,12 +98,8 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
     // Запускаем таймер загрузки
     UiLoadTimeDiv.inst().startTimer();
 
-    // Проверяем, используется ли renderWorker
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    const isWorker = offscreenCanvasManager && offscreenCanvasManager.worker ? true : false;
-    console.log('isWorker', isWorker);
+    const isWorker = ThreeApp.inst().isWorker;
     if (isWorker) {
-      // Проверка, что мы в основном потоке
       const isInMainThread = typeof window !== 'undefined' && self === window;
       console.log('[MAIN THREAD] Отправка файла в воркер:', file.name, 'Размер:', file.size, 'В основном потоке:', isInMainThread);
 

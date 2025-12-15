@@ -2,9 +2,9 @@ import { ThreeApp } from '@/threeApp/threeApp';
 import { SvgApp } from '@/svgApp/svgApp';
 import { UiMain } from '@/ui/uiMain';
 
-const threeApp = new ThreeApp();
-const svgApp = new SvgApp();
-const uiMain = new UiMain();
+const threeApp = ThreeApp.inst();
+const svgApp = SvgApp.inst();
+const uiMain = UiMain.inst();
 
 threeApp.init();
 svgApp.init();

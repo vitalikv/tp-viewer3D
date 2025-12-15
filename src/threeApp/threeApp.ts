@@ -1,3 +1,4 @@
+import { ContextSingleton } from '@/core/ContextSingleton';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
 import { InitModel } from '@/threeApp/model/initModel';
 import { MouseManager } from '@/threeApp/scene/mouseManager';
@@ -11,8 +12,8 @@ import { AnimationManager } from '@/threeApp/animation/animationManager';
 import { ViewCube } from '@/threeApp/scene/viewCube';
 import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
-export class ThreeApp {
-  public isRenderWorker = true;
+export class ThreeApp extends ContextSingleton<ThreeApp> {
+  public isWorker = true;
 
   async init() {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -32,7 +33,7 @@ export class ThreeApp {
 
     this.initWatermark();
 
-    if (this.isRenderWorker) {
+    if (this.isWorker) {
       OffscreenCanvasManager.inst().init({ canvas });
     } else {
       await SceneManager.inst().init({ canvas, container: containerParams });
@@ -44,14 +45,11 @@ export class ThreeApp {
       ClippingBvh.inst();
       AnimationManager.inst();
 
-      EffectsManager.inst().init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer, container: containerParams });
+      EffectsManager.inst().init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer });
       OutlineSelection.inst().init({ outlinePass: EffectsManager.inst().outlinePass, composer: EffectsManager.inst().composer });
       MouseManager.inst().init(SceneManager.inst().camera, SceneManager.inst().renderer.domElement);
       BVHManager.inst().init();
       InitModel.inst().setMerge({ merge: true });
-
-      const container = document.getElementById('container');
-      new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
 
       const resizeHandler = () => {
         const rect = canvas.getBoundingClientRect();
@@ -61,6 +59,9 @@ export class ThreeApp {
       const resizeObserver = new ResizeObserver(resizeHandler);
       resizeObserver.observe(canvas);
     }
+
+    const container = document.getElementById('container');
+    new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
   }
 
   private initWatermark() {

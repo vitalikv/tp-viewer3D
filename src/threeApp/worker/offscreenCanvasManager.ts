@@ -23,7 +23,7 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
     canvas.width = rect.width;
     canvas.height = rect.height;
 
-    this.initWorker({ canvas });
+    this.initOffscreen({ canvas });
     this.setupEventListeners();
     this.setupWorkerMessageHandler();
   }
@@ -32,9 +32,9 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
     return this.container.getBoundingClientRect();
   }
 
-  private initWorker({ canvas }) {
+  private initOffscreen({ canvas }) {
     const offscreen = canvas.transferControlToOffscreen();
-    console.log(888, offscreen, { dpr: window.devicePixelRatio });
+
     this.worker.postMessage(
       {
         type: 'init',

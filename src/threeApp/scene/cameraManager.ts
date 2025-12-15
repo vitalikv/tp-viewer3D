@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import type { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
+import { ThreeApp } from '@/threeApp/threeApp';
 import { Watermark3d } from '@/watermark/watermark3d';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
 import { EffectsManager } from '@/threeApp/scene/effectsManager';
 import { MouseManager } from '@/threeApp/scene/mouseManager';
-
-import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
 export class CameraManager {
   private camPerspective: THREE.PerspectiveCamera;
@@ -22,7 +21,7 @@ export class CameraManager {
   }
 
   private initEvents() {
-    const isWorker = OffscreenCanvasManager.inst().isWorker;
+    const isWorker = ThreeApp.inst().isWorker;
 
     if (!isWorker) {
       window.addEventListener('keydown', (event) => {
@@ -94,7 +93,6 @@ export class CameraManager {
 
     this.renderer.setSize(rect.width, rect.height, false);
 
-    // не работает при вкл renderWorker
     if (EffectsManager.inst() && EffectsManager.inst().enabled) {
       EffectsManager.inst().setSize();
     }

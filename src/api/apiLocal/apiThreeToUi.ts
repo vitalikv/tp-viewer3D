@@ -1,12 +1,12 @@
 import * as THREE from 'three';
+import { ThreeApp } from '@/threeApp/threeApp';
 import { UiPlayerAnimation } from '@/ui/uiPlayerAnimation';
 import { UiDrawCallsDiv } from '@/ui/uiDrawCallsDiv';
 
 export class ApiThreeToUi {
   public static updatePlayerMenu(animations: THREE.AnimationClip[]) {
-    const isWorker = typeof window === 'undefined' && typeof self !== 'undefined';
+    const isWorker = ThreeApp.inst().isWorker;
     if (isWorker) {
-      // Отправляем из воркера в основной поток
       const animationsData = animations.map((anim) => ({
         name: anim.name,
         duration: anim.duration,
@@ -18,7 +18,7 @@ export class ApiThreeToUi {
   }
 
   public static updatePlayerTime(time: number, maxTime: number) {
-    const isWorker = typeof window === 'undefined' && typeof self !== 'undefined';
+    const isWorker = ThreeApp.inst().isWorker;
     if (isWorker) {
       self.postMessage({ type: 'updatePlayerTime', time, maxTime });
     } else {
@@ -27,7 +27,7 @@ export class ApiThreeToUi {
   }
 
   public static updatePlayerCaret(percent: number, isPlaying: boolean) {
-    const isWorker = typeof window === 'undefined' && typeof self !== 'undefined';
+    const isWorker = ThreeApp.inst().isWorker;
     if (isWorker) {
       self.postMessage({ type: 'updatePlayerCaret', percent, isPlaying });
     } else {
@@ -36,7 +36,7 @@ export class ApiThreeToUi {
   }
 
   public static updatePlayerBtnPlay(isPlaying: boolean) {
-    const isWorker = typeof window === 'undefined' && typeof self !== 'undefined';
+    const isWorker = ThreeApp.inst().isWorker;
     if (isWorker) {
       self.postMessage({ type: 'updatePlayerBtnPlay', isPlaying });
     } else {
@@ -45,7 +45,7 @@ export class ApiThreeToUi {
   }
 
   public static updateDrawCalls(value: string | number) {
-    const isWorker = typeof window === 'undefined' && typeof self !== 'undefined';
+    const isWorker = ThreeApp.inst().isWorker;
     if (isWorker) {
       self.postMessage({ type: 'updateDrawCalls', value });
     } else {

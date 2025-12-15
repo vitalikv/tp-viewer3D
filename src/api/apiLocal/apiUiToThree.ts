@@ -1,3 +1,4 @@
+import { ThreeApp } from '@/threeApp/threeApp';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
 import { InitModel } from '@/threeApp/model/initModel';
 import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
@@ -6,9 +7,9 @@ import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager
 
 export class ApiUiToThree {
   public static setPlanePosition(x: number, y: number, z: number) {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'setPlanePosition', x, y, z });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'setPlanePosition', x, y, z });
     } else {
       ClippingBvh.inst().setPlanePosition(x, y, z);
       SceneManager.inst().render();
@@ -16,9 +17,9 @@ export class ApiUiToThree {
   }
 
   public static setPlaneRotation(x: number, y: number, z: number) {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'setPlaneRotation', x, y, z });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'setPlaneRotation', x, y, z });
     } else {
       ClippingBvh.inst().setPlaneRotation(x, y, z);
       SceneManager.inst().render();
@@ -26,9 +27,9 @@ export class ApiUiToThree {
   }
 
   public static resetPlane() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'resetPlane' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'resetPlane' });
     } else {
       ClippingBvh.inst().resetPlane();
       SceneManager.inst().render();
@@ -46,9 +47,9 @@ export class ApiUiToThree {
   }
 
   public static activateClippingBvh() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'activateClippingBvh' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'activateClippingBvh' });
     } else {
       const model = InitModel.inst().getModel();
       ClippingBvh.inst().initClipping({ model });
@@ -57,9 +58,9 @@ export class ApiUiToThree {
   }
 
   public static deActivateClippingBvh() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'deActivateClippingBvh' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'deActivateClippingBvh' });
     } else {
       ClippingBvh.inst().destroy();
       SceneManager.inst().render();
@@ -67,10 +68,9 @@ export class ApiUiToThree {
   }
 
   public static toggleUseBVH() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'toggleUseBVH' });
-      // Для методов с возвращаемым значением в воркере возвращаем значение из основного потока
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'toggleUseBVH' });
       const act = !ClippingBvh.inst().getUseBVH();
       return act;
     } else {
@@ -81,9 +81,9 @@ export class ApiUiToThree {
   }
 
   public static toggleHelperBVH() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'toggleHelperBVH' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'toggleHelperBVH' });
       const act = !ClippingBvh.inst().getHelperBVH();
       return act;
     } else {
@@ -94,9 +94,9 @@ export class ApiUiToThree {
   }
 
   public static toggleModel() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'toggleModel' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'toggleModel' });
       const act = !ClippingBvh.inst().getModel();
       return act;
     } else {
@@ -107,9 +107,9 @@ export class ApiUiToThree {
   }
 
   public static toggleWireframe() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'toggleWireframe' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'toggleWireframe' });
       const act = !ClippingBvh.inst().getWireframe();
       return act;
     } else {
@@ -120,9 +120,9 @@ export class ApiUiToThree {
   }
 
   public static toggleInvertPlane() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'toggleInvertPlane' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'toggleInvertPlane' });
       const act = !ClippingBvh.inst().getInvertPlane();
       return act;
     } else {
@@ -133,9 +133,9 @@ export class ApiUiToThree {
   }
 
   public static toggleShowPlane() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'toggleShowPlane' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'toggleShowPlane' });
       const act = !ClippingBvh.inst().getShowPlane();
       return act;
     } else {
@@ -146,77 +146,73 @@ export class ApiUiToThree {
   }
 
   public static playAnimation() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'playAnimation' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'playAnimation' });
     } else {
       AnimationManager.inst().play();
     }
   }
 
   public static pauseAnimation() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'pauseAnimation' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'pauseAnimation' });
     } else {
       AnimationManager.inst().pause();
     }
   }
 
   public static setAnimationPosStart() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'setAnimationPosStart' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'setAnimationPosStart' });
     } else {
       AnimationManager.inst().setAnimationPosStart();
     }
   }
 
   public static setAnimationPosEnd() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'setAnimationPosEnd' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'setAnimationPosEnd' });
     } else {
       AnimationManager.inst().setAnimationPosEnd();
     }
   }
 
-  public static resetAnimation() {
-    //threeApp.animationManager.resetAnimation();
-  }
+  public static resetAnimation() {}
 
   public static setAnimationIndex(index: number) {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'setAnimationIndex', index });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'setAnimationIndex', index });
     } else {
       AnimationManager.inst().setAnimationIndex(index);
     }
   }
 
   public static hasAnimations(): boolean {
-    // Методы с возвращаемым значением работают только в основном потоке
     return AnimationManager.inst().hasAnimations();
   }
 
   public static getAnimationMaxDuration(): number {
-    // Методы с возвращаемым значением работают только в основном потоке
     return AnimationManager.inst().getAnimationMaxDuration();
   }
 
   public static setAnimationTime(time: number) {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'setAnimationTime', time });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'setAnimationTime', time });
     } else {
       AnimationManager.inst().setAnimationTime(time);
     }
   }
 
   public static rebuildAnimationBVH() {
-    const offscreenCanvasManager = OffscreenCanvasManager.inst();
-    if (offscreenCanvasManager && offscreenCanvasManager.worker) {
-      offscreenCanvasManager.worker.postMessage({ type: 'rebuildAnimationBVH' });
+    const isWorker = ThreeApp.inst().isWorker;
+    if (isWorker) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'rebuildAnimationBVH' });
     } else {
       AnimationManager.inst().rebuildBVHIfNeeded();
     }

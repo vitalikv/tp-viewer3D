@@ -1,4 +1,4 @@
-import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
+import { ThreeApp } from '@/threeApp/threeApp';
 import { SceneManager } from '@/threeApp/scene/sceneManager';
 
 export interface IWatermarkParams {
@@ -88,7 +88,7 @@ export class WatermarkCanvas {
   private static createCanvas() {
     const rect = this.getClientRect();
 
-    const isWorker = OffscreenCanvasManager.inst().isWorker;
+    const isWorker = ThreeApp.inst().isWorker;
 
     if (!isWorker) {
       this.canvas = document.createElement('canvas');

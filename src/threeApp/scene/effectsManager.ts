@@ -19,16 +19,14 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
   private linePass!: ShaderPass;
   public enabled = false;
 
-  private container!: { width: number; height: number; dpr: number; virtDom: boolean };
   private scene!: THREE.Scene;
   private camera!: THREE.Camera;
   private renderer!: THREE.WebGLRenderer;
 
-  public init({ scene, camera, renderer, container }: { scene: THREE.Scene; camera: THREE.Camera; renderer: THREE.WebGLRenderer; container: { width: number; height: number; dpr: number; virtDom: boolean } }) {
+  public init({ scene, camera, renderer }: { scene: THREE.Scene; camera: THREE.Camera; renderer: THREE.WebGLRenderer }) {
     if (this.enabled) return;
     this.enabled = true;
 
-    this.container = container;
     this.scene = scene;
     this.camera = camera;
     this.renderer = renderer;

@@ -230,7 +230,7 @@ class OffscreenCanvasWorker {
     ClippingBvh.inst();
     AnimationManager.inst();
 
-    EffectsManager.inst().init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer, container: this.container });
+    EffectsManager.inst().init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer });
     OutlineSelection.inst().init({ outlinePass: EffectsManager.inst().outlinePass, composer: EffectsManager.inst().composer });
     MouseManager.inst().init(SceneManager.inst().camera);
     BVHManager.inst().init();

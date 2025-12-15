@@ -4,30 +4,30 @@ import { ArcballControls } from '@/threeApp/worker/ArcballControls';
 import Stats from 'stats.js';
 import { ContextSingleton } from '@/core/ContextSingleton';
 
+import { ThreeApp } from '@/threeApp/threeApp';
 import { CameraManager } from '@/threeApp/scene/cameraManager';
 import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
 import { EffectsManager } from '@/threeApp/scene/effectsManager';
 import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
 import { Watermark3d } from '@/watermark/watermark3d';
 import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
-import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
 export class SceneManager extends ContextSingleton<SceneManager> {
-  stats = null;
-  canvas: HTMLCanvasElement | OffscreenCanvas;
-  container: { width: number; height: number; left: number; top: number; dpr: number; virtDom: boolean };
-  scene: THREE.Scene;
-  camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
-  renderer: THREE.WebGLRenderer;
-  controls: ArcballControls;
-  cameraManager: CameraManager;
+  public stats = null;
+  private canvas: HTMLCanvasElement | OffscreenCanvas;
+  private container: { width: number; height: number; left: number; top: number; dpr: number; virtDom: boolean };
+  public scene: THREE.Scene;
+  public camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
+  public renderer: THREE.WebGLRenderer;
+  public controls: ArcballControls;
+  public cameraManager: CameraManager;
   private renderScheduled = false;
 
   public async init({ canvas, container }) {
     this.canvas = canvas;
     this.container = container;
 
-    const isWorker = OffscreenCanvasManager.inst().isWorker;
+    const isWorker = ThreeApp.inst().isWorker;
     if (!isWorker) this.initStats();
     this.initScene();
     this.initRenderer();
@@ -94,7 +94,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     const transitionWidth: number = options.transitionWidth;
 
     let canvas: HTMLCanvasElement | OffscreenCanvas;
-    const isWorker = OffscreenCanvasManager.inst().isWorker;
+    const isWorker = ThreeApp.inst().isWorker;
 
     if (!isWorker) {
       canvas = document.createElement('canvas');
@@ -184,7 +184,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.controls = new ArcballControls(this.camera, this.canvas, this.scene);
     this.controls.enableAnimations = false;
 
-    const isWorker = OffscreenCanvasManager.inst().isWorker;
+    const isWorker = ThreeApp.inst().isWorker;
 
     if (isWorker) {
       const raf = typeof window !== 'undefined' ? window.requestAnimationFrame : typeof self !== 'undefined' ? self.requestAnimationFrame : null;

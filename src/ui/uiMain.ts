@@ -1,3 +1,4 @@
+import { ContextSingleton } from '@/core/ContextSingleton';
 import { UiFileLoader } from '@/ui/uiFileLoader';
 import { UiFileMenu } from '@/ui/uiFileMenu';
 import { UiClippingButton } from '@/ui/uiClippingButton';
@@ -5,7 +6,7 @@ import { UiDrawCallsDiv } from '@/ui/uiDrawCallsDiv';
 import { UiPlayerAnimation } from '@/ui/uiPlayerAnimation';
 import { UiLoadTimeDiv } from '@/ui/uiLoadTimeDiv';
 
-export class UiMain {
+export class UiMain extends ContextSingleton<UiMain> {
   public init() {
     const container = document.body.querySelector('#container') as HTMLDivElement;
 
