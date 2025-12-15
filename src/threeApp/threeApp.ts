@@ -14,7 +14,7 @@ import { ViewCube } from '@/threeApp/scene/viewCube';
 import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
 export class ThreeApp extends ContextSingleton<ThreeApp> {
-  public isWorker = false;
+  public isWorker = true;
 
   async init() {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -23,21 +23,20 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
       e.preventDefault();
     });
 
-    const containerRect = canvas.getBoundingClientRect();
-    const containerParams = {
-      width: containerRect.width,
-      height: containerRect.height,
-      left: containerRect.left,
-      top: containerRect.top,
-      dpr: window.devicePixelRatio,
+    const rect = canvas.getBoundingClientRect();
+    const rectParams = {
+      width: rect.width,
+      height: rect.height,
+      left: rect.left,
+      top: rect.top,
     };
 
-    this.initWatermark();
+    //this.initWatermark();
 
     if (this.isWorker) {
       OffscreenCanvasManager.inst().init({ canvas });
     } else {
-      await SceneManager.inst().init({ canvas, container: containerParams });
+      await SceneManager.inst().init({ canvas, rect: rectParams });
       InitModel.inst();
       SelectionHandler.inst();
       MouseManager.inst();
@@ -54,7 +53,7 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
 
       const resizeHandler = () => {
         const rect = canvas.getBoundingClientRect();
-        SceneManager.inst().setSizeContainer({ width: rect.width, height: rect.height, left: rect.left, top: rect.top });
+        SceneManager.inst().setClientRect({ width: rect.width, height: rect.height, left: rect.left, top: rect.top });
         SceneManager.inst().cameraManager.resize();
       };
       const resizeObserver = new ResizeObserver(resizeHandler);

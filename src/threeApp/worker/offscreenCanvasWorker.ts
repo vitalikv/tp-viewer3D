@@ -12,7 +12,7 @@ import { MouseManager } from '../scene/mouseManager';
 import { EffectsManager } from '../scene/effectsManager';
 
 type WorkerMessage =
-  | { type: 'init'; canvas: OffscreenCanvas; container: any }
+  | { type: 'init'; canvas: OffscreenCanvas; rect: any }
   | { type: 'resize'; width: number; height: number; left: number; top: number }
   | { type: 'event'; event: any }
   | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string }
@@ -41,7 +41,7 @@ class OffscreenCanvasWorker {
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   private controls!: ArcballControls;
-  private container;
+  private rect;
 
   constructor() {
     self.onmessage = (e: MessageEvent<WorkerMessage>) => this.handleMessage(e.data);
@@ -50,7 +50,7 @@ class OffscreenCanvasWorker {
   private handleMessage(msg: WorkerMessage) {
     switch (msg.type) {
       case 'init':
-        this.init(msg.canvas, msg.container);
+        this.init(msg.canvas, msg.rect);
         break;
       case 'resize':
         if (this.renderer && this.camera) {
@@ -203,16 +203,16 @@ class OffscreenCanvasWorker {
     }
   }
 
-  private async init(canvas: OffscreenCanvas, container) {
+  private async init(canvas: OffscreenCanvas, rect) {
     console.log('Worker initialized');
 
-    this.container = container;
-    const width = this.container.width;
-    const height = this.container.height;
-    const left = this.container.left;
-    const top = this.container.top;
+    this.rect = rect;
+    const width = this.rect.width;
+    const height = this.rect.height;
+    const left = this.rect.left;
+    const top = this.rect.top;
 
-    await SceneManager.inst().init({ canvas, container: { width, height, left, top } });
+    await SceneManager.inst().init({ canvas, rect: { width, height, left, top } });
     this.scene = SceneManager.inst().scene;
     this.renderer = SceneManager.inst().renderer;
     this.camera = SceneManager.inst().camera;
@@ -275,7 +275,7 @@ class OffscreenCanvasWorker {
   }
 
   private resize(width: number, height: number, left: number, top: number) {
-    SceneManager.inst().setSizeContainer({ width, height, left, top });
+    SceneManager.inst().setClientRect({ width, height, left, top });
     SceneManager.inst().cameraManager.resize();
 
     if (this.controls) {

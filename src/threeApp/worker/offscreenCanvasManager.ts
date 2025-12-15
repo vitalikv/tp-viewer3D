@@ -40,7 +40,7 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
       {
         type: 'init',
         canvas: offscreen,
-        container: { width: canvas.width, height: canvas.height, dpr: window.devicePixelRatio },
+        rect: { width: canvas.width, height: canvas.height, dpr: window.devicePixelRatio },
       },
       [offscreen as Transferable]
     );

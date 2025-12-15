@@ -15,7 +15,7 @@ import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
 export class SceneManager extends ContextSingleton<SceneManager> {
   public stats = null;
   private canvas: HTMLCanvasElement | OffscreenCanvas;
-  private container: { width: number; height: number; left: number; top: number; dpr: number; virtDom: boolean };
+  private rect: { width: number; height: number; left: number; top: number; dpr: number; virtDom: boolean };
   public scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   public renderer: THREE.WebGLRenderer;
@@ -23,9 +23,9 @@ export class SceneManager extends ContextSingleton<SceneManager> {
   public cameraManager: CameraManager;
   private renderScheduled = false;
 
-  public async init({ canvas, container }) {
+  public async init({ canvas, rect }) {
     this.canvas = canvas;
-    this.container = container;
+    this.rect = rect;
 
     const isWorker = ThreeApp.inst().isWorker;
     if (!isWorker) this.initStats();
@@ -36,21 +36,21 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.initLights();
     this.initHelpers();
 
-    await WatermarkCanvas.init(this.container);
+    await WatermarkCanvas.init(this.rect);
     Watermark3d.init(this.renderer);
 
     this.render();
   }
 
-  public setSizeContainer({ width, height, left, top }: { width: number; height: number; left: number; top: number }) {
-    this.container.left = left;
-    this.container.top = top;
-    this.container.width = width;
-    this.container.height = height;
+  public setClientRect({ width, height, left, top }: { width: number; height: number; left: number; top: number }) {
+    this.rect.left = left;
+    this.rect.top = top;
+    this.rect.width = width;
+    this.rect.height = height;
   }
 
   public getClientRect() {
-    return { left: this.container.left, top: this.container.top, width: this.container.width, height: this.container.height };
+    return { left: this.rect.left, top: this.rect.top, width: this.rect.width, height: this.rect.height };
   }
 
   private initStats() {
