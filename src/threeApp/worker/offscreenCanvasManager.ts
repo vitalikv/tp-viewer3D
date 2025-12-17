@@ -124,7 +124,7 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
             });
             AnimationManager.inst().setAnimationsInfo(animationClips, maxDuration || 0);
             // Обновляем UI меню анимаций
-            ApiThreeToUi.updatePlayerMenu(animationClips);
+            ApiThreeToUi.inst().updatePlayerMenu(animationClips);
           }
           break;
         case 'updatePlayerMenu':

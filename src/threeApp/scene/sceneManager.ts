@@ -241,13 +241,13 @@ export class SceneManager extends ContextSingleton<SceneManager> {
       const renderCalls = EffectsManager.inst().render();
       Watermark3d.renderOverlay();
 
-      ApiThreeToUi.updateDrawCalls(renderCalls);
+      ApiThreeToUi.inst().updateDrawCalls(renderCalls);
     } else {
       const camera = this.cameraManager.getActiveCamera();
       this.renderer.render(this.scene, camera);
       Watermark3d.renderOverlay();
 
-      ApiThreeToUi.updateDrawCalls(this.renderer.info.render.calls);
+      ApiThreeToUi.inst().updateDrawCalls(this.renderer.info.render.calls);
     }
 
     if (this.stats) this.stats.end();

@@ -10,6 +10,7 @@ import { ClippingBvh } from '../clipping/clippingBvh';
 import { SelectionHandler } from '../selection/selectionHandler';
 import { MouseManager } from '../scene/mouseManager';
 import { EffectsManager } from '../scene/effectsManager';
+import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
 
 type WorkerMessage =
   | { type: 'init'; canvas: OffscreenCanvas; rect: any }
@@ -95,106 +96,92 @@ class OffscreenCanvasWorker {
         break;
       case 'activateClippingBvh':
         if (this.scene) {
-          const model = InitModel.inst().getModel();
-          if (model) {
-            ClippingBvh.inst().initClipping({ model });
-            SceneManager.inst().render();
-          }
+          ApiUiToThree.inst().activateClippingBvh();
         }
         break;
       case 'setPlanePosition':
         if (this.scene) {
-          ClippingBvh.inst().setPlanePosition(msg.x, msg.y, msg.z);
-          SceneManager.inst().render();
+          ApiUiToThree.inst().setPlanePosition(msg.x, msg.y, msg.z);
         }
         break;
       case 'setPlaneRotation':
         if (this.scene) {
-          ClippingBvh.inst().setPlaneRotation(msg.x, msg.y, msg.z);
-          SceneManager.inst().render();
+          ApiUiToThree.inst().setPlaneRotation(msg.x, msg.y, msg.z);
         }
         break;
       case 'resetPlane':
         if (this.scene) {
-          ClippingBvh.inst().resetPlane();
-          SceneManager.inst().render();
+          ApiUiToThree.inst().resetPlane();
         }
         break;
       case 'deActivateClippingBvh':
         if (this.scene) {
-          ClippingBvh.inst().destroy();
-          SceneManager.inst().render();
+          ApiUiToThree.inst().deActivateClippingBvh();
         }
         break;
       case 'toggleUseBVH':
         if (this.scene) {
-          const act = !ClippingBvh.inst().getUseBVH();
-          ClippingBvh.inst().setUseBVH(act);
+          ApiUiToThree.inst().toggleUseBVH();
         }
         break;
       case 'toggleHelperBVH':
         if (this.scene) {
-          const act = !ClippingBvh.inst().getHelperBVH();
-          ClippingBvh.inst().setHelperBVH(act);
+          ApiUiToThree.inst().toggleHelperBVH();
         }
         break;
       case 'toggleModel':
         if (this.scene) {
-          const act = !ClippingBvh.inst().getModel();
-          ClippingBvh.inst().setModel(act);
+          ApiUiToThree.inst().toggleModel();
         }
         break;
       case 'toggleWireframe':
         if (this.scene) {
-          const act = !ClippingBvh.inst().getWireframe();
-          ClippingBvh.inst().setWireframe(act);
+          ApiUiToThree.inst().toggleWireframe();
         }
         break;
       case 'toggleInvertPlane':
         if (this.scene) {
-          const act = !ClippingBvh.inst().getInvertPlane();
-          ClippingBvh.inst().setInvertPlane(act);
+          ApiUiToThree.inst().toggleInvertPlane();
         }
         break;
       case 'toggleShowPlane':
         if (this.scene) {
-          const act = !ClippingBvh.inst().getShowPlane();
-          ClippingBvh.inst().setShowPlane(act);
+          ApiUiToThree.inst().toggleShowPlane();
         }
         break;
       case 'playAnimation':
         if (this.scene) {
-          AnimationManager.inst().play();
+          ApiUiToThree.inst().playAnimation();
         }
         break;
       case 'pauseAnimation':
         if (this.scene) {
-          AnimationManager.inst().pause();
+          ApiUiToThree.inst().pauseAnimation();
         }
         break;
       case 'setAnimationPosStart':
         if (this.scene) {
-          AnimationManager.inst().setAnimationPosStart();
+          ApiUiToThree.inst().setAnimationPosStart();
         }
         break;
       case 'setAnimationPosEnd':
         if (this.scene) {
-          AnimationManager.inst().setAnimationPosEnd();
+          ApiUiToThree.inst().setAnimationPosEnd();
         }
         break;
       case 'setAnimationIndex':
         if (this.scene) {
-          AnimationManager.inst().setAnimationIndex(msg.index);
+          ApiUiToThree.inst().setAnimationIndex(msg.index);
         }
         break;
       case 'setAnimationTime':
         if (this.scene) {
-          AnimationManager.inst().setAnimationTime(msg.time);
+          ApiUiToThree.inst().setAnimationTime(msg.time);
         }
         break;
       case 'rebuildAnimationBVH':
         if (this.scene) {
-          AnimationManager.inst().rebuildBVHIfNeeded();
+          ApiUiToThree.inst().rebuildAnimationBVH();
         }
         break;
       case 'setCameraPose':
@@ -233,6 +220,7 @@ class OffscreenCanvasWorker {
     BVHManager.inst();
     ClippingBvh.inst();
     AnimationManager.inst();
+    ApiUiToThree.inst();
 
     EffectsManager.inst().init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer });
     OutlineSelection.inst().init({ outlinePass: EffectsManager.inst().outlinePass, composer: EffectsManager.inst().composer });

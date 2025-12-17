@@ -159,7 +159,7 @@ export class UiClippingSlider extends ContextSingleton<UiClippingSlider> {
       const y = parseInt(yPositionSlider.value);
       const z = parseInt(zPositionSlider.value);
 
-      ApiUiToThree.setPlanePosition(x, y, z);
+      ApiUiToThree.inst().setPlanePosition(x, y, z);
     };
 
     const updatePlaneRotation = () => {
@@ -167,7 +167,7 @@ export class UiClippingSlider extends ContextSingleton<UiClippingSlider> {
       const y = parseInt(yRotationSlider.value);
       const z = parseInt(zRotationSlider.value);
 
-      ApiUiToThree.setPlaneRotation(x, y, z);
+      ApiUiToThree.inst().setPlaneRotation(x, y, z);
     };
 
     xPositionSlider.addEventListener('input', function () {
@@ -215,7 +215,7 @@ export class UiClippingSlider extends ContextSingleton<UiClippingSlider> {
       yRotationValue.textContent = '0°';
       zRotationValue.textContent = '0°';
 
-      ApiUiToThree.resetPlane();
+      ApiUiToThree.inst().resetPlane();
     });
   }
 
@@ -228,44 +228,44 @@ export class UiClippingSlider extends ContextSingleton<UiClippingSlider> {
     this.showPlane = this.container.querySelector('#showPlane') as HTMLDivElement;
 
     this.useBVH.onmousedown = () => {
-      const act = ApiUiToThree.toggleUseBVH();
+      const act = ApiUiToThree.inst().toggleUseBVH();
 
       this.useBVH.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
     this.helperBVH.onmousedown = () => {
-      const act = ApiUiToThree.toggleHelperBVH();
+      const act = ApiUiToThree.inst().toggleHelperBVH();
 
       this.helperBVH.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
     this.model.onmousedown = () => {
-      const act = ApiUiToThree.toggleModel();
+      const act = ApiUiToThree.inst().toggleModel();
 
       this.model.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
     this.wireframe.onmousedown = () => {
-      const act = ApiUiToThree.toggleWireframe();
+      const act = ApiUiToThree.inst().toggleWireframe();
 
       this.wireframe.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
     this.invert.onmousedown = () => {
-      const act = ApiUiToThree.toggleInvertPlane();
+      const act = ApiUiToThree.inst().toggleInvertPlane();
 
       this.invert.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
 
     this.showPlane.onmousedown = () => {
-      const act = ApiUiToThree.toggleShowPlane();
+      const act = ApiUiToThree.inst().toggleShowPlane();
 
       this.showPlane.style.background = act ? this.actBtnColor : this.deActBtnColor;
     };
   }
 
   private setStartColorBtns() {
-    const state = ApiUiToThree.getStateClippingBvh();
+    const state = ApiUiToThree.inst().getStateClippingBvh();
 
     if (state) {
       this.useBVH.style.background = state.useBVH ? this.actBtnColor : this.deActBtnColor;

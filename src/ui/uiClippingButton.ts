@@ -49,12 +49,12 @@ export class UiClippingButton extends ContextSingleton<UiClippingButton> {
     this.updateText();
 
     if (this.isEnabled) {
-      ApiUiToThree.activateClippingBvh();
+      ApiUiToThree.inst().activateClippingBvh();
 
       UiClippingSlider.inst().init(this.container);
       UiClippingSlider.inst().showSlider();
     } else {
-      ApiUiToThree.deActivateClippingBvh();
+      ApiUiToThree.inst().deActivateClippingBvh();
 
       UiClippingSlider.inst().hideSlider();
     }

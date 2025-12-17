@@ -190,16 +190,16 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
     const animationPosEnd = this.divWrap.querySelector('[nameId="animationPosEnd"]') as HTMLDivElement;
 
     this.btnPlay.onmousedown = () => {
-      if (!ApiUiToThree.hasAnimations()) {
+      if (!ApiUiToThree.inst().hasAnimations()) {
         return;
       }
       this.updateBtnPlay(true);
-      ApiUiToThree.playAnimation();
+      ApiUiToThree.inst().playAnimation();
     };
 
     this.btnPause.onmousedown = () => {
       this.updateBtnPlay(false);
-      ApiUiToThree.pauseAnimation();
+      ApiUiToThree.inst().pauseAnimation();
     };
 
     btnPlayerMenu.onmousedown = () => {
@@ -207,11 +207,11 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
     };
 
     animationPosStart.onmousedown = () => {
-      ApiUiToThree.setAnimationPosStart();
+      ApiUiToThree.inst().setAnimationPosStart();
     };
 
     animationPosEnd.onmousedown = () => {
-      ApiUiToThree.setAnimationPosEnd();
+      ApiUiToThree.inst().setAnimationPosEnd();
     };
 
     this.setupCaretDrag();
@@ -226,7 +226,7 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
     let dragOffset = 0;
 
     const updateCaretPosition = (clientX: number, useOffset: boolean = false) => {
-      if (!ApiUiToThree.hasAnimations()) {
+      if (!ApiUiToThree.inst().hasAnimations()) {
         return;
       }
 
@@ -249,10 +249,10 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
 
       this.playerCaret.style.transform = `translateX(${translateX}px)`;
 
-      const maxDuration = ApiUiToThree.getAnimationMaxDuration();
+      const maxDuration = ApiUiToThree.inst().getAnimationMaxDuration();
       if (maxDuration > 0) {
         const time = (percent / 100) * maxDuration;
-        ApiUiToThree.setAnimationTime(time);
+        ApiUiToThree.inst().setAnimationTime(time);
         this.updateBtnPlay(false);
       }
     };
@@ -272,8 +272,8 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
       dragOffset = 0;
 
       // Пересчитываем BVH после окончания перетаскивания
-      if (ApiUiToThree.hasAnimations()) {
-        ApiUiToThree.rebuildAnimationBVH();
+      if (ApiUiToThree.inst().hasAnimations()) {
+        ApiUiToThree.inst().rebuildAnimationBVH();
       }
 
       if (onMouseMoveHandler) {
@@ -285,7 +285,7 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
     };
 
     const startDrag = (e: MouseEvent) => {
-      if (!ApiUiToThree.hasAnimations()) {
+      if (!ApiUiToThree.inst().hasAnimations()) {
         return;
       }
       e.preventDefault();
@@ -312,7 +312,7 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
 
   private setupTimelineClick() {
     this.playerStep.onmousedown = (e) => {
-      if (!ApiUiToThree.hasAnimations()) {
+      if (!ApiUiToThree.inst().hasAnimations()) {
         return;
       }
       e.preventDefault();
@@ -329,10 +329,10 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
 
       this.playerCaret.style.transform = `translateX(${translateX}px)`;
 
-      const maxDuration = ApiUiToThree.getAnimationMaxDuration();
+      const maxDuration = ApiUiToThree.inst().getAnimationMaxDuration();
       if (maxDuration > 0) {
         const time = (percent / 100) * maxDuration;
-        ApiUiToThree.setAnimationTime(time);
+        ApiUiToThree.inst().setAnimationTime(time);
         this.updateBtnPlay(false);
       }
     };
@@ -420,7 +420,7 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
         const animationName = item.getAttribute('animationName');
         const animationIndex = item.getAttribute('animationIndex');
         console.log('Selected animation:', animationIndex, animationName);
-        ApiUiToThree.setAnimationIndex(Number(animationIndex));
+        ApiUiToThree.inst().setAnimationIndex(Number(animationIndex));
       };
     });
   }

@@ -29,7 +29,7 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
       return false;
     }
 
-    ApiThreeToUi.updatePlayerMenu(animations);
+    ApiThreeToUi.inst().updatePlayerMenu(animations);
 
     this.dispose();
 
@@ -348,7 +348,7 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
           }
           this.animationElapsedTime = 0;
 
-          ApiThreeToUi.updatePlayerBtnPlay(false);
+          ApiThreeToUi.inst().updatePlayerBtnPlay(false);
         }
         this.animationLoopId = null;
       }
@@ -366,8 +366,8 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
     const currentTime = Math.min(this.animationElapsedTime, this.animationMaxDuration);
     const percent = Math.min(100, (currentTime / this.animationMaxDuration) * 100);
-    ApiThreeToUi.updatePlayerTime(currentTime, this.animationMaxDuration);
-    ApiThreeToUi.updatePlayerCaret(percent, this.isPlaying);
+    ApiThreeToUi.inst().updatePlayerTime(currentTime, this.animationMaxDuration);
+    ApiThreeToUi.inst().updatePlayerCaret(percent, this.isPlaying);
   }
 
   private stopAnimationLoop(): void {
