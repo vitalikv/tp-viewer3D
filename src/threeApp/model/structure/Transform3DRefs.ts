@@ -2,7 +2,7 @@
  * ATransform3DRefs
  */
 
-import { IDataLabel, ITransform, ATransTo3DRefs } from './IData';
+import { IDataLabel, ITransform, ATransTo3DRefs } from '@/threeApp/model/structure/IData';
 
 export class Transform3DRefs extends ATransTo3DRefs {
   public transArr!: IDataLabel[];

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
-import { OutlineSelection } from '@/threeApp/selection/outlineSelection';
-import { SceneManager } from '@/threeApp/scene/sceneManager';
+import { OutlineSelection } from '@/threeApp/selection/OutlineSelection';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
 
 interface OutlineMeshData {
   outlineMesh: THREE.Mesh;

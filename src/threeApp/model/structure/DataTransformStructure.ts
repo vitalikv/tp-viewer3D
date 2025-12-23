@@ -1,4 +1,4 @@
-import { IDataLabel, ATransformToIDataLabel, ATransTo3DRefs, ATransToTree } from './IData';
+import { IDataLabel, ATransformToIDataLabel, ATransTo3DRefs, ATransToTree } from '@/threeApp/model/structure/IData';
 
 export default class DataTransformStructure {
   private dataStructure: any | null = null;

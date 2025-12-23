@@ -1,5 +1,5 @@
-import { SceneManager } from '@/threeApp/scene/sceneManager';
-import { InitModel } from '@/threeApp/model/initModel';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
+import { InitModel } from '@/threeApp/model/InitModel';
 
 export class SelectedByData {
   public static getSelectedNode({ obj }) {

@@ -1,4 +1,4 @@
-import { InitModel } from '@/threeApp/model/initModel';
+import { InitModel } from '@/threeApp/model/InitModel';
 
 export class SelectionAdapter {
   private static structureCache: any[] = [];

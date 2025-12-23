@@ -1,4 +1,4 @@
-import { ATransformToIDataLabel, IDataLabel, ITransform } from './IData';
+import { ATransformToIDataLabel, IDataLabel, ITransform } from '@/threeApp/model/structure/IData';
 
 export class TransformActionIdx extends ATransformToIDataLabel {
   public transArr!: IDataLabel[];

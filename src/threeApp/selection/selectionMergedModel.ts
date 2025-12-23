@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
-import { SelectionAdapter } from '@/threeApp/mergedModel/selectionAdapter';
-import { OutlineMergedModel } from '@/threeApp/selection/outlineMergedModel';
-import { SceneManager } from '@/threeApp/scene/sceneManager';
+import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
+import { SelectionAdapter } from '@/threeApp/mergedModel/SelectionAdapter';
+import { OutlineMergedModel } from '@/threeApp/selection/OutlineMergedModel';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
 
 export class SelectionMergedModel {
   private static originalMaterials = new Map<string, THREE.Material | THREE.Material[]>();

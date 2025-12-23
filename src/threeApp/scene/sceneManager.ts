@@ -4,12 +4,12 @@ import { ArcballControls } from '@/threeApp/worker/ArcballControls';
 import Stats from 'stats.js';
 import { ContextSingleton } from '@/core/ContextSingleton';
 
-import { ThreeApp } from '@/threeApp/threeApp';
-import { CameraManager } from '@/threeApp/scene/cameraManager';
-import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
-import { EffectsManager } from '@/threeApp/scene/effectsManager';
-import { WatermarkCanvas } from '@/watermark/watermarkCanvas';
-import { Watermark3d } from '@/watermark/watermark3d';
+import { ThreeApp } from '@/threeApp/ThreeApp';
+import { CameraManager } from '@/threeApp/scene/CameraManager';
+import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
+import { EffectsManager } from '@/threeApp/scene/EffectsManager';
+import { WatermarkCanvas } from '@/watermark/WatermarkCanvas';
+import { Watermark3d } from '@/watermark/Watermark3d';
 import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
 
 export class SceneManager extends ContextSingleton<SceneManager> {

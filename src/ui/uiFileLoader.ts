@@ -1,10 +1,10 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
 
-import { ThreeApp } from '@/threeApp/threeApp';
-import { SvgPages } from '@/svgApp/svgPages';
-import { InitModel } from '@/threeApp/model/initModel';
-import { UiFileMenu } from './uiFileMenu';
-import { UiLoadTimeDiv } from './uiLoadTimeDiv';
+import { ThreeApp } from '@/threeApp/ThreeApp';
+import { SvgPages } from '@/svgApp/SvgPages';
+import { InitModel } from '@/threeApp/model/InitModel';
+import { UiFileMenu } from '@/ui/uiFileMenu';
+import { UiLoadTimeDiv } from '@/ui/uiLoadTimeDiv';
 import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
 export class UiFileLoader extends ContextSingleton<UiFileLoader> {

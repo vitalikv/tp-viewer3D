@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { SelectionMergedModel } from '@/threeApp/selection/selectionMergedModel';
-import { SelectionHandler } from '@/threeApp/selection/selectionHandler';
-import { InitModel } from '@/threeApp/model/initModel';
-import { SceneManager } from '@/threeApp/scene/sceneManager';
+import { SelectionMergedModel } from '@/threeApp/selection/SelectionMergedModel';
+import { SelectionHandler } from '@/threeApp/selection/SelectionHandler';
+import { InitModel } from '@/threeApp/model/InitModel';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
 
 export class MouseManager extends ContextSingleton<MouseManager> {
   private raycaster: THREE.Raycaster;

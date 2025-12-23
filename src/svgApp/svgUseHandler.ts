@@ -1,6 +1,6 @@
 import { SelectedByData } from '@/threeApp/model/structure/selectedByData';
-import { SvgGroupAssembler } from './svgGroupAssembler';
-import { WatermarkSvg } from '@/watermark/watermarkSvg';
+import { SvgGroupAssembler } from '@/svgApp/SvgGroupAssembler';
+import { WatermarkSvg } from '@/watermark/WatermarkSvg';
 
 export class SvgUseHandler {
   private enabled = false;

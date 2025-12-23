@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { AnimationManager } from '@/threeApp/animation/animationManager';
+import { AnimationManager } from '@/threeApp/animation/AnimationManager';
 import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
 import { UiPlayerAnimation } from '@/ui/uiPlayerAnimation';
 import { UiDrawCallsDiv } from '@/ui/uiDrawCallsDiv';

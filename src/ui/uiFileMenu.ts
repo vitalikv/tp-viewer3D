@@ -1,5 +1,5 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { SvgPages } from '@/svgApp/svgPages';
+import { SvgPages } from '@/svgApp/SvgPages';
 
 export class UiFileMenu extends ContextSingleton<UiFileMenu> {
   private divMenu: HTMLDivElement;

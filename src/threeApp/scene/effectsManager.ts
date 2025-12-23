@@ -8,7 +8,7 @@ import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 
-import { SceneManager } from '@/threeApp/scene/sceneManager';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
 
 export class EffectsManager extends ContextSingleton<EffectsManager> {
   public composer!: EffectComposer;

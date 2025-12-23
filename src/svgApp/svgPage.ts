@@ -1,4 +1,4 @@
-import { SvgUseHandler } from './svgUseHandler';
+import { SvgUseHandler } from '@/svgApp/SvgUseHandler';
 
 export class SvgPage {
   private div: HTMLDivElement;

@@ -1,8 +1,8 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { SceneManager } from '@/threeApp/scene/sceneManager';
-import { InitModel } from '@/threeApp/model/initModel';
-import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
-import { AnimationManager } from '@/threeApp/animation/animationManager';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
+import { InitModel } from '@/threeApp/model/InitModel';
+import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
+import { AnimationManager } from '@/threeApp/animation/AnimationManager';
 import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
 export class ApiUiToThree extends ContextSingleton<ApiUiToThree> {

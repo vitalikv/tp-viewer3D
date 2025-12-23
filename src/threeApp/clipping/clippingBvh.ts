@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { MeshBVH, MeshBVHHelper, CONTAINED } from 'three-mesh-bvh';
-import { SceneManager } from '@/threeApp/scene/sceneManager';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { ContextSingleton } from '@/core/ContextSingleton';
 
 type MeshBVHEntry = {

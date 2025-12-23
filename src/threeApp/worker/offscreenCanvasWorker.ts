@@ -1,15 +1,15 @@
 import * as THREE from 'three';
 import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 
-import { SceneManager } from '@/threeApp/scene/sceneManager';
-import { InitModel } from '@/threeApp/model/initModel';
-import { AnimationManager } from '../animation/animationManager';
-import { BVHManager } from '../bvh/bvhManager';
-import { OutlineSelection } from '../selection/outlineSelection';
-import { ClippingBvh } from '../clipping/clippingBvh';
-import { SelectionHandler } from '../selection/selectionHandler';
-import { MouseManager } from '../scene/mouseManager';
-import { EffectsManager } from '../scene/effectsManager';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
+import { InitModel } from '@/threeApp/model/InitModel';
+import { AnimationManager } from '@/threeApp/animation/AnimationManager';
+import { BVHManager } from '@/threeApp/bvh/bvhManager';
+import { OutlineSelection } from '@/threeApp/selection/OutlineSelection';
+import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
+import { SelectionHandler } from '@/threeApp/selection/SelectionHandler';
+import { MouseManager } from '@/threeApp/scene/MouseManager';
+import { EffectsManager } from '@/threeApp/scene/EffectsManager';
 import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
 
 type WorkerMessage =

@@ -1,5 +1,5 @@
-import { ThreeApp } from '@/threeApp/threeApp';
-import { SceneManager } from '@/threeApp/scene/sceneManager';
+import { ThreeApp } from '@/threeApp/ThreeApp';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
 
 export interface IWatermarkParams {
   activated?: boolean;

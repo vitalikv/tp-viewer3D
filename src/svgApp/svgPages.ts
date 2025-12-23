@@ -1,6 +1,6 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { SvgPage } from '@/svgApp/svgPage';
-import { WatermarkSvg } from '@/watermark/watermarkSvg';
+import { SvgPage } from '@/svgApp/SvgPage';
+import { WatermarkSvg } from '@/watermark/WatermarkSvg';
 
 export class SvgPages extends ContextSingleton<SvgPages> {
   private container: HTMLDivElement;

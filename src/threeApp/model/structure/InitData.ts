@@ -1,7 +1,7 @@
-import { Transform3DRefs } from './Transform3DRefs';
-import { TransformActionIdx } from './TransformActionIdx';
-import { TransToTree } from './TransToTree';
-import DataTransformStructure from './DataTransformStructure';
+import { Transform3DRefs } from '@/threeApp/model/structure/Transform3DRefs';
+import { TransformActionIdx } from '@/threeApp/model/structure/TransformActionIdx';
+import { TransToTree } from '@/threeApp/model/structure/TransToTree';
+import DataTransformStructure from '@/threeApp/model/structure/DataTransformStructure';
 
 export class InitData {
   private structure = { value: [] };

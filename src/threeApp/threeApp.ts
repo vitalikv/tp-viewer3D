@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { SceneManager } from '@/threeApp/scene/sceneManager';
-import { InitModel } from '@/threeApp/model/initModel';
-import { MouseManager } from '@/threeApp/scene/mouseManager';
-import { SelectionHandler } from '@/threeApp/selection/selectionHandler';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
+import { InitModel } from '@/threeApp/model/InitModel';
+import { MouseManager } from '@/threeApp/scene/MouseManager';
+import { SelectionHandler } from '@/threeApp/selection/SelectionHandler';
 import { BVHManager } from '@/threeApp/bvh/bvhManager';
-import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
-import { EffectsManager } from '@/threeApp/scene/effectsManager';
-import { OutlineSelection } from '@/threeApp/selection/outlineSelection';
-import { WatermarkCanvas, IWatermarkParams } from '@/watermark/watermarkCanvas';
-import { AnimationManager } from '@/threeApp/animation/animationManager';
-import { ViewCube } from '@/threeApp/scene/viewCube';
+import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
+import { EffectsManager } from '@/threeApp/scene/EffectsManager';
+import { OutlineSelection } from '@/threeApp/selection/OutlineSelection';
+import { WatermarkCanvas, IWatermarkParams } from '@/watermark/WatermarkCanvas';
+import { AnimationManager } from '@/threeApp/animation/AnimationManager';
+import { ViewCube } from '@/threeApp/scene/ViewCube';
 import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
 
 export class ThreeApp extends ContextSingleton<ThreeApp> {

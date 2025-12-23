@@ -1,4 +1,4 @@
-import { ATransToTree, IDataLabel, ITransform } from './IData';
+import { ATransToTree, IDataLabel, ITransform } from '@/threeApp/model/structure/IData';
 
 export class TransToTree extends ATransToTree {
   public transArr!: IDataLabel[];

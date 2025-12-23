@@ -2,15 +2,15 @@ import * as THREE from 'three';
 //import { GLTFLoader, DRACOLoader } from 'three/examples/jsm/Addons.js'; не работает в воркере
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
-import { SceneManager } from '@/threeApp/scene/sceneManager';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { AnimationManager } from '@/threeApp/animation/animationManager';
-import { ClippingBvh } from '@/threeApp/clipping/clippingBvh';
+import { AnimationManager } from '@/threeApp/animation/AnimationManager';
+import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
 import { BVHManager } from '@/threeApp/bvh/bvhManager';
 import { InitData } from '@/threeApp/model/structure/InitData';
-import { InitMergedModel } from '@/threeApp/mergedModel/initMergedModel';
-import { MergeEnvironment } from '@/threeApp/mergedModel/mergeEnvironment';
-import { MergeAnimation } from '@/threeApp/mergedModel/mergeAnimation';
+import { InitMergedModel } from '@/threeApp/mergedModel/InitMergedModel';
+import { MergeEnvironment } from '@/threeApp/mergedModel/MergeEnvironment';
+import { MergeAnimation } from '@/threeApp/mergedModel/MergeAnimation';
 
 export class InitModel extends ContextSingleton<InitModel> {
   private loader: GLTFLoader;

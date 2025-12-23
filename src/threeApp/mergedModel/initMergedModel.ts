@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
-import { SelectionAdapter } from './selectionAdapter';
-import { MergeModel } from '@/threeApp/mergedModel/mergeModel';
+import { SelectionAdapter } from '@/threeApp/mergedModel/SelectionAdapter';
+import { MergeModel } from '@/threeApp/mergedModel/MergeModel';
 import { SelectionMergedModel } from '@/threeApp/selection/selectionMergedModel';
 
 export class InitMergedModel {
