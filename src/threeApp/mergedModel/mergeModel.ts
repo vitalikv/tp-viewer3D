@@ -171,13 +171,12 @@ export class MergeModel {
     lineMaterialGroups.forEach((group) => {
       if (group.geometries.length === 0) return;
 
-      const mergedGeometry = BufferGeometryUtils.mergeGeometries(group.geometries, true);
+      const mergedGeometry = this.mergeLineGeometriesWithBreaks(group.geometries);
 
       if (mergedGeometry && mergedGeometry.attributes.position && mergedGeometry.attributes.position.count > 0) {
-        const lineMaterial = new THREE.LineBasicMaterial({
-          vertexColors: true,
-          color: (group.material as any).color || 0xffffff,
-        });
+        // Клонируем оригинальный материал и устанавливаем vertexColors
+        const lineMaterial = (group.material as THREE.LineBasicMaterial).clone();
+        lineMaterial.vertexColors = true;
 
         let mergedLine: THREE.Line | THREE.LineSegments;
         if (group.isLineSegments) {
@@ -200,6 +199,172 @@ export class MergeModel {
     });
 
     return mergedLines;
+  }
+
+  private static mergeLineGeometriesWithBreaks(geometries: THREE.BufferGeometry[]): THREE.BufferGeometry {
+    if (geometries.length === 0) {
+      return new THREE.BufferGeometry();
+    }
+
+    if (geometries.length === 1) {
+      const cloned = geometries[0].clone();
+      // Если геометрия одна и нет групп, создаем группу
+      if (!cloned.groups || cloned.groups.length === 0) {
+        const indexCount = cloned.index ? cloned.index.count : cloned.attributes.position.count;
+        if (indexCount > 0) {
+          cloned.addGroup(0, indexCount, 0);
+        }
+      }
+      return cloned;
+    }
+
+    const BREAK_VALUE_SIGNED = -1;
+    const BREAK_VALUE_UNSIGNED = 4294967295;
+    const MAX_UINT16 = 65535;
+
+    // Собираем все позиции и цвета
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const hasColors = geometries.some((geo) => geo.attributes.color);
+
+    geometries.forEach((geometry) => {
+      const posAttr = geometry.attributes.position;
+      if (posAttr) {
+        const posArray = posAttr.array;
+        for (let i = 0; i < posArray.length; i += 3) {
+          positions.push(posArray[i], posArray[i + 1], posArray[i + 2]);
+        }
+      }
+
+      if (hasColors) {
+        const colorAttr = geometry.attributes.color;
+        if (colorAttr) {
+          const colorArray = colorAttr.array;
+          for (let i = 0; i < colorArray.length; i += 3) {
+            colors.push(colorArray[i], colorArray[i + 1], colorArray[i + 2]);
+          }
+        } else {
+          // Если у геометрии нет цветов, добавляем белый
+          const posCount = geometry.attributes.position.count;
+          for (let i = 0; i < posCount; i++) {
+            colors.push(1, 1, 1);
+          }
+        }
+      }
+    });
+
+    // Собираем индексы с сохранением разрывов и создаем группы
+    const indices: number[] = [];
+    const groups: { start: number; count: number; materialIndex: number }[] = [];
+    let vertexOffset = 0;
+    let indexOffset = 0;
+    let needsUint32 = false;
+
+    geometries.forEach((geometry, geomIndex) => {
+      const indexAttr = geometry.index;
+      const positionCount = geometry.attributes.position.count;
+      const groupStart = indexOffset;
+      let groupCount = 0;
+
+      if (indexAttr) {
+        const indexArray = indexAttr.array;
+        const indexCount = indexAttr.count;
+
+        for (let i = 0; i < indexCount; i++) {
+          let indexValue: number;
+
+          if (indexArray instanceof Uint16Array) {
+            indexValue = indexArray[i];
+          } else if (indexArray instanceof Uint32Array) {
+            indexValue = indexArray[i];
+          } else {
+            indexValue = indexArray[i];
+          }
+
+          // Проверяем на разрыв
+          if (indexValue === BREAK_VALUE_UNSIGNED || indexValue === BREAK_VALUE_SIGNED) {
+            indices.push(BREAK_VALUE_UNSIGNED);
+            needsUint32 = true;
+            groupCount++;
+          } else {
+            const newIndex = vertexOffset + indexValue;
+            indices.push(newIndex);
+            groupCount++;
+            if (newIndex > MAX_UINT16) {
+              needsUint32 = true;
+            }
+          }
+        }
+
+        // Создаем группу для этой геометрии
+        groups.push({
+          start: groupStart,
+          count: groupCount,
+          materialIndex: geomIndex,
+        });
+
+        indexOffset += groupCount;
+      } else {
+        // Если нет индексов, создаем последовательные индексы
+        for (let i = 0; i < positionCount; i++) {
+          const newIndex = vertexOffset + i;
+          indices.push(newIndex);
+          groupCount++;
+          if (newIndex > MAX_UINT16) {
+            needsUint32 = true;
+          }
+        }
+
+        // Создаем группу для этой геометрии
+        groups.push({
+          start: groupStart,
+          count: groupCount,
+          materialIndex: geomIndex,
+        });
+
+        indexOffset += groupCount;
+      }
+
+      // Добавляем разрыв между геометриями (кроме последней)
+      if (geomIndex < geometries.length - 1) {
+        indices.push(BREAK_VALUE_UNSIGNED);
+        needsUint32 = true;
+        indexOffset += 1;
+      }
+
+      vertexOffset += positionCount;
+    });
+
+    // Создаем результирующую геометрию
+    const mergedGeometry = new THREE.BufferGeometry();
+
+    // Позиции
+    const positionArray = new Float32Array(positions);
+    mergedGeometry.setAttribute('position', new THREE.BufferAttribute(positionArray, 3));
+
+    // Цвета
+    if (hasColors && colors.length > 0) {
+      const colorArray = new Float32Array(colors);
+      mergedGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+    }
+
+    // Индексы
+    if (indices.length > 0) {
+      let indexArray: Uint16Array | Uint32Array;
+      if (needsUint32) {
+        indexArray = new Uint32Array(indices);
+      } else {
+        indexArray = new Uint16Array(indices);
+      }
+      mergedGeometry.setIndex(new THREE.BufferAttribute(indexArray, 1));
+    }
+
+    // Добавляем группы в геометрию
+    groups.forEach((group) => {
+      mergedGeometry.addGroup(group.start, group.count, group.materialIndex);
+    });
+
+    return mergedGeometry;
   }
 
   private static prepareGeometry(geometry: THREE.BufferGeometry, matrix: THREE.Matrix4) {
@@ -230,8 +395,17 @@ export class MergeModel {
       positionAttribute.needsUpdate = true;
     }
 
-    if (clonedGeo.index) {
-      clonedGeo.toNonIndexed();
+    // Для линий сохраняем индексы с разрывами, не вызываем toNonIndexed()
+    // Если геометрия одна и нет групп, создаем группы
+    if (!clonedGeo.index && clonedGeo.attributes.position) {
+      const positionCount = clonedGeo.attributes.position.count;
+      if (positionCount > 0) {
+        const indices = new Uint16Array(positionCount);
+        for (let i = 0; i < positionCount; i++) {
+          indices[i] = i;
+        }
+        clonedGeo.setIndex(new THREE.BufferAttribute(indices, 1));
+      }
     }
 
     return clonedGeo;

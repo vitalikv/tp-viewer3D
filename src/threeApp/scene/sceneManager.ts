@@ -38,8 +38,8 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.initLights();
     this.initHelpers();
 
-    await WatermarkCanvas.init();
-    Watermark3d.init(this.renderer);
+    // await WatermarkCanvas.init();
+    // Watermark3d.init(this.renderer);
 
     this.render();
   }

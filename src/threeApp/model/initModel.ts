@@ -16,7 +16,6 @@ export class InitModel extends ContextSingleton<InitModel> {
   private loader: GLTFLoader;
   private dracoLoader: DRACOLoader;
   private isMerge = false;
-  private isWorker = false;
   private model;
   private jsonGltf;
   public json2;
@@ -48,14 +47,6 @@ export class InitModel extends ContextSingleton<InitModel> {
 
   public getMerge() {
     return this.isMerge;
-  }
-
-  public setWorker({ worker }: { worker: boolean }) {
-    this.isWorker = worker;
-  }
-
-  private getWorker() {
-    return this.isWorker;
   }
 
   private findDuplicateGeometries(scene) {
