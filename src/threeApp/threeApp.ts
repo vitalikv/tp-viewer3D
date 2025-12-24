@@ -4,13 +4,13 @@ import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { InitModel } from '@/threeApp/model/InitModel';
 import { MouseManager } from '@/threeApp/scene/MouseManager';
 import { SelectionHandler } from '@/threeApp/selection/SelectionHandler';
-import { BVHManager } from '@/threeApp/bvh/bvhManager';
+import { BVHManager } from '@/threeApp/bvh/BvhManager';
 import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
 import { EffectsManager } from '@/threeApp/scene/EffectsManager';
 import { OutlineSelection } from '@/threeApp/selection/OutlineSelection';
 import { AnimationManager } from '@/threeApp/animation/AnimationManager';
 import { ViewCube } from '@/threeApp/scene/ViewCube';
-import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
+import { OffscreenCanvasManager } from '@/threeApp/worker/OffscreenCanvasManager';
 
 export class ThreeApp extends ContextSingleton<ThreeApp> {
   public isWorker = true;

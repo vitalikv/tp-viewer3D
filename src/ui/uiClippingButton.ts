@@ -1,6 +1,6 @@
-import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
+import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { UiClippingSlider } from '@/ui/uiClippingSlider';
+import { UiClippingSlider } from '@/ui/UiClippingSlider';
 
 export class UiClippingButton extends ContextSingleton<UiClippingButton> {
   private container: HTMLElement;

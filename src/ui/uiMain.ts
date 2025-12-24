@@ -1,10 +1,10 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { UiFileLoader } from '@/ui/uiFileLoader';
-import { UiFileMenu } from '@/ui/uiFileMenu';
-import { UiClippingButton } from '@/ui/uiClippingButton';
-import { UiDrawCallsDiv } from '@/ui/uiDrawCallsDiv';
-import { UiPlayerAnimation } from '@/ui/uiPlayerAnimation';
-import { UiLoadTimeDiv } from '@/ui/uiLoadTimeDiv';
+import { UiFileLoader } from '@/ui/UiFileLoader';
+import { UiFileMenu } from '@/ui/UiFileMenu';
+import { UiClippingButton } from '@/ui/UiClippingButton';
+import { UiDrawCallsDiv } from '@/ui/UiDrawCallsDiv';
+import { UiPlayerAnimation } from '@/ui/UiPlayerAnimation';
+import { UiLoadTimeDiv } from '@/ui/UiLoadTimeDiv';
 
 export class UiMain extends ContextSingleton<UiMain> {
   public init() {

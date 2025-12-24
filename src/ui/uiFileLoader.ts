@@ -3,9 +3,9 @@ import { ContextSingleton } from '@/core/ContextSingleton';
 import { ThreeApp } from '@/threeApp/ThreeApp';
 import { SvgPages } from '@/svgApp/SvgPages';
 import { InitModel } from '@/threeApp/model/InitModel';
-import { UiFileMenu } from '@/ui/uiFileMenu';
-import { UiLoadTimeDiv } from '@/ui/uiLoadTimeDiv';
-import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
+import { UiFileMenu } from '@/ui/UiFileMenu';
+import { UiLoadTimeDiv } from '@/ui/UiLoadTimeDiv';
+import { OffscreenCanvasManager } from '@/threeApp/worker/OffscreenCanvasManager';
 
 export class UiFileLoader extends ContextSingleton<UiFileLoader> {
   private container: HTMLElement;

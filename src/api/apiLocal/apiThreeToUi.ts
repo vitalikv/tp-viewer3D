@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { UiPlayerAnimation } from '@/ui/uiPlayerAnimation';
-import { UiDrawCallsDiv } from '@/ui/uiDrawCallsDiv';
+import { UiPlayerAnimation } from '@/ui/UiPlayerAnimation';
+import { UiDrawCallsDiv } from '@/ui/UiDrawCallsDiv';
 
 export class ApiThreeToUi extends ContextSingleton<ApiThreeToUi> {
   private isInWorker(): boolean {

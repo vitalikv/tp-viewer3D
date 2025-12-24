@@ -4,13 +4,13 @@ import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { InitModel } from '@/threeApp/model/InitModel';
 import { AnimationManager } from '@/threeApp/animation/AnimationManager';
-import { BVHManager } from '@/threeApp/bvh/bvhManager';
+import { BVHManager } from '@/threeApp/bvh/BvhManager';
 import { OutlineSelection } from '@/threeApp/selection/OutlineSelection';
 import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
 import { SelectionHandler } from '@/threeApp/selection/SelectionHandler';
 import { MouseManager } from '@/threeApp/scene/MouseManager';
 import { EffectsManager } from '@/threeApp/scene/EffectsManager';
-import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
+import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
 
 type WorkerMessage =
   | { type: 'init'; canvas: OffscreenCanvas; rect: any }

@@ -1,4 +1,4 @@
-import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
+import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
 import { ContextSingleton } from '@/core/ContextSingleton';
 
 export class UiClippingSlider extends ContextSingleton<UiClippingSlider> {

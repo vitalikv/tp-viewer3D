@@ -1,6 +1,6 @@
 import { ThreeApp } from '@/threeApp/ThreeApp';
 import { SvgApp } from '@/svgApp/SvgApp';
-import { UiMain } from '@/ui/uiMain';
+import { UiMain } from '@/ui/UiMain';
 
 const threeApp = ThreeApp.inst();
 const svgApp = SvgApp.inst();

@@ -3,7 +3,7 @@ import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { InitModel } from '@/threeApp/model/InitModel';
 import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
 import { AnimationManager } from '@/threeApp/animation/AnimationManager';
-import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
+import { OffscreenCanvasManager } from '@/threeApp/worker/OffscreenCanvasManager';
 
 export class ApiUiToThree extends ContextSingleton<ApiUiToThree> {
   private isInWorker(): boolean {

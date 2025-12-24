@@ -10,7 +10,7 @@ import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
 import { EffectsManager } from '@/threeApp/scene/EffectsManager';
 import { WatermarkCanvas, IWatermarkParams } from '@/watermark/WatermarkCanvas';
 import { Watermark3d } from '@/watermark/Watermark3d';
-import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
+import { ApiThreeToUi } from '@/api/apiLocal/ApiThreeToUi';
 
 export class SceneManager extends ContextSingleton<SceneManager> {
   public stats = null;

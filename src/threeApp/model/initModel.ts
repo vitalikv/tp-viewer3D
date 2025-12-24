@@ -6,7 +6,7 @@ import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { AnimationManager } from '@/threeApp/animation/AnimationManager';
 import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
-import { BVHManager } from '@/threeApp/bvh/bvhManager';
+import { BVHManager } from '@/threeApp/bvh/BvhManager';
 import { InitData } from '@/threeApp/model/structure/InitData';
 import { InitMergedModel } from '@/threeApp/mergedModel/InitMergedModel';
 import { MergeEnvironment } from '@/threeApp/mergedModel/MergeEnvironment';

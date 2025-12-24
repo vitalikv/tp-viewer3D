@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { AnimationManager } from '@/threeApp/animation/AnimationManager';
-import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
-import { UiPlayerAnimation } from '@/ui/uiPlayerAnimation';
-import { UiDrawCallsDiv } from '@/ui/uiDrawCallsDiv';
+import { ApiThreeToUi } from '@/api/apiLocal/ApiThreeToUi';
+import { UiPlayerAnimation } from '@/ui/UiPlayerAnimation';
+import { UiDrawCallsDiv } from '@/ui/UiDrawCallsDiv';
 
 export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasManager> {
   public isWorker = typeof window === 'undefined' && typeof self !== 'undefined';

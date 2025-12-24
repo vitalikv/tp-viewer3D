@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ApiUiToThree } from '@/api/apiLocal/apiUiToThree';
+import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
 import { ContextSingleton } from '@/core/ContextSingleton';
 
 export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
