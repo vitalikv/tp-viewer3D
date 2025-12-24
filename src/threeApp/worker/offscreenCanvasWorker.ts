@@ -55,7 +55,7 @@ class OffscreenCanvasWorker {
         break;
       case 'resize':
         if (this.renderer && this.camera) {
-          this.resize(msg.width, msg.height, msg.left, msg.top);
+          SceneManager.inst().handleResize({ width: msg.width, height: msg.height, left: msg.left, top: msg.top });
         }
         break;
       case 'event':
@@ -260,18 +260,6 @@ class OffscreenCanvasWorker {
 
   private sendProgress(text: string | null) {
     self.postMessage({ type: 'progress', data: text });
-  }
-
-  private resize(width: number, height: number, left: number, top: number) {
-    SceneManager.inst().setClientRect({ width, height, left, top });
-    SceneManager.inst().cameraManager.resize();
-
-    if (this.controls) {
-      const controls = this.controls as any;
-      if (typeof controls.setContainerRect === 'function') {
-        controls.setContainerRect({ width, height, left, top });
-      }
-    }
   }
 
   private sendCameraState() {

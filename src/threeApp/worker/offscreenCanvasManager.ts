@@ -9,7 +9,6 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
   public isWorker = typeof window === 'undefined' && typeof self !== 'undefined';
   public worker: Worker;
   private container: HTMLCanvasElement;
-  private resizeObserver?: ResizeObserver;
   private progressCallback?: (text: string | null) => void;
   private modelLoadedCallback?: (filename: string) => void;
   private modelErrorCallback?: (error: string) => void;
@@ -89,19 +88,6 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
       },
       { passive: false }
     );
-
-    const resizeHandler = () => {
-      const rect = this.getClientRect();
-      this.worker.postMessage({
-        type: 'resize',
-        width: rect.width,
-        height: rect.height,
-        left: rect.left,
-        top: rect.top,
-      });
-    };
-    this.resizeObserver = new ResizeObserver(resizeHandler);
-    this.resizeObserver.observe(this.container);
   }
 
   private setupWorkerMessageHandler() {
@@ -193,9 +179,6 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
 
   public dispose() {
     this.worker.terminate();
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-    }
   }
 
   public onCameraState(callback) {

@@ -8,7 +8,7 @@ import { ThreeApp } from '@/threeApp/ThreeApp';
 import { CameraManager } from '@/threeApp/scene/CameraManager';
 import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
 import { EffectsManager } from '@/threeApp/scene/EffectsManager';
-import { WatermarkCanvas } from '@/watermark/WatermarkCanvas';
+import { WatermarkCanvas, IWatermarkParams } from '@/watermark/WatermarkCanvas';
 import { Watermark3d } from '@/watermark/Watermark3d';
 import { ApiThreeToUi } from '@/api/apiLocal/apiThreeToUi';
 
@@ -27,6 +27,8 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.canvas = canvas;
     this.rect = rect;
 
+    this.initWatermark();
+
     const isWorker = ThreeApp.inst().isWorker;
     if (!isWorker) this.initStats();
     this.initScene();
@@ -36,10 +38,31 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.initLights();
     this.initHelpers();
 
-    await WatermarkCanvas.init(this.rect);
+    await WatermarkCanvas.init();
     Watermark3d.init(this.renderer);
 
     this.render();
+  }
+
+  private initWatermark() {
+    const params: IWatermarkParams = {
+      activated: true, // вкл/выкл watermark
+      contentType: 'datetime', // 'datetime' | 'text' показывать время или текст
+      text: '', // если указанно в contentType: 'text', то можно задать свой текст
+      textColor: '#000000', // цвет текста
+      opacityText: 0.7, // прозрачность текста
+      opacityLogo: 0.3, // прозрачность логотипа
+      fontSize: 16, // размер текста
+      width: 150,
+      height: 100,
+      urlLogo: '/assets/watermark/application.svg', // ссылка на логотип
+      //urlLogo: 'https://static.tildacdn.com/tild6339-3233-4234-a137-643165663664/logo_rosatom.png',
+      scaleLogo: 2, // насколько увеличить логотип (масштаб)
+      padding: 0,
+      spacing: 100, // отступы логотипов друг от друга
+    };
+
+    WatermarkCanvas.setParams(params);
   }
 
   public setClientRect({ width, height, left, top }: { width: number; height: number; left: number; top: number }) {
@@ -51,6 +74,18 @@ export class SceneManager extends ContextSingleton<SceneManager> {
 
   public getClientRect() {
     return { left: this.rect.left, top: this.rect.top, width: this.rect.width, height: this.rect.height };
+  }
+
+  public handleResize({ width, height, left, top }: { width: number; height: number; left: number; top: number }) {
+    this.setClientRect({ width, height, left, top });
+    this.cameraManager.resize();
+
+    if (this.controls) {
+      const controls = this.controls as any;
+      if (typeof controls.setContainerRect === 'function') {
+        controls.setContainerRect({ width, height, left, top });
+      }
+    }
   }
 
   private initStats() {

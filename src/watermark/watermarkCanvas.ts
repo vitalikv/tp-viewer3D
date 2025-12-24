@@ -18,10 +18,9 @@ export interface IWatermarkParams {
 }
 
 export class WatermarkCanvas {
-  private static container: HTMLElement | { width: number; height: number; dpr: number; virtDom: boolean };
   private static canvas: HTMLCanvasElement | OffscreenCanvas;
   private static ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
-  private static imgLogo: HTMLImageElement | null = null;
+  private static imgLogo: HTMLImageElement | ImageBitmap | null = null;
 
   private static params: Required<IWatermarkParams> = {
     activated: false,
@@ -43,46 +42,99 @@ export class WatermarkCanvas {
     this.params = { ...this.params, ...params } as Required<IWatermarkParams>;
   }
 
-  public static async init(container: HTMLElement | { width: number; height: number; dpr: number; virtDom: boolean }) {
+  public static async init() {
     if (!this.params.activated) return;
-
-    this.container = container;
 
     this.createCanvas();
 
     try {
       await this.loadImage();
       this.getWatermarkCanvas();
-    } catch {
-      console.log('Не удалось загрузить Logo:', this.params.urlLogo);
+    } catch (error) {
+      console.log('Не удалось загрузить Logo:', this.params.urlLogo, error);
       this.getWatermarkCanvas();
     }
   }
 
-  private static loadImage(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.params.urlLogo === '') {
-        reject();
-        return;
-      }
+  private static async loadImage(): Promise<void> {
+    if (this.params.urlLogo === '') {
+      throw new Error('URL логотипа не указан');
+    }
 
-      if (this.params.urlLogo) {
-        this.imgLogo = new Image();
-        this.imgLogo.crossOrigin = 'anonymous';
-        this.imgLogo.onload = () => {
-          this.params.width = this.imgLogo!.width * this.params.scaleLogo;
-          this.params.height = this.imgLogo!.height * this.params.scaleLogo;
+    if (!this.params.urlLogo) {
+      throw new Error('URL логотипа не указан');
+    }
+
+    const isWorker = ThreeApp.inst().isWorker;
+
+    if (isWorker) {
+      try {
+        const response = await fetch(this.params.urlLogo);
+        if (!response.ok) throw new Error(`Ошибка загрузки: ${response.statusText}`);
+
+        const isSvg = this.params.urlLogo.toLowerCase().endsWith('.svg');
+
+        if (isSvg) {
+          const svgText = await response.text();
+          const svgBlob = new Blob([svgText], { type: 'image/svg+xml' });
+
+          // Извлекаем размеры из SVG
+          const widthMatch = svgText.match(/width=["'](\d+)/);
+          const heightMatch = svgText.match(/height=["'](\d+)/);
+          const viewBoxMatch = svgText.match(/viewBox=["']0\s+0\s+(\d+)\s+(\d+)/);
+
+          const svgWidth = widthMatch ? parseInt(widthMatch[1]) : viewBoxMatch ? parseInt(viewBoxMatch[1]) : 80;
+          const svgHeight = heightMatch ? parseInt(heightMatch[1]) : viewBoxMatch ? parseInt(viewBoxMatch[2]) : 80;
+
+          // Рендерим SVG на canvas и создаем ImageBitmap
+          const canvas = new OffscreenCanvas(svgWidth, svgHeight);
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('Не удалось получить контекст');
+
+          // Пробуем создать ImageBitmap из SVG blob
+          try {
+            const imageBitmap = await createImageBitmap(svgBlob, {
+              resizeWidth: svgWidth,
+              resizeHeight: svgHeight,
+            });
+            this.imgLogo = imageBitmap;
+            this.params.width = imageBitmap.width * this.params.scaleLogo;
+            this.params.height = imageBitmap.height * this.params.scaleLogo;
+          } catch {
+            // Если не получилось, используем размеры из SVG без изображения
+            this.imgLogo = null;
+            this.params.width = svgWidth * this.params.scaleLogo;
+            this.params.height = svgHeight * this.params.scaleLogo;
+          }
+        } else {
+          const blob = await response.blob();
+          const imageBitmap = await createImageBitmap(blob);
+          this.imgLogo = imageBitmap;
+          this.params.width = imageBitmap.width * this.params.scaleLogo;
+          this.params.height = imageBitmap.height * this.params.scaleLogo;
+        }
+      } catch (error) {
+        this.imgLogo = null;
+        throw error;
+      }
+    } else {
+      // В основном потоке используем Image
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          this.imgLogo = img;
+          this.params.width = img.width * this.params.scaleLogo;
+          this.params.height = img.height * this.params.scaleLogo;
           resolve();
         };
-        this.imgLogo.onerror = () => {
+        img.onerror = () => {
           this.imgLogo = null;
           reject();
         };
-        this.imgLogo.src = this.params.urlLogo;
-      } else {
-        reject();
-      }
-    });
+        img.src = this.params.urlLogo;
+      });
+    }
   }
 
   private static createCanvas() {
@@ -99,7 +151,10 @@ export class WatermarkCanvas {
     }
 
     const ctx = this.canvas.getContext('2d');
-    this.ctx = ctx;
+    if (!ctx || !('drawImage' in ctx)) {
+      throw new Error('Не удалось получить контекст 2D canvas');
+    }
+    this.ctx = ctx as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
   }
 
   private static getClientRect() {

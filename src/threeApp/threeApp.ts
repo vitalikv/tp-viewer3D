@@ -8,7 +8,6 @@ import { BVHManager } from '@/threeApp/bvh/bvhManager';
 import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
 import { EffectsManager } from '@/threeApp/scene/EffectsManager';
 import { OutlineSelection } from '@/threeApp/selection/OutlineSelection';
-import { WatermarkCanvas, IWatermarkParams } from '@/watermark/WatermarkCanvas';
 import { AnimationManager } from '@/threeApp/animation/AnimationManager';
 import { ViewCube } from '@/threeApp/scene/ViewCube';
 import { OffscreenCanvasManager } from '@/threeApp/worker/offscreenCanvasManager';
@@ -31,8 +30,6 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
       top: rect.top,
     };
 
-    //this.initWatermark();
-
     if (this.isWorker) {
       OffscreenCanvasManager.inst().init({ canvas });
     } else {
@@ -50,15 +47,9 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
       MouseManager.inst().init(SceneManager.inst().camera, SceneManager.inst().renderer.domElement);
       BVHManager.inst().init();
       InitModel.inst().setMerge({ merge: true });
-
-      const resizeHandler = () => {
-        const rect = canvas.getBoundingClientRect();
-        SceneManager.inst().setClientRect({ width: rect.width, height: rect.height, left: rect.left, top: rect.top });
-        SceneManager.inst().cameraManager.resize();
-      };
-      const resizeObserver = new ResizeObserver(resizeHandler);
-      resizeObserver.observe(canvas);
     }
+
+    this.initResizeObserver(canvas);
 
     const container = document.getElementById('container');
     if (this.isWorker) {
@@ -68,25 +59,26 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
     }
   }
 
-  private initWatermark() {
-    const params: IWatermarkParams = {
-      activated: true, // вкл/выкл watermark
-      contentType: 'datetime', // 'datetime' | 'text' показывать время или текст
-      text: '', // если указанно в contentType: 'text', то можно задать свой текст
-      textColor: '#000000', // цвет текста
-      opacityText: 0.7, // прозрачность текста
-      opacityLogo: 0.3, // прозрачность логотипа
-      fontSize: 16, // размер текста
-      width: 150,
-      height: 100,
-      urlLogo: './assets/watermark/application.svg', // ссылка на логотип
-      //urlLogo: 'https://static.tildacdn.com/tild6339-3233-4234-a137-643165663664/logo_rosatom.png',
-      scaleLogo: 2, // насколько увеличить логотип (масштаб)
-      padding: 0,
-      spacing: 100, // отступы логотипов друг от друга
+  private initResizeObserver(canvas: HTMLCanvasElement) {
+    const resizeHandler = () => {
+      const rect = canvas.getBoundingClientRect();
+      if (this.isWorker) {
+        const worker = OffscreenCanvasManager.inst().worker;
+        if (worker) {
+          worker.postMessage({
+            type: 'resize',
+            width: rect.width,
+            height: rect.height,
+            left: rect.left,
+            top: rect.top,
+          });
+        }
+      } else {
+        SceneManager.inst().handleResize({ width: rect.width, height: rect.height, left: rect.left, top: rect.top });
+      }
     };
-
-    WatermarkCanvas.setParams(params);
+    const resizeObserver = new ResizeObserver(resizeHandler);
+    resizeObserver.observe(canvas);
   }
 
   private initViewCubeWorker(container) {

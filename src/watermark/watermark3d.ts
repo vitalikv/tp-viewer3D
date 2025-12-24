@@ -32,7 +32,7 @@ export class Watermark3d {
     this.watermarkScene.add(this.watermarkMesh);
   }
 
-  private static getShader(canvas: HTMLCanvasElement) {
+  private static getShader(canvas: HTMLCanvasElement | OffscreenCanvas) {
     const vertexShader = `
         void main() {
             gl_Position = vec4(position, 1.0);
