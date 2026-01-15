@@ -120,7 +120,14 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.scene.add(cube);
   }
 
-  private createAdvancedGradient(options: { color1: string | number | THREE.Color; color2: string | number | THREE.Color; direction: 'vertical' | 'horizontal' | 'radial'; transitionSharpness: number; transitionPoint: number; transitionWidth: number }) {
+  private createAdvancedGradient(options: {
+    color1: string | number | THREE.Color;
+    color2: string | number | THREE.Color;
+    direction: 'vertical' | 'horizontal' | 'radial';
+    transitionSharpness: number;
+    transitionPoint: number;
+    transitionWidth: number;
+  }) {
     const color1: string = '#' + new THREE.Color(options.color1).getHexString();
     const color2: string = '#' + new THREE.Color(options.color2).getHexString();
     const direction: string = options.direction;

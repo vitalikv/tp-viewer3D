@@ -15,7 +15,7 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
   private cameraStateCallback?: (data: any) => void;
 
   public init({ canvas }: { canvas: HTMLCanvasElement }) {
-    this.worker = new Worker(new URL('./offscreenCanvasWorker.ts', import.meta.url), { type: 'module' });
+    this.worker = new Worker(new URL('./OffscreenCanvasWorker.ts', import.meta.url), { type: 'module' });
 
     this.container = canvas;
 

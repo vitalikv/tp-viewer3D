@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 import { SelectionAdapter } from '@/threeApp/mergedModel/SelectionAdapter';
 import { MergeModel } from '@/threeApp/mergedModel/MergeModel';
-import { SelectionMergedModel } from '@/threeApp/selection/selectionMergedModel';
+import { SelectionMergedModel } from '@/threeApp/selection/SelectionMergedModel';
 
 export class InitMergedModel {
   public static init({ model }: { model: THREE.Group }) {
