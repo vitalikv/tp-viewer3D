@@ -4,11 +4,15 @@ export class WatermarkSvg {
   private static currentCanvas: HTMLCanvasElement | null = null;
   private static currentSVGElement: SVGElement | undefined = undefined;
   private static ctx: CanvasRenderingContext2D | null = null;
-  private static watermarkCanvas: HTMLCanvasElement | undefined = undefined;
+  private static watermarkCanvas: HTMLCanvasElement | OffscreenCanvas | undefined = undefined;
   private static divSvgContainer: HTMLElement | undefined = undefined;
 
   public static init(divSvgContainer: HTMLElement, svg: SVGElement | undefined) {
-    this.watermarkCanvas = WatermarkCanvas.getWatermarkCanvas();
+    const canvas = WatermarkCanvas.getWatermarkCanvas();
+    if (!canvas || canvas instanceof OffscreenCanvas) {
+      return;
+    }
+    this.watermarkCanvas = canvas;
     if (!this.watermarkCanvas) return;
 
     this.clear();
@@ -77,13 +81,19 @@ export class WatermarkSvg {
     const width = svgRect.width;
     const height = svgRect.height;
 
-    this.ctx.drawImage(this.watermarkCanvas, 0, 0, width, height);
+    if (this.watermarkCanvas instanceof HTMLCanvasElement) {
+      this.ctx.drawImage(this.watermarkCanvas, 0, 0, width, height);
+    }
   }
 
   public static async updateWatermark() {
     if (!this.divSvgContainer || !this.currentCanvas) return;
 
-    this.watermarkCanvas = WatermarkCanvas.getWatermarkCanvas();
+    const canvas = WatermarkCanvas.getWatermarkCanvas();
+    if (!canvas || canvas instanceof OffscreenCanvas) {
+      return;
+    }
+    this.watermarkCanvas = canvas;
     if (!this.watermarkCanvas) return;
 
     const svgRect = this.divSvgContainer.getBoundingClientRect();

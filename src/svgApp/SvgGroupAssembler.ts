@@ -72,10 +72,11 @@ export class SvgGroupAssembler {
       if (element instanceof SVGElement) {
         const elementId = element.getAttribute('id');
         if (elementId && childIdSet.has(elementId)) {
+          const svgGraphicsElement = element as SVGGraphicsElement;
           matches.push({
             id: elementId,
             element: element,
-            bounds: element.getBBox(),
+            bounds: svgGraphicsElement.getBBox(),
             uniqueId: `${elementId}_${matches.length}`,
           });
         }

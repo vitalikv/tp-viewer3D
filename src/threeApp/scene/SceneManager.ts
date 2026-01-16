@@ -147,14 +147,19 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     }
 
     const ctx = canvas.getContext('2d');
+    if (!ctx || ctx instanceof ImageBitmapRenderingContext) {
+      throw new Error('Не удалось получить контекст 2D');
+    }
+
+    const ctx2d = ctx as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
     let gradient: CanvasGradient;
     if (direction === 'vertical') {
-      gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient = ctx2d.createLinearGradient(0, 0, 0, canvas.height);
     } else if (direction === 'horizontal') {
-      gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+      gradient = ctx2d.createLinearGradient(0, 0, canvas.width, 0);
     } else {
-      gradient = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2);
+      gradient = ctx2d.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2);
     }
 
     const mixColors = (color1: string, color2: string, weight: number): string => {
@@ -199,8 +204,8 @@ export class SceneManager extends ContextSingleton<SceneManager> {
       gradient.addColorStop(1, color2);
     }
 
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx2d.fillStyle = gradient;
+    ctx2d.fillRect(0, 0, canvas.width, canvas.height);
 
     const texture: THREE.Texture = new THREE.CanvasTexture(canvas);
 

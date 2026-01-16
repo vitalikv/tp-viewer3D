@@ -12,8 +12,10 @@
     "noEmit": true,
     "jsx": "preserve",
     "strict": false,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    // Отключены проверки неиспользуемого кода (noUnusedLocals, noUnusedParameters),
+    // чтобы сохранить код, который может понадобиться в будущем
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
