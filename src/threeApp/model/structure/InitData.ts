@@ -11,9 +11,29 @@ export class InitData {
   constructor({ structure, gltf }: { structure: unknown; gltf: unknown }) {
     if (!structure) return;
 
+    const gltfData = gltf as {
+      scene: unknown;
+      animations?: unknown[];
+      parser: {
+        json: {
+          extras?: {
+            tflex?: {
+              structure?: unknown;
+            };
+          };
+          [key: string]: unknown;
+        };
+        associations: Map<
+          { uuid: string; id: string | number; [key: string]: unknown },
+          { nodes?: string | number; [key: string]: unknown }
+        >;
+      };
+      [key: string]: unknown;
+    };
+
     const transform: DataTransformStructure = new DataTransformStructure(
-      structure,
-      gltf,
+      structure as unknown[],
+      gltfData,
       new TransformActionIdx(),
       new Transform3DRefs(),
       new TransToTree()

@@ -9,6 +9,9 @@ export interface IDataLabel {
   nodes: number[] | null;
   id_node_tf: string;
   fragment_guid: string;
+  uuid?: string;
+  ref3dId?: string;
+  childsGeom?: IDataLabel[];
 }
 
 export interface IAction {

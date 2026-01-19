@@ -30,36 +30,56 @@ export class TransToTree extends ATransToTree {
 
   toTree(arr: IDataLabel[]) {
     for (const label of arr) {
-      if ('children' in label && label.children !== null && label.children.length > 0) {
-        const childObjs = label.children.reduce((acc: IDataLabel[], idx: number) => {
-          if (typeof idx === 'number') {
-            const obj = this.copy[idx];
+      if (
+        'children' in label &&
+        label.children !== null &&
+        Array.isArray(label.children) &&
+        label.children.length > 0
+      ) {
+        // Проверяем, является ли children массивом чисел (индексов) или уже массивом объектов
+        const firstChild = label.children[0];
+        const isNumberArray = typeof firstChild === 'number';
 
+        let childObjs: IDataLabel[] = [];
+        if (isNumberArray) {
+          childObjs = (label.children as number[]).reduce((acc: IDataLabel[], childIdx: number) => {
+            const obj = this.copy[childIdx];
             if (obj) {
               obj.idxtfxparent = label.idx;
               acc.push(obj);
             }
-          }
-          return acc;
-        }, []);
+            return acc;
+          }, []);
+        } else {
+          childObjs = label.children as IDataLabel[];
+        }
 
-        if (childObjs.length > 0) label.children = childObjs;
-        //----- start sub(label.children) ---
-        for (const lab of label.children) {
-          if ('children' in lab && lab.children !== null && lab.children.length > 0) {
-            const childObjs = lab.children.reduce((acc: IDataLabel[], idx: number) => {
-              if (typeof idx === 'number') {
-                const obj = this.copy[idx];
+        if (childObjs.length > 0) {
+          label.children = childObjs;
+          //----- start sub(label.children) ---
+          for (const lab of childObjs) {
+            if ('children' in lab && lab.children !== null && Array.isArray(lab.children) && lab.children.length > 0) {
+              const firstSubChild = lab.children[0];
+              const isSubNumberArray = typeof firstSubChild === 'number';
 
-                if (obj) {
-                  obj.idxtfxparent = lab.idx;
-                  acc.push(obj);
-                }
+              let subChildObjs: IDataLabel[] = [];
+              if (isSubNumberArray) {
+                subChildObjs = (lab.children as number[]).reduce((acc: IDataLabel[], childIdx: number) => {
+                  const obj = this.copy[childIdx];
+                  if (obj) {
+                    obj.idxtfxparent = lab.idx;
+                    acc.push(obj);
+                  }
+                  return acc;
+                }, []);
+              } else {
+                subChildObjs = lab.children as IDataLabel[];
               }
-              return acc;
-            }, []);
-            lab.children = childObjs;
+              lab.children = subChildObjs.length > 0 ? subChildObjs : null;
+            }
           }
+        } else {
+          label.children = null;
         }
 
         this.arrTransform.push(label);

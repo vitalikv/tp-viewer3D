@@ -35,7 +35,7 @@ export class Transform3DRefs extends ATransTo3DRefs {
         if (modelObj.nodes.length > 1) {
           const childrenGeometr = modelObj.nodes.map((idnode: number) => {
             const key = this.getObjfromAsLoader(idnode);
-            const ch = {
+            const ch: IDataLabel = {
               id: this.getIdRef(),
               idx: NaN,
               idxtfxparent: modelObj.idx,
@@ -46,6 +46,8 @@ export class Transform3DRefs extends ATransTo3DRefs {
               ref3dId: `${key.id}`,
               children: null,
               nodes: null,
+              id_node_tf: modelObj.id_node_tf || '',
+              fragment_guid: modelObj.fragment_guid || '',
             };
 
             return ch;

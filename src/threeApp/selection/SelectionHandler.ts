@@ -71,12 +71,12 @@ export class SelectionHandler extends ContextSingleton<SelectionHandler> {
 
     objs.forEach((object) => {
       object.traverse((child) => {
-        if (child.isMesh) {
-          this.setActiveObj(child as THREE.Mesh);
+        if (child instanceof THREE.Mesh) {
+          this.setActiveObj(child);
           child.material = this.selectionMaterial;
         }
-        if (child.isLine || child.isLineSegments) {
-          this.setActiveObj(child as THREE.Line | THREE.LineSegments);
+        if (child instanceof THREE.Line || child instanceof THREE.LineSegments) {
+          this.setActiveObj(child);
           child.material = this.lineMaterial;
         }
       });

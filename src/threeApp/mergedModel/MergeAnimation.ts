@@ -58,13 +58,13 @@ export class MergeAnimation {
       virtualNode.matrix.copy(originalNode.matrix);
       virtualNode.matrixWorld.copy(originalNode.matrixWorld);
 
-      const userData: { originalMatrixWorld?: THREE.Matrix4 } = {
+      const userData: { originalMatrixWorld?: THREE.Matrix4; isAnimationNode?: boolean } = {
         ...originalNode.userData,
         isAnimationNode: true,
         originalMatrixWorld: originalNode.matrixWorld.clone(),
       };
 
-      virtualNode.userData = userData;
+      virtualNode.userData = userData as Record<string, unknown>;
 
       nodeMap.set(originalNode.uuid, virtualNode);
       parent.add(virtualNode);

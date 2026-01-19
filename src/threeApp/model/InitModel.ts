@@ -52,7 +52,7 @@ export class InitModel extends ContextSingleton<InitModel> {
     const geometryMap = new Map();
 
     scene.traverse((object) => {
-      if (object.isMesh && object.geometry) {
+      if (object instanceof THREE.Mesh && object.geometry) {
         const geometry = object.geometry;
         const geometryId = geometry.uuid;
 
@@ -115,7 +115,7 @@ export class InitModel extends ContextSingleton<InitModel> {
     }
 
     SceneManager.inst().scene.add(model);
-    this.model = model;
+    this.model = model as THREE.Group;
     this.jsonGltf = gltf;
 
     if (gltf.animations && gltf.animations.length > 0 && AnimationManager.inst()) {
@@ -140,10 +140,10 @@ export class InitModel extends ContextSingleton<InitModel> {
     SceneManager.inst().cameraManager.zoomCameraToFitModel({ center: new THREE.Vector3(0, 0, 0), radius, maxDim });
   }
 
-  private modelMerged({ model }: { model: THREE.Object3D }) {
-    model = InitMergedModel.init({ model });
+  private modelMerged({ model }: { model: THREE.Object3D }): THREE.Group {
+    const mergedModel = InitMergedModel.init({ model: model as THREE.Group });
 
-    return model;
+    return mergedModel;
   }
 
   private simpleModel({ model }: { model: THREE.Object3D }) {

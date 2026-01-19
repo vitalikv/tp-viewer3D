@@ -123,9 +123,9 @@ export class MergeEnvironment {
     material.dispose();
 
     Object.keys(material).forEach((key: string) => {
-      const value = (material as Record<string, unknown>)[key];
-      if (value?.isTexture) {
-        value.dispose();
+      const value = (material as unknown as Record<string, unknown>)[key];
+      if (value && typeof value === 'object' && 'isTexture' in value && (value as THREE.Texture).isTexture) {
+        (value as THREE.Texture).dispose();
       }
     });
   }
