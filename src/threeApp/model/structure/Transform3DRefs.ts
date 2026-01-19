@@ -2,16 +2,22 @@
  * ATransform3DRefs
  */
 
-import { IDataLabel, ITransform, ATransTo3DRefs } from '@/threeApp/model/structure/IData';
+import {
+  IDataLabel,
+  ITransform,
+  ATransTo3DRefs,
+  GLTFAssociationKey,
+  GLTFAssociationValue,
+} from '@/threeApp/model/structure/IData';
 
 export class Transform3DRefs extends ATransTo3DRefs {
   public transArr!: IDataLabel[];
   public copy!: IDataLabel[];
-  private assMap!: Map<unknown, unknown>;
+  private assMap!: Map<GLTFAssociationKey, GLTFAssociationValue>;
   constructor() {
     super();
   }
-  setAssMap(ass: Map<unknown, unknown>): void {
+  setAssMap(ass: Map<GLTFAssociationKey, GLTFAssociationValue>): void {
     this.assMap = ass;
   }
   private getIdRef(): number {
@@ -65,12 +71,12 @@ export class Transform3DRefs extends ATransTo3DRefs {
     throw new Error('Method not implemented.');
   }
 
-  private getObjfromAsLoader(idx: number): { uuid: string; id: string | number } {
-    let obj3dref!: { uuid: string; id: string | number }; // ссылка на обьект3Д
+  private getObjfromAsLoader(idx: number): GLTFAssociationKey {
+    let obj3dref!: GLTFAssociationKey; // ссылка на обьект3Д
 
-    this.assMap.forEach((value: unknown, key: unknown) => {
-      if (value && 'nodes' in value && value.nodes !== 'undefined') {
-        if (parseInt(value.nodes) === idx) {
+    this.assMap.forEach((value: GLTFAssociationValue, key: GLTFAssociationKey) => {
+      if (value && 'nodes' in value && value.nodes !== undefined && typeof value.nodes !== 'undefined') {
+        if (parseInt(String(value.nodes)) === idx) {
           obj3dref = key;
         }
       }

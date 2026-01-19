@@ -2,8 +2,8 @@ import { ATransToTree, IDataLabel, ITransform } from '@/threeApp/model/structure
 
 export class TransToTree extends ATransToTree {
   public transArr!: IDataLabel[];
-  public copy!: any[];
-  private arrTransform: any[] = [];
+  public copy!: IDataLabel[];
+  private arrTransform: IDataLabel[] = [];
 
   constructor() {
     super();
@@ -24,14 +24,14 @@ export class TransToTree extends ATransToTree {
     return this;
   }
 
-  setSrcArr(srcArr: any[]) {
-    this.copy = [...srcArr];
+  setSrcArr(srcArr: IDataLabel[] | unknown[]) {
+    this.copy = [...(srcArr as IDataLabel[])];
   }
 
-  toTree(arr: any[]) {
+  toTree(arr: IDataLabel[]) {
     for (const label of arr) {
       if ('children' in label && label.children !== null && label.children.length > 0) {
-        const childObjs = label.children.reduce((acc: any[], idx: number) => {
+        const childObjs = label.children.reduce((acc: IDataLabel[], idx: number) => {
           if (typeof idx === 'number') {
             const obj = this.copy[idx];
 
@@ -47,7 +47,7 @@ export class TransToTree extends ATransToTree {
         //----- start sub(label.children) ---
         for (const lab of label.children) {
           if ('children' in lab && lab.children !== null && lab.children.length > 0) {
-            const childObjs = lab.children.reduce((acc: any[], idx: number) => {
+            const childObjs = lab.children.reduce((acc: IDataLabel[], idx: number) => {
               if (typeof idx === 'number') {
                 const obj = this.copy[idx];
 

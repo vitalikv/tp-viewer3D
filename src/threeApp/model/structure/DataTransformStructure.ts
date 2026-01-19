@@ -1,16 +1,44 @@
-import { IDataLabel, ATransformToIDataLabel, ATransTo3DRefs, ATransToTree } from '@/threeApp/model/structure/IData';
+import {
+  IDataLabel,
+  ATransformToIDataLabel,
+  ATransTo3DRefs,
+  ATransToTree,
+  GLTFAssociationKey,
+  GLTFAssociationValue,
+} from '@/threeApp/model/structure/IData';
+
+// Интерфейс для GLTF parser
+interface GLTFParser {
+  json: {
+    extras?: {
+      tflex?: {
+        structure?: unknown;
+      };
+    };
+    [key: string]: unknown;
+  };
+  associations: Map<GLTFAssociationKey, GLTFAssociationValue>;
+}
+
+// Интерфейс для GLTF объекта
+interface GLTFData {
+  scene: unknown;
+  animations?: unknown[];
+  parser: GLTFParser;
+  [key: string]: unknown;
+}
 
 export default class DataTransformStructure {
-  private dataStructure: any | null = null;
-  private copy!: any[];
+  private dataStructure: unknown[] | null = null;
+  private copy!: unknown[];
 
-  private treeArr: any[] | null = null;
+  private treeArr: IDataLabel[] | null = null;
 
-  public gltf: any | null = null;
+  public gltf: GLTFData | null = null;
 
   constructor(
-    dataStructure: any,
-    gltf: any,
+    dataStructure: unknown[],
+    gltf: GLTFData,
     private trfIDataLabel: ATransformToIDataLabel,
     private trfTrTo3DRefs: ATransTo3DRefs,
     private trfTransToTree: ATransToTree
@@ -26,13 +54,12 @@ export default class DataTransformStructure {
     this.treeArr = this.transformArr(this.addAssts3dObjRefs(copy2));
   }
 
-  public tree(): any {
+  public tree(): IDataLabel[] | null {
     return this.treeArr;
   }
 
-  public findsChildrens(): any {
-    const json = this.dataStructure;
-    return json;
+  public findsChildrens(): unknown[] | null {
+    return this.dataStructure;
   }
 
   public addLabelToTree(): IDataLabel[] | undefined {
@@ -45,25 +72,26 @@ export default class DataTransformStructure {
     return this.trfTransToTree.execute().getResult();
   }
 
-  addAssts3dObjRefs(copy: any[]): any[] {
+  addAssts3dObjRefs(copy: IDataLabel[]): IDataLabel[] {
     const assMap = this.gltf.parser.associations;
     this.trfTrTo3DRefs.setAssMap(assMap);
     this.trfTrTo3DRefs.setSrcArr(copy);
     return this.trfTrTo3DRefs.execute().getResult();
   }
-  addAssotiation3DObjRef(tree: any[]): any[] {
+  addAssotiation3DObjRef(tree: IDataLabel[]): IDataLabel[] {
     const assMap = this.gltf.parser.associations;
     const refs = tree.map((modelObj) => {
       if (modelObj.nodes && modelObj.nodes.length > 0) {
-        assMap.forEach((value: any, key: any) => {
+        assMap.forEach((value: GLTFAssociationValue, key: GLTFAssociationKey) => {
           if (
             value &&
             'nodes' in value &&
-            value.nodes !== 'undefined' &&
-            parseInt(value.nodes) === parseInt(modelObj.nodes[0])
+            value.nodes !== undefined &&
+            typeof value.nodes !== 'undefined' &&
+            parseInt(String(value.nodes)) === modelObj.nodes[0]
           ) {
-            modelObj.uuid = `${key.uuid}`;
-            modelObj.ref3dId = `${key.id}`;
+            (modelObj as IDataLabel & { uuid?: string; ref3dId?: string }).uuid = `${key.uuid}`;
+            (modelObj as IDataLabel & { uuid?: string; ref3dId?: string }).ref3dId = `${key.id}`;
           }
         });
       }

@@ -9,6 +9,18 @@ type MeshBVHEntry = {
   helper?: MeshBVHHelper;
 };
 
+// Интерфейс для треугольника в BVH
+interface TriangleData {
+  a: THREE.Vector3;
+  b: THREE.Vector3;
+  c: THREE.Vector3;
+}
+
+// Расширенный BufferGeometry с boundsTree
+interface ExtendedBufferGeometry extends THREE.BufferGeometry {
+  boundsTree?: MeshBVH;
+}
+
 export class ClippingBvh extends ContextSingleton<ClippingBvh> {
   private model: THREE.Object3D | null = null;
   private meshBvhs: MeshBVHEntry[] = [];
@@ -176,11 +188,11 @@ export class ClippingBvh extends ContextSingleton<ClippingBvh> {
       if (!geom.attributes.position) continue;
 
       let bvh = null;
-      if (geom.boundsTree) {
-        bvh = geom.boundsTree;
+      if ((geom as ExtendedBufferGeometry).boundsTree) {
+        bvh = (geom as ExtendedBufferGeometry).boundsTree!;
       } else {
         bvh = new MeshBVH(geom, { maxLeafTris: 3, indirect: true });
-        (geom as any).boundsTree = bvh;
+        (geom as ExtendedBufferGeometry).boundsTree = bvh;
       }
 
       this.assignClippingToMaterial(mesh.material);
@@ -213,8 +225,9 @@ export class ClippingBvh extends ContextSingleton<ClippingBvh> {
 
     materials.forEach((material) => {
       if ('clippingPlanes' in material) {
-        (material as any).clippingPlanes = this.clippingPlanes;
-        (material as any).needsUpdate = true;
+        (material as THREE.Material & { clippingPlanes?: THREE.Plane[]; needsUpdate?: boolean }).clippingPlanes =
+          this.clippingPlanes;
+        (material as THREE.Material & { clippingPlanes?: THREE.Plane[]; needsUpdate?: boolean }).needsUpdate = true;
       }
     });
   }
@@ -242,7 +255,7 @@ export class ClippingBvh extends ContextSingleton<ClippingBvh> {
 
       bvh.shapecast({
         intersectsBounds: (box: THREE.Box3) => (this.params.useBVH ? this.localPlane.intersectsBox(box) : CONTAINED),
-        intersectsTriangle: (tri: any) => {
+        intersectsTriangle: (tri: TriangleData) => {
           let count = 0;
 
           this.tempLine.start.copy(tri.a);
@@ -273,9 +286,9 @@ export class ClippingBvh extends ContextSingleton<ClippingBvh> {
           }
 
           if (count === 3) {
-            this.tempVector1.fromBufferAttribute(posAttr as any, index - 3);
-            this.tempVector2.fromBufferAttribute(posAttr as any, index - 2);
-            this.tempVector3.fromBufferAttribute(posAttr as any, index - 1);
+            this.tempVector1.fromBufferAttribute(posAttr, index - 3);
+            this.tempVector2.fromBufferAttribute(posAttr, index - 2);
+            this.tempVector3.fromBufferAttribute(posAttr, index - 1);
 
             if (this.tempVector3.equals(this.tempVector1) || this.tempVector3.equals(this.tempVector2)) {
               count--;
@@ -363,9 +376,9 @@ export class ClippingBvh extends ContextSingleton<ClippingBvh> {
     material.dispose();
 
     Object.keys(material).forEach((key: string) => {
-      const value = (material as any)[key];
-      if (value?.isTexture) {
-        value.dispose();
+      const value = (material as unknown as Record<string, unknown>)[key];
+      if (value && typeof value === 'object' && 'isTexture' in value && (value as { isTexture?: boolean }).isTexture) {
+        (value as { dispose?: () => void }).dispose?.();
       }
     });
   }

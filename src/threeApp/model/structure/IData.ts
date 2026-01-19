@@ -6,7 +6,7 @@ export interface IDataLabel {
   description: string;
   number: string;
   children: IDataLabel[] | [] | null;
-  nodes: any[] | [] | null;
+  nodes: number[] | null;
   id_node_tf: string;
   fragment_guid: string;
 }
@@ -17,28 +17,40 @@ export interface IAction {
 
 export interface ITransform {
   transformTo(): void;
-  getResult(): any;
+  getResult(): IDataLabel[];
 }
 
 export abstract class ATransformToIDataLabel implements IAction, ITransform {
   abstract transformTo(): void;
-  abstract getResult(): any;
+  abstract getResult(): IDataLabel[];
   abstract execute(): ITransform;
-  abstract setSrcArr(srcArr: any[]): void;
+  abstract setSrcArr(srcArr: IDataLabel[] | unknown[]): void;
+}
+
+// Интерфейс для GLTF parser associations
+export interface GLTFAssociationValue {
+  nodes?: string | number;
+  [key: string]: unknown;
+}
+
+export interface GLTFAssociationKey {
+  uuid: string;
+  id: string | number;
+  [key: string]: unknown;
 }
 
 export abstract class ATransTo3DRefs extends ATransformToIDataLabel {
   abstract transformTo(): void;
-  abstract getResult(): any;
+  abstract getResult(): IDataLabel[];
   abstract execute(): ITransform;
-  abstract setSrcArr(srcArr: any[]): void;
-  abstract setAssMap(ass: Map<any, any>): void;
+  abstract setSrcArr(srcArr: IDataLabel[] | unknown[]): void;
+  abstract setAssMap(ass: Map<GLTFAssociationKey, GLTFAssociationValue>): void;
   abstract association(): void;
 }
 export abstract class ATransToTree extends ATransformToIDataLabel {
   abstract transformTo(): void;
-  abstract getResult(): any;
+  abstract getResult(): IDataLabel[];
   abstract execute(): ITransform;
-  abstract setSrcArr(srcArr: any[]): void;
-  abstract toTree(arr: any[]): void;
+  abstract setSrcArr(srcArr: IDataLabel[] | unknown[]): void;
+  abstract toTree(arr: IDataLabel[]): void;
 }
