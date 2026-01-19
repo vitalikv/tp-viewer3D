@@ -6,8 +6,8 @@
  * MyManager.inst('worker').doSomething();
  */
 export abstract class ContextSingleton<T extends ContextSingleton<T>> {
-  private static _instancesMap = new Map<new () => any, Map<string, any>>();
-  private static _defaultContexts = new Map<new () => any, string>();
+  private static _instancesMap = new Map<new () => unknown, Map<string, unknown>>();
+  private static _defaultContexts = new Map<new () => unknown, string>();
 
   public static inst<T extends ContextSingleton<T>>(this: new () => T, context?: string): T {
     const defaultContext = ContextSingleton._defaultContexts.get(this) || 'main';

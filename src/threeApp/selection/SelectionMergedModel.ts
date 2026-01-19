@@ -80,11 +80,8 @@ export class SelectionMergedModel {
     const clickedUuid = geometry.userData.uuids[groupIndex];
     const clickedParentUuid = geometry.userData.parentUuids?.[groupIndex] || '';
 
-    console.time('getSelectedNode');
     const objs = SelectionAdapter.getSelectedNode({ uuid: clickedUuid, parentUuid: clickedParentUuid });
-    console.timeEnd('getSelectedNode');
 
-    console.time('setMergedObjects');
     this.clearSelection();
     this.selectedByUuid(clickedParentUuid);
 
@@ -92,7 +89,6 @@ export class SelectionMergedModel {
       if (!element.uuid) continue;
       this.selectedByUuid(element.uuid);
     }
-    console.timeEnd('setMergedObjects');
   }
 
   private static findGroupByFaceIndex(groups: { start: number; count: number }[], faceIndex: number) {
@@ -181,7 +177,6 @@ export class SelectionMergedModel {
     this.originalMaterials.clear();
 
     OutlineMergedModel.clearOutlineMeshes();
-    console.log('----------');
   }
 
   private static testOffsetPositionGroups({ geometry, groups, highlightGroupIndices }) {

@@ -58,7 +58,7 @@ export class MergeAnimation {
       virtualNode.matrix.copy(originalNode.matrix);
       virtualNode.matrixWorld.copy(originalNode.matrixWorld);
 
-      const userData: any = {
+      const userData: { originalMatrixWorld?: THREE.Matrix4 } = {
         ...originalNode.userData,
         isAnimationNode: true,
         originalMatrixWorld: originalNode.matrixWorld.clone(),
@@ -341,10 +341,6 @@ export class MergeAnimation {
         console.warn('UUID без узлов:', missingNodes);
       }
     }
-
-    console.log(
-      `Связь виртуальной иерархии со смерженной моделью: ${this.uuidToGroupMap.size} маппингов, ${totalMeshNodes.size} мешей/линий в иерархии, ${this.animationNodes.size} всего узлов`
-    );
   }
 
   public static clearAnimationData() {

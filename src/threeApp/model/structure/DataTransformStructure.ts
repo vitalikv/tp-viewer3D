@@ -21,7 +21,7 @@ export default class DataTransformStructure {
     this.copy = [...dataStructure];
 
     this.trfIDataLabel?.setSrcArr(this.copy);
-    const copy2 = this.addLabelToTree(this.copy);
+    const copy2 = this.addLabelToTree();
     //@ts-ignore
     this.treeArr = this.transformArr(this.addAssts3dObjRefs(copy2));
   }
@@ -35,7 +35,7 @@ export default class DataTransformStructure {
     return json;
   }
 
-  public addLabelToTree(json: any): IDataLabel[] | undefined {
+  public addLabelToTree(): IDataLabel[] | undefined {
     return this.trfIDataLabel?.execute().getResult() as IDataLabel[];
   }
 
@@ -55,7 +55,7 @@ export default class DataTransformStructure {
     const assMap = this.gltf.parser.associations;
     const refs = tree.map((modelObj) => {
       if (modelObj.nodes && modelObj.nodes.length > 0) {
-        assMap.forEach((value: any, key: any, map: any) => {
+        assMap.forEach((value: any, key: any) => {
           if (
             value &&
             'nodes' in value &&

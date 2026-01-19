@@ -33,7 +33,8 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
     this.dispose();
 
-    const animationRoot = (model as any).userData?.animationRoot;
+    const animationRoot = (model as THREE.Object3D & { userData?: { animationRoot?: THREE.Object3D } }).userData
+      ?.animationRoot;
     if (animationRoot) {
       this.isMergedModel = true;
       this.animationRoot = animationRoot;
@@ -77,8 +78,6 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
     const maxDuration = this.getAnimationDuration();
     this.animationMaxDuration = maxDuration;
-
-    console.log(` Инициализировано ${animations.length} анимаций`);
 
     return true;
   }
@@ -271,7 +270,6 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     }
 
     const selectedClip = this.animationClips[this.currentActionIndex];
-    const animationLabel = selectedClip?.name || `Анимация ${this.currentActionIndex + 1}`;
 
     this.animationActions.forEach((action, actionIndex) => {
       if (actionIndex !== this.currentActionIndex) {
@@ -308,8 +306,6 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
 
     selectedAction.paused = false;
     selectedAction.play();
-    if (!selectedAction.isRunning()) {
-    }
 
     this.isPlaying = true;
 
@@ -396,7 +392,7 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
         return;
       }
 
-      const originalMatrixWorld = (node.userData as any)?.originalMatrixWorld;
+      const originalMatrixWorld = (node.userData as { originalMatrixWorld?: THREE.Matrix4 })?.originalMatrixWorld;
 
       if (!originalMatrixWorld) {
         return;

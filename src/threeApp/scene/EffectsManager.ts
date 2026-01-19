@@ -60,7 +60,6 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
     this.composer.setPixelRatio(this.renderer.getPixelRatio());
     this.renderPass = new RenderPass(this.scene, this.camera);
     this.composer.addPass(this.renderPass);
-    console.log('initComposer', this.composer);
     this.outputPass = new OutputPass();
     this.composer.addPass(this.outputPass);
     this.outputPass.renderToScreen = true;
@@ -165,7 +164,7 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
     let totalCalls = 0;
 
     const originalRender = this.renderer.render;
-    this.renderer.render = (scene: THREE.Scene, camera: THREE.Camera, ...args: any[]) => {
+    this.renderer.render = (scene: THREE.Scene, camera: THREE.Camera, ...args: unknown[]) => {
       originalRender.call(this.renderer, scene, camera, ...args);
       totalCalls += this.renderer.info.render.calls;
       this.renderer.info.reset();

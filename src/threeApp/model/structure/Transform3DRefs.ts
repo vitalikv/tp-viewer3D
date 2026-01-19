@@ -6,19 +6,19 @@ import { IDataLabel, ITransform, ATransTo3DRefs } from '@/threeApp/model/structu
 
 export class Transform3DRefs extends ATransTo3DRefs {
   public transArr!: IDataLabel[];
-  public copy!: any[];
-  private assMap!: Map<any, any>;
+  public copy!: IDataLabel[];
+  private assMap!: Map<unknown, unknown>;
   constructor() {
     super();
   }
-  setAssMap(ass: Map<any, any>): void {
+  setAssMap(ass: Map<unknown, unknown>): void {
     this.assMap = ass;
   }
   private getIdRef(): number {
     return Math.floor(Math.random() * 10000000);
   }
   // связь с геометрией node[ноды] записи в таблице
-  transformTo(): any[] {
+  transformTo(): IDataLabel[] {
     const refs = this.copy.map((modelObj) => {
       if (modelObj.nodes && modelObj.nodes.length > 0) {
         if (modelObj.nodes.length == 1) {
@@ -51,24 +51,24 @@ export class Transform3DRefs extends ATransTo3DRefs {
     });
     return refs;
   }
-  getResult(): any[] {
+  getResult(): IDataLabel[] {
     return this.transArr;
   }
   execute(): ITransform {
     this.transArr = this.transformTo();
     return this;
   }
-  setSrcArr(srcArr: any[]) {
+  setSrcArr(srcArr: IDataLabel[]) {
     this.copy = [...srcArr];
   }
   association(): void {
     throw new Error('Method not implemented.');
   }
 
-  private getObjfromAsLoader(idx: number): any {
-    let obj3dref!: any; // ссылка на обьект3Д
+  private getObjfromAsLoader(idx: number): { uuid: string; id: string | number } {
+    let obj3dref!: { uuid: string; id: string | number }; // ссылка на обьект3Д
 
-    this.assMap.forEach((value: any, key: any, map: any) => {
+    this.assMap.forEach((value: unknown, key: unknown) => {
       if (value && 'nodes' in value && value.nodes !== 'undefined') {
         if (parseInt(value.nodes) === idx) {
           obj3dref = key;
@@ -79,14 +79,14 @@ export class Transform3DRefs extends ATransTo3DRefs {
     return obj3dref;
   }
 
-  private pureAddProp(key: any, value: any, object: Object) {
+  private pureAddProp(key: string | number | symbol, value: unknown, object: object) {
     return {
       ...object,
       [key]: value,
     };
   }
   private compose =
-    (...fns: Function[]) =>
-    (x: any) =>
+    (...fns: Array<(x: unknown) => unknown>) =>
+    (x: unknown) =>
       fns.reduce((acc, fn) => fn(acc), x);
 }

@@ -9,7 +9,6 @@ import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
 import { BVHManager } from '@/threeApp/bvh/BvhManager';
 import { InitData } from '@/threeApp/model/structure/InitData';
 import { InitMergedModel } from '@/threeApp/mergedModel/InitMergedModel';
-import { MergeEnvironment } from '@/threeApp/mergedModel/MergeEnvironment';
 import { MergeAnimation } from '@/threeApp/mergedModel/MergeAnimation';
 
 export class InitModel extends ContextSingleton<InitModel> {
@@ -49,7 +48,7 @@ export class InitModel extends ContextSingleton<InitModel> {
     return this.isMerge;
   }
 
-  private findDuplicateGeometries(scene) {
+  private findDuplicateGeometries(scene: THREE.Object3D) {
     const geometryMap = new Map();
 
     scene.traverse((object) => {
@@ -80,36 +79,28 @@ export class InitModel extends ContextSingleton<InitModel> {
 
   public handleFileLoad = async (contents) => {
     if (this.getModel()) {
-      console.log('модель уже загружена');
       return false;
     }
-    console.log('contents', contents);
     const decoder = new TextDecoder('utf-8');
     const jsonString = decoder.decode(contents);
 
     try {
       const jsonData = JSON.parse(jsonString);
-      const generator = jsonData.asset.generator;
-      console.log('Распарсенный JSON:', generator, jsonData);
 
       if (jsonData.animations && Array.isArray(jsonData.animations) && jsonData.animations.length > 0) {
-        console.log(` Модель содержит анимации. Количество анимаций: ${jsonData.animations.length}`);
-      } else {
-        console.log(' Модель не содержит анимаций');
+        // Модель содержит анимации
       }
     } catch (err) {
       console.error('Ошибка парсинга JSON:', err);
     }
 
     const merge = this.getMerge();
-    console.log('merge', merge);
 
     const gltf = await this.loader.parseAsync(contents, './public/assets/opt/');
 
     let model = gltf.scene;
 
-    const duplicateGeoms = this.findDuplicateGeometries(model);
-    console.log('Дублирующиеся геометрии:', duplicateGeoms);
+    this.findDuplicateGeometries(model);
 
     this.initData = new InitData({ structure: gltf.parser.json.extras?.tflex.structure, gltf });
 
@@ -119,10 +110,8 @@ export class InitModel extends ContextSingleton<InitModel> {
 
     if (merge) {
       model = this.modelMerged({ model });
-      console.log('модель смержена на клиенте');
     } else {
       this.simpleModel({ model });
-      console.log('модель без мержа');
     }
 
     SceneManager.inst().scene.add(model);
@@ -131,7 +120,6 @@ export class InitModel extends ContextSingleton<InitModel> {
 
     if (gltf.animations && gltf.animations.length > 0 && AnimationManager.inst()) {
       AnimationManager.inst().initAnimations(gltf.animations, model);
-      console.log('🎬 Анимации инициализированы');
     }
 
     SceneManager.inst().render();
@@ -139,7 +127,7 @@ export class InitModel extends ContextSingleton<InitModel> {
     return true;
   };
 
-  private centerModel(model) {
+  private centerModel(model: THREE.Object3D) {
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
     model.position.sub(center);
@@ -152,13 +140,13 @@ export class InitModel extends ContextSingleton<InitModel> {
     SceneManager.inst().cameraManager.zoomCameraToFitModel({ center: new THREE.Vector3(0, 0, 0), radius, maxDim });
   }
 
-  private modelMerged({ model }) {
+  private modelMerged({ model }: { model: THREE.Object3D }) {
     model = InitMergedModel.init({ model });
 
     return model;
   }
 
-  private simpleModel({ model }) {
+  private simpleModel({ model }: { model: THREE.Object3D }) {
     model.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         const material = child.material;
@@ -184,7 +172,6 @@ export class InitModel extends ContextSingleton<InitModel> {
     //const response = await fetch('./assets/РП.00.00 - Редуктор планетарный  - A.1.json');
 
     const jsonData = await response.json();
-    console.log('Загруженный JSON:', jsonData);
 
     this.json2 = jsonData;
   }

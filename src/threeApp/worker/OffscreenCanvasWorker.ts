@@ -13,9 +13,9 @@ import { EffectsManager } from '@/threeApp/scene/EffectsManager';
 import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
 
 type WorkerMessage =
-  | { type: 'init'; canvas: OffscreenCanvas; rect: any }
+  | { type: 'init'; canvas: OffscreenCanvas; rect: { width: number; height: number; left: number; top: number } }
   | { type: 'resize'; width: number; height: number; left: number; top: number }
-  | { type: 'event'; event: any }
+  | { type: 'event'; event: { kind: string; type: string; clientX?: number; clientY?: number; button?: number } }
   | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string }
   | { type: 'activateClippingBvh' }
   | { type: 'setPlanePosition'; x: number; y: number; z: number }
@@ -61,7 +61,13 @@ class OffscreenCanvasWorker {
       case 'event':
         if (this.controls) {
           const event = msg.event;
-          const controls = this.controls as any;
+          const controls = this.controls as unknown as {
+            handlePointerDown: (e: unknown) => void;
+            handlePointerMove: (e: unknown) => void;
+            handlePointerUp: (e: unknown) => void;
+            handlePointerCancel: (e: unknown) => void;
+            handleWheel: (e: unknown) => void;
+          };
           if (event.kind === 'pointer') {
             switch (event.type) {
               case 'pointerdown':
@@ -190,9 +196,7 @@ class OffscreenCanvasWorker {
     }
   }
 
-  private async init(canvas: OffscreenCanvas, rect) {
-    console.log('Worker initialized');
-
+  private async init(canvas: OffscreenCanvas, rect: { width: number; height: number; left: number; top: number }) {
     this.rect = rect;
     const width = this.rect.width;
     const height = this.rect.height;
@@ -207,7 +211,9 @@ class OffscreenCanvasWorker {
 
     // Устанавливаем размеры контейнера для controls
     if (this.controls) {
-      const controls = this.controls as any;
+      const controls = this.controls as unknown as {
+        setContainerRect?: (rect: { width: number; height: number; left: number; top: number }) => void;
+      };
       if (typeof controls.setContainerRect === 'function') {
         controls.setContainerRect({ width, height, left, top });
       }
@@ -255,7 +261,6 @@ class OffscreenCanvasWorker {
       }
 
       this.sendProgress(null);
-      console.log('[WORKER] Модель успешно загружена в воркере');
 
       self.postMessage({ type: 'modelLoaded', filename });
     } catch (error) {
@@ -271,7 +276,7 @@ class OffscreenCanvasWorker {
 
   private sendCameraState() {
     if (!this.camera || !this.controls) return;
-    const gizmo = (this.controls as any)._gizmos;
+    const gizmo = (this.controls as unknown as { _gizmos?: { position?: { toArray: () => number[] } } })._gizmos;
     const gizmoPos = gizmo && gizmo.position ? gizmo.position.toArray() : [0, 0, 0];
     self.postMessage({
       type: 'cameraState',

@@ -15,7 +15,7 @@ export class SelectionAdapter {
     let arr: any[] = [];
     const set = new Set<any>();
 
-    for (let item of val) {
+    for (const item of val) {
       if ('children' in item && item.children !== null && item.children.length > 0) {
         const obj = {
           ...item,
@@ -31,7 +31,7 @@ export class SelectionAdapter {
     arr = Array.from(set);
 
     if (arr.length > 0) {
-      for (let objCopy of arr) {
+      for (const objCopy of arr) {
         if (objCopy.childsGeom) {
           if (objCopy.children == null) {
             objCopy.children = [...objCopy.childsGeom];

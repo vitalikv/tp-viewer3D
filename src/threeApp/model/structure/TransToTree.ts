@@ -28,8 +28,8 @@ export class TransToTree extends ATransToTree {
     this.copy = [...srcArr];
   }
 
-  toTree(arr: any[], parents: any[] | null = null) {
-    for (let label of arr) {
+  toTree(arr: any[]) {
+    for (const label of arr) {
       if ('children' in label && label.children !== null && label.children.length > 0) {
         const childObjs = label.children.reduce((acc: any[], idx: number) => {
           if (typeof idx === 'number') {
@@ -45,7 +45,7 @@ export class TransToTree extends ATransToTree {
 
         if (childObjs.length > 0) label.children = childObjs;
         //----- start sub(label.children) ---
-        for (let lab of label.children) {
+        for (const lab of label.children) {
           if ('children' in lab && lab.children !== null && lab.children.length > 0) {
             const childObjs = lab.children.reduce((acc: any[], idx: number) => {
               if (typeof idx === 'number') {

@@ -11,6 +11,7 @@ import { OutlineSelection } from '@/threeApp/selection/OutlineSelection';
 import { AnimationManager } from '@/threeApp/animation/AnimationManager';
 import { ViewCube } from '@/threeApp/scene/ViewCube';
 import { OffscreenCanvasManager } from '@/threeApp/worker/OffscreenCanvasManager';
+import { ArcballControls } from '@/threeApp/worker/ArcballControls';
 
 export class ThreeApp extends ContextSingleton<ThreeApp> {
   public isWorker = true;
@@ -88,18 +89,18 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
     resizeObserver.observe(canvas);
   }
 
-  private initViewCubeWorker(container) {
+  private initViewCubeWorker(container: HTMLElement | null) {
     const camera = new THREE.PerspectiveCamera();
     const gizmoPos = new THREE.Vector3();
-    const listeners = new Map();
+    const listeners = new Map<string, Array<() => void>>();
 
-    const addListener = (event, callback) => {
+    const addListener = (event: string, callback: () => void) => {
       const arr = listeners.get(event) || [];
       arr.push(callback);
       listeners.set(event, arr);
     };
 
-    const removeListener = (event, callback) => {
+    const removeListener = (event: string, callback: () => void) => {
       const arr = listeners.get(event);
       if (!arr) return;
       const idx = arr.indexOf(callback);
@@ -108,23 +109,31 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
       }
     };
 
-    const dispatch = (event) => {
+    const dispatch = (event: string) => {
       const arr = listeners.get(event);
       if (!arr) return;
       arr.forEach((cb) => cb());
     };
 
-    const controlsProxy = {
+    interface ControlsProxy {
+      object: THREE.PerspectiveCamera;
+      _gizmos: { position: THREE.Vector3 };
+      addEventListener: (event: string, callback: () => void) => void;
+      removeEventListener: (event: string, callback: () => void) => void;
+      update: () => void;
+    }
+
+    const controlsProxy: ControlsProxy = {
       object: camera,
       _gizmos: { position: gizmoPos },
       addEventListener: addListener,
       removeEventListener: removeListener,
       update: () => {},
-    } as any;
+    };
 
     const viewCube = new ViewCube({
-      container,
-      controls: controlsProxy,
+      container: container!,
+      controls: controlsProxy as unknown as ArcballControls,
       animate: () => {},
       onOrientationChange: ({ position, quaternion, up }) => {
         OffscreenCanvasManager.inst().setCameraPose({ position, quaternion, up });

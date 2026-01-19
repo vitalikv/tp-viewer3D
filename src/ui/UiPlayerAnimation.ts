@@ -426,9 +426,7 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
         const checkbox = item.querySelector('[nameId="checkbox"]') as HTMLDivElement;
         checkbox.innerHTML = divCheckBoxSelected;
 
-        const animationName = item.getAttribute('animationName');
         const animationIndex = item.getAttribute('animationIndex');
-        console.log('Selected animation:', animationIndex, animationName);
         ApiUiToThree.inst().setAnimationIndex(Number(animationIndex));
       };
     });

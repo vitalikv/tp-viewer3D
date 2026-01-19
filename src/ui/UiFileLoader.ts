@@ -108,16 +108,6 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
 
     const isWorker = ThreeApp.inst().isWorker;
     if (isWorker) {
-      const isInMainThread = typeof window !== 'undefined' && self === window;
-      console.log(
-        '[MAIN THREAD] Отправка файла в воркер:',
-        file.name,
-        'Размер:',
-        file.size,
-        'В основном потоке:',
-        isInMainThread
-      );
-
       // Используем воркер для загрузки модели
       OffscreenCanvasManager.inst().loadModel(file, {
         onProgress: (text) => {

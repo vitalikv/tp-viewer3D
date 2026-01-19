@@ -20,7 +20,7 @@ export class UiClippingButton extends ContextSingleton<UiClippingButton> {
   }
 
   private crDiv() {
-    let div = document.createElement('div');
+    const div = document.createElement('div');
     div.innerHTML = this.html();
 
     return div;

@@ -26,8 +26,12 @@ export class MergeModel {
     MergeAnimation.linkAnimationHierarchyToMergedModel(animationRoot, mergedMeshes, mergedLines);
 
     // Сохраняем ссылку на виртуальную иерархию в группе
-    (group as any).userData.animationRoot = animationRoot;
-    (group as any).userData.uuidToGroupMap = MergeAnimation.getUuidToGroupMap();
+    (
+      group as THREE.Object3D & { userData: { animationRoot?: THREE.Object3D; uuidToGroupMap?: Map<string, unknown> } }
+    ).userData.animationRoot = animationRoot;
+    (
+      group as THREE.Object3D & { userData: { animationRoot?: THREE.Object3D; uuidToGroupMap?: Map<string, unknown> } }
+    ).userData.uuidToGroupMap = MergeAnimation.getUuidToGroupMap();
 
     return { group };
   }

@@ -51,7 +51,7 @@ export class WatermarkCanvas {
       await this.loadImage();
       this.getWatermarkCanvas();
     } catch (error) {
-      console.log('Не удалось загрузить Logo:', this.params.urlLogo, error);
+      console.error('Не удалось загрузить Logo:', this.params.urlLogo, error);
       this.getWatermarkCanvas();
     }
   }

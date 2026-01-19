@@ -81,7 +81,13 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.cameraManager.resize();
 
     if (this.controls) {
-      const controls = this.controls as any;
+      const controls = this.controls as unknown as {
+        getAzimuthalAngle?: () => number;
+        getPolarAngle?: () => number;
+        setAzimuthalAngle?: (angle: number) => void;
+        setPolarAngle?: (angle: number) => void;
+        setContainerRect?: (rect: { width: number; height: number; left: number; top: number }) => void;
+      };
       if (typeof controls.setContainerRect === 'function') {
         controls.setContainerRect({ width, height, left, top });
       }

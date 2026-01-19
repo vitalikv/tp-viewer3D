@@ -11,7 +11,6 @@ export class Watermark3d {
     this.renderer = renderer;
     const canvas = WatermarkCanvas.getWatermarkCanvas();
     if (!canvas) return;
-    console.log('Watermark3dFront');
 
     this.createOverlay();
     this.renderWatermark();
@@ -110,7 +109,7 @@ export class Watermark3d {
     material.dispose();
 
     Object.keys(material).forEach((key: string) => {
-      const value = (material as any)[key];
+      const value = (material as Record<string, unknown>)[key];
       if (value?.isTexture) {
         value.dispose();
       }

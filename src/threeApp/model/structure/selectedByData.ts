@@ -1,28 +1,35 @@
+import * as THREE from 'three';
 import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { InitModel } from '@/threeApp/model/InitModel';
 
 export class SelectedByData {
-  public static getSelectedNode({ obj }) {
+  public static getSelectedNode({ obj }: { obj: THREE.Object3D }) {
     let selectID = NaN;
 
     const targetUUID = obj.uuid;
     const targetParentUUID = obj.parent.uuid;
     const structure = InitModel.inst().initData.getStructure();
 
-    console.log('uuid: ', targetUUID, 'parentUuid: ', targetParentUUID);
-
-    const getChildren = (children, arr) => {
+    const getChildren = (children: unknown[], arr: unknown[]) => {
       for (const child of children) {
         arr.push(child);
 
-        if (child.children?.length) {
-          getChildren(child.children, arr);
+        if (
+          child &&
+          typeof child === 'object' &&
+          'children' in child &&
+          Array.isArray((child as { children?: unknown[] }).children)
+        ) {
+          const childChildren = (child as { children: unknown[] }).children;
+          if (childChildren.length > 0) {
+            getChildren(childChildren, arr);
+          }
         }
       }
       return arr;
     };
 
-    for (let item of structure.value) {
+    for (const item of structure.value) {
       if (item.uuid === targetUUID) {
         selectID = item.id;
         break;
@@ -30,7 +37,7 @@ export class SelectedByData {
         if (item.children && item.children !== null && item.children.length > 0) {
           const children = getChildren(item.children, []);
 
-          for (let ch of children) {
+          for (const ch of children) {
             if (ch.uuid === targetUUID) {
               selectID = item.id;
               break;
@@ -39,14 +46,14 @@ export class SelectedByData {
         }
 
         if (obj.parent) {
-          for (let item of structure.value) {
+          for (const item of structure.value) {
             if (item.uuid === targetParentUUID) {
               selectID = item.id;
               break;
             } else if (item.children && item.children !== null && item.children.length > 0) {
               const children = getChildren(item.children, []);
 
-              for (let ch of children) {
+              for (const ch of children) {
                 if (ch.uuid === targetParentUUID) {
                   selectID = item.id;
                   break;
@@ -58,14 +65,11 @@ export class SelectedByData {
       }
     }
 
-    console.log('structure', structure);
-    console.log('selectID', selectID);
     let node = null;
 
     for (let i = 0; i < structure.value.length; i++) {
       const element = structure.value[i];
       if (element.id === selectID) {
-        console.log('element', element);
         node = element;
         break;
       }
@@ -73,18 +77,15 @@ export class SelectedByData {
 
     //const nodes = [node]; // только выделенная группа
     const nodes = this.selectedObj3dFromScene({ node }); // свзанные группы объектов
-    console.log('nodes', nodes);
 
     const groupNodes = this.cmd_api_selected3d(nodes);
-    console.log(9999, groupNodes);
 
     const objs = this.finds3dObjsInCurrScene(groupNodes);
-    console.log(242, objs);
 
     return objs;
   }
 
-  private static selectedObj3dFromScene({ node }) {
+  private static selectedObj3dFromScene({ node }: { node: unknown }) {
     if (!node) return;
 
     const { fragment_guid } = node;
@@ -97,10 +98,7 @@ export class SelectedByData {
 
     const itemJson = this.findsArrObjFromArrByProp(fragment_guid.toLowerCase(), 'fragment_guid', jsonData)[0];
 
-    console.log('jsonData', jsonData);
-    console.log('itemJson', itemJson);
-
-    let nodes: any[] = [];
+    let nodes: unknown[] = [];
     if (itemJson?.guid) {
       nodes = this.getUIIDbyACIGuidandFragmentGuid('3d', jsonData, itemJson.guid);
     } else {
@@ -110,11 +108,11 @@ export class SelectedByData {
     return nodes;
   }
 
-  private static findsArrObjFromArrByProp(name: string, prop: string, arr: any[]) {
+  private static findsArrObjFromArrByProp(name: string, prop: string, arr: unknown[]) {
     return arr.filter((item) => item[prop] == name);
   }
 
-  private static getUIIDbyACIGuidandFragmentGuid(type = '3d', jsonData, aciguid: string) {
+  private static getUIIDbyACIGuidandFragmentGuid(type = '3d', jsonData: unknown[], aciguid: string) {
     const structure = InitModel.inst().initData.getStructure();
 
     if (type === '3d') {
@@ -128,10 +126,10 @@ export class SelectedByData {
     }
   }
 
-  private static cmd_api_selected3d(e: any) {
+  private static cmd_api_selected3d(e: unknown) {
     const clickNode = Array.isArray(e) ? e : [e];
 
-    const getNodes = (clickNode: any[], arr: any[]) => {
+    const getNodes = (clickNode: unknown[], arr: unknown[]) => {
       for (const obj of clickNode) {
         arr.push(obj);
 
@@ -152,13 +150,13 @@ export class SelectedByData {
     return groupNodes;
   }
 
-  private static finds3dObjsInCurrScene(selected: any[]) {
+  private static finds3dObjsInCurrScene(selected: Array<{ uuid: string }>) {
     if (selected.length === 0) return [];
 
     const scene = SceneManager.inst().scene;
 
     const selectedUuids = new Set(selected.map((obj) => obj.uuid));
-    const refs3dObj: any[] = [];
+    const refs3dObj: THREE.Object3D[] = [];
 
     scene.traverse((node) => {
       if (selectedUuids.has(node.uuid)) {

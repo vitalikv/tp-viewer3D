@@ -20,8 +20,8 @@ export interface ElementMatch {
 
 interface ChildItem {
   id: string;
-  element: any;
-  bounds: any;
+  element: SVGElement;
+  bounds: DOMRect;
   uniqueId: string;
 }
 

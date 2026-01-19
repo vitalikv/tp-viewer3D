@@ -1,6 +1,4 @@
-import { SelectedByData } from '@/threeApp/model/structure/selectedByData';
 import { SvgGroupAssembler } from '@/svgApp/SvgGroupAssembler';
-import { WatermarkSvg } from '@/watermark/WatermarkSvg';
 
 export class SvgUseHandler {
   private enabled = false;
@@ -44,10 +42,9 @@ export class SvgUseHandler {
     }
   }
 
-  private mouseDown = (e: MouseEvent) => {
+  private mouseDown = () => {
     this.isDown = true;
     this.isMove = false;
-    const target = e.target as SVGElement;
   };
 
   private mouseMove = (event: MouseEvent) => {
@@ -184,7 +181,7 @@ export class SvgUseHandler {
     }
   }
 
-  public selectedGroupById(groupId: string) {
+  public selectedGroupById() {
     this.resetActElems();
 
     const arrDataGroup = [];
