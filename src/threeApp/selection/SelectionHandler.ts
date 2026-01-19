@@ -47,7 +47,11 @@ export class SelectionHandler extends ContextSingleton<SelectionHandler> {
     });
   }
 
-  public handleSelection(obj: THREE.Object3D | null, intersect: THREE.Intersection<THREE.Object3D> | null, mode: SelectionMode): void {
+  public handleSelection(
+    obj: THREE.Object3D | null,
+    intersect: THREE.Intersection<THREE.Object3D> | null,
+    mode: SelectionMode
+  ): void {
     if (obj && mode === 'tflex') {
       this.selectTflex(obj);
     } else if (intersect && mode === 'merge') {

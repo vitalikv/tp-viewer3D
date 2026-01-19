@@ -222,8 +222,15 @@ class OffscreenCanvasWorker {
     AnimationManager.inst();
     ApiUiToThree.inst();
 
-    EffectsManager.inst().init({ scene: SceneManager.inst().scene, camera: SceneManager.inst().camera, renderer: SceneManager.inst().renderer });
-    OutlineSelection.inst().init({ outlinePass: EffectsManager.inst().outlinePass, composer: EffectsManager.inst().composer });
+    EffectsManager.inst().init({
+      scene: SceneManager.inst().scene,
+      camera: SceneManager.inst().camera,
+      renderer: SceneManager.inst().renderer,
+    });
+    OutlineSelection.inst().init({
+      outlinePass: EffectsManager.inst().outlinePass,
+      composer: EffectsManager.inst().composer,
+    });
     MouseManager.inst().init(SceneManager.inst().camera);
     BVHManager.inst().init();
     InitModel.inst().setMerge({ merge: true });

@@ -14,6 +14,7 @@ export class ApiUiToThree extends ContextSingleton<ApiUiToThree> {
     if (this.isInWorker()) {
       return false;
     }
+
     const manager = OffscreenCanvasManager.inst();
     return manager && manager.worker !== undefined;
   }

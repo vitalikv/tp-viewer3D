@@ -8,7 +8,13 @@ export default class DataTransformStructure {
 
   public gltf: any | null = null;
 
-  constructor(dataStructure: any, gltf: any, private trfIDataLabel: ATransformToIDataLabel, private trfTrTo3DRefs: ATransTo3DRefs, private trfTransToTree: ATransToTree) {
+  constructor(
+    dataStructure: any,
+    gltf: any,
+    private trfIDataLabel: ATransformToIDataLabel,
+    private trfTrTo3DRefs: ATransTo3DRefs,
+    private trfTransToTree: ATransToTree
+  ) {
     this.gltf = gltf;
 
     this.dataStructure = dataStructure;
@@ -50,7 +56,12 @@ export default class DataTransformStructure {
     const refs = tree.map((modelObj) => {
       if (modelObj.nodes && modelObj.nodes.length > 0) {
         assMap.forEach((value: any, key: any, map: any) => {
-          if (value && 'nodes' in value && value.nodes !== 'undefined' && parseInt(value.nodes) === parseInt(modelObj.nodes[0])) {
+          if (
+            value &&
+            'nodes' in value &&
+            value.nodes !== 'undefined' &&
+            parseInt(value.nodes) === parseInt(modelObj.nodes[0])
+          ) {
             modelObj.uuid = `${key.uuid}`;
             modelObj.ref3dId = `${key.id}`;
           }

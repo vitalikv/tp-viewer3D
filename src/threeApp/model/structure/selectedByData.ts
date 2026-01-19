@@ -119,7 +119,9 @@ export class SelectedByData {
 
     if (type === '3d') {
       const objAss = this.findsArrObjFromArrByProp(aciguid, 'guid', jsonData);
-      return objAss.map((item) => this.findsArrObjFromArrByProp(item.fragment_guid.toUpperCase(), 'fragment_guid', structure.value)[0]);
+      return objAss.map(
+        (item) => this.findsArrObjFromArrByProp(item.fragment_guid.toUpperCase(), 'fragment_guid', structure.value)[0]
+      );
     } else {
       // Для 2D
       return this.findsArrObjFromArrByProp(aciguid, 'guid', jsonData);

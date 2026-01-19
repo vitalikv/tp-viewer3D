@@ -10,7 +10,17 @@ export class ViewCube {
   private edgesDiv?: NodeListOf<HTMLDivElement>;
   private onOrientationChange?: (data: { position: number[]; quaternion: number[]; up: number[] }) => void;
 
-  constructor({ container, controls, animate, onOrientationChange }: { container: HTMLElement; controls: ArcballControls; animate: () => void; onOrientationChange?: (data: { position: number[]; quaternion: number[]; up: number[] }) => void }) {
+  constructor({
+    container,
+    controls,
+    animate,
+    onOrientationChange,
+  }: {
+    container: HTMLElement;
+    controls: ArcballControls;
+    animate: () => void;
+    onOrientationChange?: (data: { position: number[]; quaternion: number[]; up: number[] }) => void;
+  }) {
     this.controls = controls;
     this.animate = animate;
     this.onOrientationChange = onOrientationChange;
@@ -95,40 +105,158 @@ export class ViewCube {
       user-select: none;`;
 
     const faces = [
-      { id: 'face_top', name: 'Верх', style: cssFace + `transform: rotateY(0deg) rotateX(90deg) translateZ(${scaledFaceTranslateZ}px);` },
-      { id: 'face_bottom', name: 'Низ', style: cssFace + `transform: rotateX(270deg) translateZ(${scaledFaceTranslateZ}px);` },
-      { id: 'face_front', name: 'Перед', style: cssFace + `transform: rotateX(180deg) translateZ(${scaledFaceTranslateZ}px);` },
-      { id: 'face_back', name: 'Зад', style: cssFace + `transform: rotateZ(180deg) translateZ(${scaledFaceTranslateZ}px);` },
-      { id: 'face_left', name: 'Лево', style: cssFace + `transform: rotateY(-90deg) rotateX(180deg) rotateZ(0deg) translateZ(${scaledFaceTranslateZ}px);` },
-      { id: 'face_right', name: 'Право', style: cssFace + `transform: rotateY(90deg) rotateX(180deg) rotateZ(0deg) translateZ(${scaledFaceTranslateZ}px);` },
+      {
+        id: 'face_top',
+        name: 'Верх',
+        style: cssFace + `transform: rotateY(0deg) rotateX(90deg) translateZ(${scaledFaceTranslateZ}px);`,
+      },
+      {
+        id: 'face_bottom',
+        name: 'Низ',
+        style: cssFace + `transform: rotateX(270deg) translateZ(${scaledFaceTranslateZ}px);`,
+      },
+      {
+        id: 'face_front',
+        name: 'Перед',
+        style: cssFace + `transform: rotateX(180deg) translateZ(${scaledFaceTranslateZ}px);`,
+      },
+      {
+        id: 'face_back',
+        name: 'Зад',
+        style: cssFace + `transform: rotateZ(180deg) translateZ(${scaledFaceTranslateZ}px);`,
+      },
+      {
+        id: 'face_left',
+        name: 'Лево',
+        style:
+          cssFace + `transform: rotateY(-90deg) rotateX(180deg) rotateZ(0deg) translateZ(${scaledFaceTranslateZ}px);`,
+      },
+      {
+        id: 'face_right',
+        name: 'Право',
+        style:
+          cssFace + `transform: rotateY(90deg) rotateX(180deg) rotateZ(0deg) translateZ(${scaledFaceTranslateZ}px);`,
+      },
     ];
 
     const vertices = [
-      { id: 'vertex_front_left_bottom', style: cssVertex + `transform: translateX(${-scaledVertexSize / 2}px) translateY(${-scaledVertexSize / 2}px) translateZ(${scaledCubeSize / 2}px);` },
-      { id: 'vertex_back_left_bottom', style: cssVertex + `transform: translateX(${-scaledVertexSize / 2}px) translateY(${-scaledVertexSize / 2}px) translateZ(${-scaledCubeSize / 2}px);` },
-      { id: 'vertex_back_right_bottom', style: cssVertex + `transform: translateX(${scaledCubeSize - scaledVertexSize / 2}px) translateY(${-scaledVertexSize / 2}px) translateZ(${-scaledCubeSize / 2}px);` },
-      { id: 'vertex_front_right_bottom', style: cssVertex + `transform: translateX(${scaledCubeSize - scaledVertexSize / 2}px) translateY(${-scaledVertexSize / 2}px) translateZ(${scaledCubeSize / 2}px);` },
-      { id: 'vertex_front_left_top', style: cssVertex + `transform: translateX(${-scaledVertexSize / 2}px) translateY(${scaledCubeSize - scaledVertexSize / 2}px) translateZ(${scaledCubeSize / 2}px);` },
-      { id: 'vertex_back_left_top', style: cssVertex + `transform: translateX(${-scaledVertexSize / 2}px) translateY(${scaledCubeSize - scaledVertexSize / 2}px) translateZ(${-scaledCubeSize / 2}px);` },
-      { id: 'vertex_back_right_top', style: cssVertex + `transform: translateX(${scaledCubeSize - scaledVertexSize / 2}px) translateY(${scaledCubeSize - scaledVertexSize / 2}px) translateZ(${-scaledCubeSize / 2}px);` },
-      { id: 'vertex_front_right_top', style: cssVertex + `transform: translateX(${scaledCubeSize - scaledVertexSize / 2}px) translateY(${scaledCubeSize - scaledVertexSize / 2}px) translateZ(${scaledCubeSize / 2}px);` },
+      {
+        id: 'vertex_front_left_bottom',
+        style:
+          cssVertex +
+          `transform: translateX(${-scaledVertexSize / 2}px) translateY(${-scaledVertexSize / 2}px) translateZ(${scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'vertex_back_left_bottom',
+        style:
+          cssVertex +
+          `transform: translateX(${-scaledVertexSize / 2}px) translateY(${-scaledVertexSize / 2}px) translateZ(${-scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'vertex_back_right_bottom',
+        style:
+          cssVertex +
+          `transform: translateX(${scaledCubeSize - scaledVertexSize / 2}px) translateY(${-scaledVertexSize / 2}px) translateZ(${-scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'vertex_front_right_bottom',
+        style:
+          cssVertex +
+          `transform: translateX(${scaledCubeSize - scaledVertexSize / 2}px) translateY(${-scaledVertexSize / 2}px) translateZ(${scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'vertex_front_left_top',
+        style:
+          cssVertex +
+          `transform: translateX(${-scaledVertexSize / 2}px) translateY(${scaledCubeSize - scaledVertexSize / 2}px) translateZ(${scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'vertex_back_left_top',
+        style:
+          cssVertex +
+          `transform: translateX(${-scaledVertexSize / 2}px) translateY(${scaledCubeSize - scaledVertexSize / 2}px) translateZ(${-scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'vertex_back_right_top',
+        style:
+          cssVertex +
+          `transform: translateX(${scaledCubeSize - scaledVertexSize / 2}px) translateY(${scaledCubeSize - scaledVertexSize / 2}px) translateZ(${-scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'vertex_front_right_top',
+        style:
+          cssVertex +
+          `transform: translateX(${scaledCubeSize - scaledVertexSize / 2}px) translateY(${scaledCubeSize - scaledVertexSize / 2}px) translateZ(${scaledCubeSize / 2}px);`,
+      },
     ];
 
     const edges = [
-      { id: 'edge_front_right_vertical', style: cssEdge + `transform: rotateZ(90deg) translateX(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateY(${-scaledCubeSize / 2}px) translateZ(${scaledCubeSize / 2}px);` },
-      { id: 'edge_back_right_vertical', style: cssEdge + `transform: rotateZ(90deg) translateX(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateY(${-scaledCubeSize / 2}px) translateZ(${-scaledCubeSize / 2}px);` },
-      { id: 'edge_front_left_vertical', style: cssEdge + `transform: rotateZ(90deg) translateX(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateY(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateZ(${scaledCubeSize / 2}px);` },
-      { id: 'edge_back_left_vertical', style: cssEdge + `transform: rotateZ(90deg) translateX(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateY(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateZ(${-scaledCubeSize / 2}px);` },
+      {
+        id: 'edge_front_right_vertical',
+        style:
+          cssEdge +
+          `transform: rotateZ(90deg) translateX(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateY(${-scaledCubeSize / 2}px) translateZ(${scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'edge_back_right_vertical',
+        style:
+          cssEdge +
+          `transform: rotateZ(90deg) translateX(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateY(${-scaledCubeSize / 2}px) translateZ(${-scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'edge_front_left_vertical',
+        style:
+          cssEdge +
+          `transform: rotateZ(90deg) translateX(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateY(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateZ(${scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'edge_back_left_vertical',
+        style:
+          cssEdge +
+          `transform: rotateZ(90deg) translateX(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateY(${scaledCubeSize / 2 - scaledEdgeSize / 2}px) translateZ(${-scaledCubeSize / 2}px);`,
+      },
 
-      { id: 'edge_bottom_back_horizontal', style: cssEdge + `transform: rotateX(90deg) translateY(${-scaledCubeSize / 2}px) translateZ(0px);` },
-      { id: 'edge_top_front_horizontal', style: cssEdge + `transform: rotateX(90deg) translateY(${scaledCubeSize / 2}px) translateZ(${-(scaledCubeSize - scaledEdgeSize / 2)}px);` },
-      { id: 'edge_bottom_front_horizontal', style: cssEdge + `transform: rotateX(90deg) translateY(${scaledCubeSize / 2}px) translateZ(0px);` },
-      { id: 'edge_top_back_horizontal', style: cssEdge + `transform: rotateX(90deg) translateY(${-scaledCubeSize / 2}px) translateZ(${-(scaledCubeSize - scaledEdgeSize / 2)}px);` },
+      {
+        id: 'edge_bottom_back_horizontal',
+        style: cssEdge + `transform: rotateX(90deg) translateY(${-scaledCubeSize / 2}px) translateZ(0px);`,
+      },
+      {
+        id: 'edge_top_front_horizontal',
+        style:
+          cssEdge +
+          `transform: rotateX(90deg) translateY(${scaledCubeSize / 2}px) translateZ(${-(scaledCubeSize - scaledEdgeSize / 2)}px);`,
+      },
+      {
+        id: 'edge_bottom_front_horizontal',
+        style: cssEdge + `transform: rotateX(90deg) translateY(${scaledCubeSize / 2}px) translateZ(0px);`,
+      },
+      {
+        id: 'edge_top_back_horizontal',
+        style:
+          cssEdge +
+          `transform: rotateX(90deg) translateY(${-scaledCubeSize / 2}px) translateZ(${-(scaledCubeSize - scaledEdgeSize / 2)}px);`,
+      },
 
-      { id: 'edge_top_left_horizontal', style: cssEdge + `transform: rotateY(90deg) translateY(${scaledCubeSize - scaledEdgeSize / 2}px) translateZ(${-scaledCubeSize / 2}px);` },
-      { id: 'edge_bottom_left_horizontal', style: cssEdge + `transform: rotateY(90deg) translateY(0px) translateZ(${-scaledCubeSize / 2}px);` },
-      { id: 'edge_top_right_horizontal', style: cssEdge + `transform: rotateY(90deg) translateY(${scaledCubeSize - scaledEdgeSize / 2}px) translateZ(${scaledCubeSize / 2}px);` },
-      { id: 'edge_bottom_right_horizontal', style: cssEdge + `transform: rotateY(90deg) translateY(0px) translateZ(${scaledCubeSize / 2}px);` },
+      {
+        id: 'edge_top_left_horizontal',
+        style:
+          cssEdge +
+          `transform: rotateY(90deg) translateY(${scaledCubeSize - scaledEdgeSize / 2}px) translateZ(${-scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'edge_bottom_left_horizontal',
+        style: cssEdge + `transform: rotateY(90deg) translateY(0px) translateZ(${-scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'edge_top_right_horizontal',
+        style:
+          cssEdge +
+          `transform: rotateY(90deg) translateY(${scaledCubeSize - scaledEdgeSize / 2}px) translateZ(${scaledCubeSize / 2}px);`,
+      },
+      {
+        id: 'edge_bottom_right_horizontal',
+        style: cssEdge + `transform: rotateY(90deg) translateY(0px) translateZ(${scaledCubeSize / 2}px);`,
+      },
     ];
 
     const html = `<div id="viewcube-container" style="${cssViewcube}">
@@ -382,7 +510,9 @@ export class ViewCube {
 
     if (targetQuaternion.equals(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2))) {
       targetUp.set(0, 0, -1);
-    } else if (targetQuaternion.equals(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2))) {
+    } else if (
+      targetQuaternion.equals(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2))
+    ) {
       targetUp.set(0, 0, 1);
     }
 

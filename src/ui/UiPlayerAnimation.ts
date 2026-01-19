@@ -168,7 +168,15 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
   }
 
   private eventStop({ div }) {
-    const arrEvent = ['onmousedown', 'onwheel', 'onmousewheel', 'onmousemove', 'ontouchstart', 'ontouchend', 'ontouchmove'];
+    const arrEvent = [
+      'onmousedown',
+      'onwheel',
+      'onmousewheel',
+      'onmousemove',
+      'ontouchstart',
+      'ontouchend',
+      'ontouchmove',
+    ];
 
     arrEvent.forEach((events) => {
       div[events] = (e) => {
@@ -367,7 +375,8 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
   }
 
   public updatePlayerMenu(animations: THREE.AnimationClip[]) {
-    let html = '<div style="display: flex; flex-direction: column; gap: 10px; margin: auto; padding: 20px; font-size: 12px;">';
+    let html =
+      '<div style="display: flex; flex-direction: column; gap: 10px; margin: auto; padding: 20px; font-size: 12px;">';
     const cssCheckbox = `width: 16px; height: 16px; border: 1px solid #666; display: flex; align-items: center; justify-content: center;`;
     const cssAnimationItem = `display: flex; align-items: center; gap: 10px; padding: 3px 0px; cursor: pointer; transition: all 0.2s;`;
     const divCheckBoxSelected = '<div style="width: 8px; height: 8px; background: #666;"></div>';

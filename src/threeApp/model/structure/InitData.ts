@@ -10,7 +10,13 @@ export class InitData {
   constructor({ structure, gltf }) {
     if (!structure) return;
 
-    const transform: DataTransformStructure = new DataTransformStructure(structure, gltf, new TransformActionIdx(), new Transform3DRefs(), new TransToTree());
+    const transform: DataTransformStructure = new DataTransformStructure(
+      structure,
+      gltf,
+      new TransformActionIdx(),
+      new Transform3DRefs(),
+      new TransToTree()
+    );
 
     transform.findsChildrens();
     const tree: any = transform.tree();

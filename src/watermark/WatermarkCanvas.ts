@@ -184,7 +184,10 @@ export class WatermarkCanvas {
         const posX = startX + x * effectiveWidth;
         const posY = startY + y * effectiveHeight;
 
-        if (posX + this.params.width <= this.canvas.width - this.params.padding && posY + this.params.height <= this.canvas.height - this.params.padding) {
+        if (
+          posX + this.params.width <= this.canvas.width - this.params.padding &&
+          posY + this.params.height <= this.canvas.height - this.params.padding
+        ) {
           this.drawSingleWatermark(posX, posY);
         }
       }

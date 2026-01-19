@@ -37,7 +37,10 @@ export class MergeAnimation {
 
     const createNode = (originalNode: THREE.Object3D, parent: THREE.Object3D) => {
       let virtualNode: THREE.Object3D;
-      const wasMesh = originalNode instanceof THREE.Mesh || originalNode instanceof THREE.Line || originalNode instanceof THREE.LineSegments;
+      const wasMesh =
+        originalNode instanceof THREE.Mesh ||
+        originalNode instanceof THREE.Line ||
+        originalNode instanceof THREE.LineSegments;
 
       if (wasMesh) {
         virtualNode = new THREE.Group();
@@ -92,7 +95,12 @@ export class MergeAnimation {
     return this.uuidToGroupMap;
   }
 
-  public static createUuidToGroupMapping(geometries: THREE.BufferGeometry[], mergedGeometry: THREE.BufferGeometry, originalUuids: string[], mergedObject: MergedObject) {
+  public static createUuidToGroupMapping(
+    geometries: THREE.BufferGeometry[],
+    mergedGeometry: THREE.BufferGeometry,
+    originalUuids: string[],
+    mergedObject: MergedObject
+  ) {
     if (!mergedGeometry.groups) {
       return;
     }
@@ -108,7 +116,9 @@ export class MergeAnimation {
     }
 
     if (geometries.length !== mergedGeometry.groups.length) {
-      console.warn(` Несоответствие количества геометрий (${geometries.length}) и групп (${mergedGeometry.groups.length})`);
+      console.warn(
+        ` Несоответствие количества геометрий (${geometries.length}) и групп (${mergedGeometry.groups.length})`
+      );
     }
 
     const allPositions = positionAttr.array as Float32Array;
@@ -130,7 +140,9 @@ export class MergeAnimation {
       if (this.uuidToGroupMap.has(uuid)) {
         const count = duplicateUuids.get(uuid) || 0;
         duplicateUuids.set(uuid, count + 1);
-        console.warn(` Дубликат UUID ${uuid} - несколько мешей используют одну геометрию (встречается ${count + 2} раз)`);
+        console.warn(
+          ` Дубликат UUID ${uuid} - несколько мешей используют одну геометрию (встречается ${count + 2} раз)`
+        );
       }
 
       const groupIndex = geomIndex;
@@ -177,7 +189,9 @@ export class MergeAnimation {
         const countVertices = group.count * 3;
 
         if (startVertex + countVertices > allPositions.length) {
-          console.warn(` Некорректные индексы для группы ${groupIndex}: start=${startVertex}, count=${countVertices}, positions.length=${allPositions.length}, group.start=${group.start}, group.count=${group.count}`);
+          console.warn(
+            ` Некорректные индексы для группы ${groupIndex}: start=${startVertex}, count=${countVertices}, positions.length=${allPositions.length}, group.start=${group.start}, group.count=${group.count}`
+          );
           return;
         }
 
@@ -196,7 +210,9 @@ export class MergeAnimation {
     });
 
     if (duplicateUuids.size > 0) {
-      console.warn(` Найдено ${duplicateUuids.size} дубликатов UUID - это может вызвать проблемы с анимацией для повторяющихся геометрий`);
+      console.warn(
+        ` Найдено ${duplicateUuids.size} дубликатов UUID - это может вызвать проблемы с анимацией для повторяющихся геометрий`
+      );
     }
   }
 
@@ -226,7 +242,11 @@ export class MergeAnimation {
           const posIndex = vertexIndex * 3;
           const origIndex = i * 3;
 
-          this.tempVector.set(originalPositions[origIndex], originalPositions[origIndex + 1], originalPositions[origIndex + 2]);
+          this.tempVector.set(
+            originalPositions[origIndex],
+            originalPositions[origIndex + 1],
+            originalPositions[origIndex + 2]
+          );
           this.tempVector.applyMatrix4(relativeMatrix);
 
           positions[posIndex] = this.tempVector.x;
@@ -261,7 +281,11 @@ export class MergeAnimation {
     positionAttr.needsUpdate = true;
   }
 
-  public static linkAnimationHierarchyToMergedModel(animationRoot: THREE.Object3D, mergedMeshes: THREE.Mesh[], mergedLines: (THREE.Line | THREE.LineSegments)[]): void {
+  public static linkAnimationHierarchyToMergedModel(
+    animationRoot: THREE.Object3D,
+    mergedMeshes: THREE.Mesh[],
+    mergedLines: (THREE.Line | THREE.LineSegments)[]
+  ): void {
     const allOriginalUuids = new Set<string>();
 
     mergedMeshes.forEach((mesh) => {
@@ -296,7 +320,9 @@ export class MergeAnimation {
     });
 
     if (missingMappings.length > 0) {
-      console.warn(` Найдены узлы виртуальной иерархии без маппинга: ${missingMappings.length} из ${totalMeshNodes.size} мешей/линий`);
+      console.warn(
+        ` Найдены узлы виртуальной иерархии без маппинга: ${missingMappings.length} из ${totalMeshNodes.size} мешей/линий`
+      );
       if (missingMappings.length <= 10) {
         console.warn('UUID без маппинга:', missingMappings);
       }
@@ -316,7 +342,9 @@ export class MergeAnimation {
       }
     }
 
-    console.log(`Связь виртуальной иерархии со смерженной моделью: ${this.uuidToGroupMap.size} маппингов, ${totalMeshNodes.size} мешей/линий в иерархии, ${this.animationNodes.size} всего узлов`);
+    console.log(
+      `Связь виртуальной иерархии со смерженной моделью: ${this.uuidToGroupMap.size} маппингов, ${totalMeshNodes.size} мешей/линий в иерархии, ${this.animationNodes.size} всего узлов`
+    );
   }
 
   public static clearAnimationData() {

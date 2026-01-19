@@ -34,7 +34,11 @@ export class MergeModel {
 
   private static mergeGeometriesWithMaterials(model: THREE.Object3D) {
     const meshEntries: { mesh: THREE.Mesh; worldMatrix: THREE.Matrix4 }[] = [];
-    const lineEntries: { line: THREE.Line | THREE.LineSegments; worldMatrix: THREE.Matrix4; isLineSegments: boolean }[] = [];
+    const lineEntries: {
+      line: THREE.Line | THREE.LineSegments;
+      worldMatrix: THREE.Matrix4;
+      isLineSegments: boolean;
+    }[] = [];
 
     model.traverse((child) => {
       if (child instanceof THREE.Mesh && child.geometry) {
@@ -71,7 +75,15 @@ export class MergeModel {
   }
 
   private static mergeMeshGeometries(meshEntries: { mesh: THREE.Mesh; worldMatrix: THREE.Matrix4 }[]) {
-    const materialGroups = new Map<string, { material: THREE.Material; geometries: THREE.BufferGeometry[]; originalUuids: string[]; originalParentUuids: string[] }>();
+    const materialGroups = new Map<
+      string,
+      {
+        material: THREE.Material;
+        geometries: THREE.BufferGeometry[];
+        originalUuids: string[];
+        originalParentUuids: string[];
+      }
+    >();
 
     meshEntries.forEach(({ mesh, worldMatrix }) => {
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
@@ -131,8 +143,19 @@ export class MergeModel {
     return mergedMeshes;
   }
 
-  private static mergeLineGeometries(lineEntries: { line: THREE.Line | THREE.LineSegments; worldMatrix: THREE.Matrix4; isLineSegments: boolean }[]): (THREE.Line | THREE.LineSegments)[] {
-    const lineMaterialGroups = new Map<string, { material: THREE.Material; geometries: THREE.BufferGeometry[]; isLineSegments: boolean; originalUuids: string[]; originalParentUuids: string[] }>();
+  private static mergeLineGeometries(
+    lineEntries: { line: THREE.Line | THREE.LineSegments; worldMatrix: THREE.Matrix4; isLineSegments: boolean }[]
+  ): (THREE.Line | THREE.LineSegments)[] {
+    const lineMaterialGroups = new Map<
+      string,
+      {
+        material: THREE.Material;
+        geometries: THREE.BufferGeometry[];
+        isLineSegments: boolean;
+        originalUuids: string[];
+        originalParentUuids: string[];
+      }
+    >();
 
     lineEntries.forEach(({ line, worldMatrix, isLineSegments }) => {
       const materials = Array.isArray(line.material) ? line.material : [line.material];

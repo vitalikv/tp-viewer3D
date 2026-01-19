@@ -169,7 +169,10 @@ export class AnimationManager extends ContextSingleton<AnimationManager> {
     return Math.max(...this.animationClips.map((clip) => clip.duration));
   }
 
-  private updateAnimationPose(time: number, options?: { rebuildMergedModelBVH?: boolean; resetActions?: boolean }): void {
+  private updateAnimationPose(
+    time: number,
+    options?: { rebuildMergedModelBVH?: boolean; resetActions?: boolean }
+  ): void {
     if (this.mixers.length === 0 || this.animationActions.length === 0) {
       return;
     }

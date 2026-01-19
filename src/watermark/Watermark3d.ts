@@ -26,7 +26,10 @@ export class Watermark3d {
     this.watermarkCamera.lookAt(0, 0, 0);
     this.watermarkCamera.updateProjectionMatrix();
 
-    this.watermarkMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ transparent: true }));
+    this.watermarkMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.MeshBasicMaterial({ transparent: true })
+    );
     this.watermarkMesh.frustumCulled = false;
     this.watermarkMesh.renderOrder = Infinity;
     this.watermarkScene.add(this.watermarkMesh);

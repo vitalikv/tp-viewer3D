@@ -102,7 +102,10 @@ export class MergeEnvironment {
 
   private static disposeObj(obj: THREE.Object3D) {
     obj.traverse((child: THREE.Object3D | THREE.LineSegments | THREE.Line) => {
-      if ((child instanceof THREE.Mesh || child instanceof THREE.LineSegments || child instanceof THREE.Line) && child.geometry) {
+      if (
+        (child instanceof THREE.Mesh || child instanceof THREE.LineSegments || child instanceof THREE.Line) &&
+        child.geometry
+      ) {
         child.geometry.dispose();
 
         if (child.material) {

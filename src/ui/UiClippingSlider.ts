@@ -128,7 +128,15 @@ export class UiClippingSlider extends ContextSingleton<UiClippingSlider> {
 
   // блокируем действия на 3д сцене, когда курсор находится на div
   private eventStop({ div }) {
-    const arrEvent = ['onmousedown', 'onwheel', 'onmousewheel', 'onmousemove', 'ontouchstart', 'ontouchend', 'ontouchmove'];
+    const arrEvent = [
+      'onmousedown',
+      'onwheel',
+      'onmousewheel',
+      'onmousemove',
+      'ontouchstart',
+      'ontouchend',
+      'ontouchmove',
+    ];
 
     arrEvent.forEach((events) => {
       div[events] = (e) => {

@@ -9,8 +9,19 @@ export class SelectionMergedModel {
   private static mergedMeshes: Map<string, THREE.Mesh[]> = new Map();
   private static mergedLines: Map<string, (THREE.Line | THREE.LineSegments)[]> = new Map();
   private static objectByUuid: Map<string, THREE.Object3D> = new Map();
-  private static meshMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, transparent: true, emissive: 0x00ff00, emissiveIntensity: 0.2, opacity: 0.8 });
-  private static lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, depthTest: false, opacity: 0.1 });
+  private static meshMaterial = new THREE.MeshStandardMaterial({
+    color: 0x00ff00,
+    transparent: true,
+    emissive: 0x00ff00,
+    emissiveIntensity: 0.2,
+    opacity: 0.8,
+  });
+  private static lineMaterial = new THREE.LineBasicMaterial({
+    color: 0x00ff00,
+    transparent: true,
+    depthTest: false,
+    opacity: 0.1,
+  });
 
   public static setMergedObjects(meshes: THREE.Mesh[], lines: (THREE.Line | THREE.LineSegments)[]) {
     this.meshMaterial.clippingPlanes = ClippingBvh.inst().getClippingPlanes();
@@ -130,7 +141,8 @@ export class SelectionMergedModel {
 
       for (let i = 0; i < groups.length; i++) {
         if (highlightGroupIndices.includes(i)) {
-          const material = mesh instanceof THREE.Line || mesh instanceof THREE.LineSegments ? this.lineMaterial : this.meshMaterial;
+          const material =
+            mesh instanceof THREE.Line || mesh instanceof THREE.LineSegments ? this.lineMaterial : this.meshMaterial;
           materials.push(material);
         } else {
           const materialIndex = Math.min(i, originalMaterials.length - 1);
@@ -158,7 +170,10 @@ export class SelectionMergedModel {
     this.originalMaterials.forEach((originalMaterial, objectUuid) => {
       const object = this.objectByUuid.get(objectUuid);
 
-      if (object && (object instanceof THREE.Mesh || object instanceof THREE.Line || object instanceof THREE.LineSegments)) {
+      if (
+        object &&
+        (object instanceof THREE.Mesh || object instanceof THREE.Line || object instanceof THREE.LineSegments)
+      ) {
         object.material = originalMaterial;
       }
     });

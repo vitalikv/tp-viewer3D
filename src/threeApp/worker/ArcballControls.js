@@ -1,4 +1,20 @@
-import { Controls, GridHelper, EllipseCurve, BufferGeometry, Line, LineBasicMaterial, Raycaster, Group, Box3, Sphere, Quaternion, Vector2, Vector3, Matrix4, MathUtils } from 'three';
+import {
+  Controls,
+  GridHelper,
+  EllipseCurve,
+  BufferGeometry,
+  Line,
+  LineBasicMaterial,
+  Raycaster,
+  Group,
+  Box3,
+  Sphere,
+  Quaternion,
+  Vector2,
+  Vector3,
+  Matrix4,
+  MathUtils,
+} from 'three';
 
 //trackball state
 const STATE = {
@@ -111,7 +127,9 @@ class ArcballControls extends Controls {
       top: 0,
     };
 
-    this._isWorker = typeof window === 'undefined' || (typeof OffscreenCanvas !== 'undefined' && domElement instanceof OffscreenCanvas);
+    this._isWorker =
+      typeof window === 'undefined' ||
+      (typeof OffscreenCanvas !== 'undefined' && domElement instanceof OffscreenCanvas);
 
     /**
      * The control's focus point.
@@ -597,7 +615,9 @@ class ArcballControls extends Controls {
           }
 
           this.updateTbState(STATE.ROTATE, true);
-          this._startCursorPosition.copy(this.unprojectOnTbSurface(this.object, _center.x, _center.y, this.domElement, this._tbRadius));
+          this._startCursorPosition.copy(
+            this.unprojectOnTbSurface(this.object, _center.x, _center.y, this.domElement, this._tbRadius)
+          );
           this.activateGizmos(true);
           if (this.enableAnimations) {
             this._timePrev = this._timeCurrent = performance.now();
@@ -667,7 +687,9 @@ class ArcballControls extends Controls {
               this.dispatchEvent(_startEvent);
 
               this.updateTbState(opState, true);
-              this._startCursorPosition.copy(this.unprojectOnTbPlane(this.object, _center.x, _center.y, this.domElement));
+              this._startCursorPosition.copy(
+                this.unprojectOnTbPlane(this.object, _center.x, _center.y, this.domElement)
+              );
               if (this.enableGrid) {
                 this.drawGrid();
               }
@@ -675,7 +697,9 @@ class ArcballControls extends Controls {
               this.activateGizmos(false);
             } else {
               //continue with pan operation
-              this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.object, _center.x, _center.y, this.domElement));
+              this._currentCursorPosition.copy(
+                this.unprojectOnTbPlane(this.object, _center.x, _center.y, this.domElement)
+              );
               this.applyTransformMatrix(this.pan(this._startCursorPosition, this._currentCursorPosition));
             }
           }
@@ -691,7 +715,9 @@ class ArcballControls extends Controls {
               this.dispatchEvent(_startEvent);
 
               this.updateTbState(opState, true);
-              this._startCursorPosition.copy(this.unprojectOnTbSurface(this.object, _center.x, _center.y, this.domElement, this._tbRadius));
+              this._startCursorPosition.copy(
+                this.unprojectOnTbSurface(this.object, _center.x, _center.y, this.domElement, this._tbRadius)
+              );
 
               if (this.enableGrid) {
                 this.disposeGrid();
@@ -700,13 +726,17 @@ class ArcballControls extends Controls {
               this.activateGizmos(true);
             } else {
               //continue with rotate operation
-              this._currentCursorPosition.copy(this.unprojectOnTbSurface(this.object, _center.x, _center.y, this.domElement, this._tbRadius));
+              this._currentCursorPosition.copy(
+                this.unprojectOnTbSurface(this.object, _center.x, _center.y, this.domElement, this._tbRadius)
+              );
 
               const distance = this._startCursorPosition.distanceTo(this._currentCursorPosition);
               const angle = this._startCursorPosition.angleTo(this._currentCursorPosition);
               const amount = Math.max(distance / this._tbRadius, angle) * this.rotateSpeed; //effective rotation angle
 
-              this.applyTransformMatrix(this.rotate(this.calculateRotationAxis(this._startCursorPosition, this._currentCursorPosition), amount));
+              this.applyTransformMatrix(
+                this.rotate(this.calculateRotationAxis(this._startCursorPosition, this._currentCursorPosition), amount)
+              );
 
               if (this.enableAnimations) {
                 this._timePrev = this._timeCurrent;
@@ -716,7 +746,12 @@ class ArcballControls extends Controls {
                 this._cursorPosPrev.copy(this._cursorPosCurr);
                 this._cursorPosCurr.copy(this._currentCursorPosition);
                 this._wPrev = this._wCurr;
-                this._wCurr = this.calculateAngularSpeed(this._anglePrev, this._angleCurrent, this._timePrev, this._timeCurrent);
+                this._wCurr = this.calculateAngularSpeed(
+                  this._anglePrev,
+                  this._angleCurrent,
+                  this._timePrev,
+                  this._timeCurrent
+                );
               }
             }
           }
@@ -918,7 +953,10 @@ class ArcballControls extends Controls {
 
       this.updateTbState(STATE.PAN, true);
 
-      this.setCenter((this._touchCurrent[0].clientX + this._touchCurrent[1].clientX) / 2, (this._touchCurrent[0].clientY + this._touchCurrent[1].clientY) / 2);
+      this.setCenter(
+        (this._touchCurrent[0].clientX + this._touchCurrent[1].clientX) / 2,
+        (this._touchCurrent[0].clientY + this._touchCurrent[1].clientY) / 2
+      );
       this._startCursorPosition.copy(this.unprojectOnTbPlane(this.object, _center.x, _center.y, this.domElement, true));
       this._currentCursorPosition.copy(this._startCursorPosition);
 
@@ -928,14 +966,19 @@ class ArcballControls extends Controls {
 
   onDoublePanMove() {
     if (this.enabled && this.enablePan) {
-      this.setCenter((this._touchCurrent[0].clientX + this._touchCurrent[1].clientX) / 2, (this._touchCurrent[0].clientY + this._touchCurrent[1].clientY) / 2);
+      this.setCenter(
+        (this._touchCurrent[0].clientX + this._touchCurrent[1].clientX) / 2,
+        (this._touchCurrent[0].clientY + this._touchCurrent[1].clientY) / 2
+      );
 
       if (this._state != STATE.PAN) {
         this.updateTbState(STATE.PAN, true);
         this._startCursorPosition.copy(this._currentCursorPosition);
       }
 
-      this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.object, _center.x, _center.y, this.domElement, true));
+      this._currentCursorPosition.copy(
+        this.unprojectOnTbPlane(this.object, _center.x, _center.y, this.domElement, true)
+      );
       this.applyTransformMatrix(this.pan(this._startCursorPosition, this._currentCursorPosition, true));
       this.dispatchEvent(_changeEvent);
     }
@@ -954,7 +997,9 @@ class ArcballControls extends Controls {
 
       //this._startFingerRotation = event.rotation;
 
-      this._startFingerRotation = this.getAngle(this._touchCurrent[1], this._touchCurrent[0]) + this.getAngle(this._touchStart[1], this._touchStart[0]);
+      this._startFingerRotation =
+        this.getAngle(this._touchCurrent[1], this._touchCurrent[0]) +
+        this.getAngle(this._touchStart[1], this._touchStart[0]);
       this._currentFingerRotation = this._startFingerRotation;
 
       this.object.getWorldDirection(this._rotationAxis); //rotation axis
@@ -967,7 +1012,10 @@ class ArcballControls extends Controls {
 
   onRotateMove() {
     if (this.enabled && this.enableRotate) {
-      this.setCenter((this._touchCurrent[0].clientX + this._touchCurrent[1].clientX) / 2, (this._touchCurrent[0].clientY + this._touchCurrent[1].clientY) / 2);
+      this.setCenter(
+        (this._touchCurrent[0].clientX + this._touchCurrent[1].clientX) / 2,
+        (this._touchCurrent[0].clientY + this._touchCurrent[1].clientY) / 2
+      );
       let rotationPoint;
 
       if (this._state != STATE.ZROTATE) {
@@ -976,7 +1024,9 @@ class ArcballControls extends Controls {
       }
 
       //this._currentFingerRotation = event.rotation;
-      this._currentFingerRotation = this.getAngle(this._touchCurrent[1], this._touchCurrent[0]) + this.getAngle(this._touchStart[1], this._touchStart[0]);
+      this._currentFingerRotation =
+        this.getAngle(this._touchCurrent[1], this._touchCurrent[0]) +
+        this.getAngle(this._touchStart[1], this._touchStart[0]);
 
       if (!this.enablePan) {
         rotationPoint = new Vector3().setFromMatrixPosition(this._gizmoMatrixState);
@@ -1016,8 +1066,17 @@ class ArcballControls extends Controls {
   }
 
   onPinchMove() {
-    if (this.enabled && this.enableZoom && this._touchCurrent.length >= 2 && this._touchCurrent[0] && this._touchCurrent[1]) {
-      this.setCenter((this._touchCurrent[0].clientX + this._touchCurrent[1].clientX) / 2, (this._touchCurrent[0].clientY + this._touchCurrent[1].clientY) / 2);
+    if (
+      this.enabled &&
+      this.enableZoom &&
+      this._touchCurrent.length >= 2 &&
+      this._touchCurrent[0] &&
+      this._touchCurrent[1]
+    ) {
+      this.setCenter(
+        (this._touchCurrent[0].clientX + this._touchCurrent[1].clientX) / 2,
+        (this._touchCurrent[0].clientY + this._touchCurrent[1].clientY) / 2
+      );
       const minDistance = 12; //minimum distance between fingers (in css pixels)
 
       if (this._state != STATE.SCALE) {
@@ -1025,7 +1084,10 @@ class ArcballControls extends Controls {
         this.updateTbState(STATE.SCALE, true);
       }
 
-      this._currentFingerDistance = Math.max(this.calculatePointersDistance(this._touchCurrent[0], this._touchCurrent[1]), minDistance * this._devPxRatio);
+      this._currentFingerDistance = Math.max(
+        this.calculatePointersDistance(this._touchCurrent[0], this._touchCurrent[1]),
+        minDistance * this._devPxRatio
+      );
       const amount = this._currentFingerDistance / this._startFingerDistance;
 
       let scalePoint;
@@ -1039,7 +1101,9 @@ class ArcballControls extends Controls {
             .multiplyScalar(1 / this.object.zoom)
             .add(this._gizmos.position);
         } else if (this.object.isPerspectiveCamera) {
-          scalePoint = this.unprojectOnTbPlane(this.object, _center.x, _center.y, this.domElement).applyQuaternion(this.object.quaternion).add(this._gizmos.position);
+          scalePoint = this.unprojectOnTbPlane(this.object, _center.x, _center.y, this.domElement)
+            .applyQuaternion(this.object.quaternion)
+            .add(this._gizmos.position);
         }
       }
 
@@ -2441,7 +2505,9 @@ class ArcballControls extends Controls {
       let cameraGizmoDistance;
 
       if (initialDistance) {
-        cameraGizmoDistance = this._v3_1.setFromMatrixPosition(this._cameraMatrixState0).distanceTo(this._v3_2.setFromMatrixPosition(this._gizmoMatrixState0));
+        cameraGizmoDistance = this._v3_1
+          .setFromMatrixPosition(this._cameraMatrixState0)
+          .distanceTo(this._v3_2.setFromMatrixPosition(this._gizmoMatrixState0));
       } else {
         cameraGizmoDistance = camera.position.distanceTo(this._gizmos.position);
       }
@@ -2921,7 +2987,9 @@ function onWheel(event) {
                 .multiplyScalar(1 / this.object.zoom)
                 .add(this._gizmos.position);
             } else if (this.object.isPerspectiveCamera) {
-              scalePoint = this.unprojectOnTbPlane(this.object, event.clientX, event.clientY, this.domElement).applyQuaternion(this.object.quaternion).add(this._gizmos.position);
+              scalePoint = this.unprojectOnTbPlane(this.object, event.clientX, event.clientY, this.domElement)
+                .applyQuaternion(this.object.quaternion)
+                .add(this._gizmos.position);
             }
 
             this.applyTransformMatrix(this.scale(size, scalePoint));

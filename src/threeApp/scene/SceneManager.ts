@@ -112,12 +112,6 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     });
 
     this.scene.background = texture;
-
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    const cube = new THREE.Mesh(geometry, material);
-    cube.position.x = 3;
-    this.scene.add(cube);
   }
 
   private createAdvancedGradient(options: {
@@ -159,7 +153,14 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     } else if (direction === 'horizontal') {
       gradient = ctx2d.createLinearGradient(0, 0, canvas.width, 0);
     } else {
-      gradient = ctx2d.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2);
+      gradient = ctx2d.createRadialGradient(
+        canvas.width / 2,
+        canvas.height / 2,
+        0,
+        canvas.width / 2,
+        canvas.height / 2,
+        canvas.width / 2
+      );
     }
 
     const mixColors = (color1: string, color2: string, weight: number): string => {
@@ -230,11 +231,17 @@ export class SceneManager extends ContextSingleton<SceneManager> {
   private initControls() {
     this.controls = new ArcballControls(this.camera, this.canvas, this.scene);
     this.controls.enableAnimations = false;
+    this.controls['_gizmos'].visible = false;
 
     const isWorker = ThreeApp.inst().isWorker;
 
     if (isWorker) {
-      const raf = typeof window !== 'undefined' ? window.requestAnimationFrame : typeof self !== 'undefined' ? self.requestAnimationFrame : null;
+      const raf =
+        typeof window !== 'undefined'
+          ? window.requestAnimationFrame
+          : typeof self !== 'undefined'
+            ? self.requestAnimationFrame
+            : null;
       if (raf) {
         this.controls.addEventListener('change', () => {
           if (!this.renderScheduled) {
@@ -279,8 +286,6 @@ export class SceneManager extends ContextSingleton<SceneManager> {
   public render() {
     if (!this.renderer) return;
     if (this.stats) this.stats.begin();
-
-    console.log('render');
 
     ClippingBvh.inst().performClipping();
 

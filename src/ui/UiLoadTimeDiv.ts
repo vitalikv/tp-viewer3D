@@ -39,7 +39,15 @@ export class UiLoadTimeDiv extends ContextSingleton<UiLoadTimeDiv> {
   }
 
   private eventStop({ div }) {
-    const arrEvent = ['onmousedown', 'onwheel', 'onmousewheel', 'onmousemove', 'ontouchstart', 'ontouchend', 'ontouchmove'];
+    const arrEvent = [
+      'onmousedown',
+      'onwheel',
+      'onmousewheel',
+      'onmousemove',
+      'ontouchstart',
+      'ontouchend',
+      'ontouchmove',
+    ];
 
     arrEvent.forEach((events) => {
       div[events] = (e) => {
@@ -52,7 +60,7 @@ export class UiLoadTimeDiv extends ContextSingleton<UiLoadTimeDiv> {
     if (this.isRunning) {
       this.stopTimer();
     }
-    
+
     this.startTime = performance.now();
     this.isRunning = true;
     this.updateText('0.000');
@@ -65,7 +73,7 @@ export class UiLoadTimeDiv extends ContextSingleton<UiLoadTimeDiv> {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
-    
+
     // Обновляем финальное время после остановки таймера
     requestAnimationFrame(() => {
       const elapsed = (performance.now() - this.startTime) / 1000;
@@ -88,4 +96,3 @@ export class UiLoadTimeDiv extends ContextSingleton<UiLoadTimeDiv> {
     this.divInfo.textContent = value + ' сек';
   }
 }
-

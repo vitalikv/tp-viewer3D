@@ -301,6 +301,9 @@ export class SvgUseHandler {
     const elements = document.elementsFromPoint(event.clientX, event.clientY);
     const svgElements = elements.filter((el) => el instanceof SVGElement && this.svg.contains(el));
 
-    return svgElements.length === 0 || svgElements.every((el) => el.id === 'Drawing' || (el.parentElement && el.parentElement.id === 'Drawing'));
+    return (
+      svgElements.length === 0 ||
+      svgElements.every((el) => el.id === 'Drawing' || (el.parentElement && el.parentElement.id === 'Drawing'))
+    );
   }
 }

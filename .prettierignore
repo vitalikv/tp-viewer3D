@@ -1,0 +1,15 @@
+# Папки
+node_modules
+dist
+public
+
+# Конфиги и билды
+*.min.js
+*.d.ts
+*.yml
+
+# Логи
+*.log
+
+# Vite
+vite.config.ts

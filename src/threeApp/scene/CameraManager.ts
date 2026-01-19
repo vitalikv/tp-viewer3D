@@ -48,8 +48,15 @@ export class CameraManager {
     const camera = new THREE.PerspectiveCamera(this.options.fov, aspect, this.options.near, this.options.far);
     camera.position.set(this.options.position.x, this.options.position.y, this.options.position.z);
     camera.lookAt(0, 0, 0);
-    camera.userData.state = { position: camera.position.clone(), rotation: camera.rotation.clone(), target: new THREE.Vector3() };
-    camera.userData.start = { dir: camera.position.clone().normalize(), dist: new THREE.Vector3().distanceTo(camera.position) };
+    camera.userData.state = {
+      position: camera.position.clone(),
+      rotation: camera.rotation.clone(),
+      target: new THREE.Vector3(),
+    };
+    camera.userData.start = {
+      dir: camera.position.clone().normalize(),
+      dist: new THREE.Vector3().distanceTo(camera.position),
+    };
 
     return camera;
   }
@@ -66,8 +73,15 @@ export class CameraManager {
     const camera = new THREE.OrthographicCamera(-halfW, halfW, halfH, -halfH, this.options.near, this.options.far);
     camera.position.set(this.options.position.x, this.options.position.y, this.options.position.z);
     camera.lookAt(0, 0, 0);
-    camera.userData.state = { position: camera.position.clone(), rotation: camera.rotation.clone(), target: new THREE.Vector3() };
-    camera.userData.start = { dir: camera.position.clone().normalize(), dist: new THREE.Vector3().distanceTo(camera.position) };
+    camera.userData.state = {
+      position: camera.position.clone(),
+      rotation: camera.rotation.clone(),
+      target: new THREE.Vector3(),
+    };
+    camera.userData.start = {
+      dir: camera.position.clone().normalize(),
+      dist: new THREE.Vector3().distanceTo(camera.position),
+    };
 
     return camera;
   }

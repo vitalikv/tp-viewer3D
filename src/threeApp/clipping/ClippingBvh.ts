@@ -30,8 +30,23 @@ export class ClippingBvh extends ContextSingleton<ClippingBvh> {
   private rotPlane = new THREE.Vector3(0, 0, 0);
 
   private modelBoundingBox: THREE.Box3 | null = null;
-  private matPlane1 = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true, opacity: 0.3, color: 0x80deea, depthWrite: false });
-  private matPlane2 = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, stencilWrite: true, stencilFunc: THREE.NotEqualStencilFunc, stencilFail: THREE.ZeroStencilOp, stencilZFail: THREE.ZeroStencilOp, stencilZPass: THREE.ZeroStencilOp, transparent: true, opacity: 0.0 });
+  private matPlane1 = new THREE.MeshBasicMaterial({
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.3,
+    color: 0x80deea,
+    depthWrite: false,
+  });
+  private matPlane2 = new THREE.MeshBasicMaterial({
+    side: THREE.DoubleSide,
+    stencilWrite: true,
+    stencilFunc: THREE.NotEqualStencilFunc,
+    stencilFail: THREE.ZeroStencilOp,
+    stencilZFail: THREE.ZeroStencilOp,
+    stencilZPass: THREE.ZeroStencilOp,
+    transparent: true,
+    opacity: 0.0,
+  });
 
   private params = {
     useBVH: true,
@@ -68,7 +83,13 @@ export class ClippingBvh extends ContextSingleton<ClippingBvh> {
   private createWireframe(model: THREE.Object3D) {
     if (this.wireframeModel) return;
 
-    const materialMesh = new THREE.MeshBasicMaterial({ color: 0x0000ff, wireframe: true, transparent: true, opacity: 0.01, depthWrite: false });
+    const materialMesh = new THREE.MeshBasicMaterial({
+      color: 0x0000ff,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.01,
+      depthWrite: false,
+    });
 
     const cloneModel = (obj: THREE.Object3D) => {
       let clone: THREE.Object3D;
@@ -323,7 +344,10 @@ export class ClippingBvh extends ContextSingleton<ClippingBvh> {
 
   private disposeObj(obj: THREE.Object3D) {
     obj.traverse((child) => {
-      if ((child instanceof THREE.Mesh || child instanceof THREE.LineSegments || child instanceof THREE.Line) && child.geometry) {
+      if (
+        (child instanceof THREE.Mesh || child instanceof THREE.LineSegments || child instanceof THREE.Line) &&
+        child.geometry
+      ) {
         child.geometry.dispose();
 
         if (child.material) {

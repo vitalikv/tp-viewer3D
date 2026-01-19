@@ -41,7 +41,15 @@ export class UiFileMenu extends ContextSingleton<UiFileMenu> {
   }
 
   private eventStop({ div }) {
-    const arrEvent = ['onmousedown', 'onwheel', 'onmousewheel', 'onmousemove', 'ontouchstart', 'ontouchend', 'ontouchmove'];
+    const arrEvent = [
+      'onmousedown',
+      'onwheel',
+      'onmousewheel',
+      'onmousemove',
+      'ontouchstart',
+      'ontouchend',
+      'ontouchmove',
+    ];
 
     arrEvent.forEach((events) => {
       div[events] = (e) => {

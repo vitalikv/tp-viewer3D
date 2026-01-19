@@ -153,7 +153,14 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
     };
   }
 
-  public loadModel(file: File, callbacks?: { onProgress?: (text: string | null) => void; onLoaded?: (filename: string) => void; onError?: (error: string) => void }) {
+  public loadModel(
+    file: File,
+    callbacks?: {
+      onProgress?: (text: string | null) => void;
+      onLoaded?: (filename: string) => void;
+      onError?: (error: string) => void;
+    }
+  ) {
     if (callbacks) {
       this.progressCallback = callbacks.onProgress;
       this.modelLoadedCallback = callbacks.onLoaded;

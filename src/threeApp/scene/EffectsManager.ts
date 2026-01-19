@@ -23,7 +23,15 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
   private camera!: THREE.Camera;
   private renderer!: THREE.WebGLRenderer;
 
-  public init({ scene, camera, renderer }: { scene: THREE.Scene; camera: THREE.Camera; renderer: THREE.WebGLRenderer }) {
+  public init({
+    scene,
+    camera,
+    renderer,
+  }: {
+    scene: THREE.Scene;
+    camera: THREE.Camera;
+    renderer: THREE.WebGLRenderer;
+  }) {
     if (this.enabled) return;
     this.enabled = true;
 

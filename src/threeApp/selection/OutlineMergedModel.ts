@@ -74,7 +74,10 @@ export class OutlineMergedModel {
     });
   }
 
-  private static createGeometryForGroup(originalGeometry: THREE.BufferGeometry, group: { start: number; count: number }) {
+  private static createGeometryForGroup(
+    originalGeometry: THREE.BufferGeometry,
+    group: { start: number; count: number }
+  ) {
     if (!originalGeometry.index || group.count === 0) return null;
 
     const indexAttr = originalGeometry.index;

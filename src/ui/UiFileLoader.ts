@@ -60,7 +60,15 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
   }
 
   private eventStop({ div }) {
-    const arrEvent = ['onmousedown', 'onwheel', 'onmousewheel', 'onmousemove', 'ontouchstart', 'ontouchend', 'ontouchmove'];
+    const arrEvent = [
+      'onmousedown',
+      'onwheel',
+      'onmousewheel',
+      'onmousemove',
+      'ontouchstart',
+      'ontouchend',
+      'ontouchmove',
+    ];
 
     arrEvent.forEach((events) => {
       div[events] = (e) => {
@@ -101,7 +109,14 @@ export class UiFileLoader extends ContextSingleton<UiFileLoader> {
     const isWorker = ThreeApp.inst().isWorker;
     if (isWorker) {
       const isInMainThread = typeof window !== 'undefined' && self === window;
-      console.log('[MAIN THREAD] Отправка файла в воркер:', file.name, 'Размер:', file.size, 'В основном потоке:', isInMainThread);
+      console.log(
+        '[MAIN THREAD] Отправка файла в воркер:',
+        file.name,
+        'Размер:',
+        file.size,
+        'В основном потоке:',
+        isInMainThread
+      );
 
       // Используем воркер для загрузки модели
       OffscreenCanvasManager.inst().loadModel(file, {
