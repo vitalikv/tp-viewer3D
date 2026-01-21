@@ -77,7 +77,7 @@ export class InitModel extends ContextSingleton<InitModel> {
     return duplicates;
   }
 
-  public handleFileLoad = async (contents) => {
+  public handleFileLoad = async (contents, basePath?: string) => {
     if (this.getModel()) {
       return false;
     }
@@ -96,7 +96,8 @@ export class InitModel extends ContextSingleton<InitModel> {
 
     const merge = this.getMerge();
 
-    const gltf = await this.loader.parseAsync(contents, './public/assets/opt/');
+    const path = basePath || './public/assets/';
+    const gltf = await this.loader.parseAsync(contents, path);
 
     let model = gltf.scene;
 

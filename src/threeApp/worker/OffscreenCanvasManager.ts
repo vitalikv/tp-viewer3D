@@ -189,6 +189,26 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
     reader.readAsArrayBuffer(file);
   }
 
+  public loadModelFromUrl(
+    url: string,
+    callbacks?: {
+      onProgress?: (text: string | null) => void;
+      onLoaded?: (url: string) => void;
+      onError?: (error: string) => void;
+    }
+  ) {
+    if (callbacks) {
+      this.progressCallback = callbacks.onProgress;
+      this.modelLoadedCallback = callbacks.onLoaded;
+      this.modelErrorCallback = callbacks.onError;
+    }
+
+    this.worker.postMessage({
+      type: 'loadModelFromUrl',
+      url: url,
+    });
+  }
+
   public dispose() {
     this.worker.terminate();
   }

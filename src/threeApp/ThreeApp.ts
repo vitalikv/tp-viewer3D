@@ -1,22 +1,16 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { SceneManager } from '@/threeApp/scene/SceneManager';
-import { InitModel } from '@/threeApp/model/InitModel';
-import { MouseManager } from '@/threeApp/scene/MouseManager';
-import { SelectionHandler } from '@/threeApp/selection/SelectionHandler';
-import { BVHManager } from '@/threeApp/bvh/BvhManager';
-import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
-import { EffectsManager } from '@/threeApp/scene/EffectsManager';
-import { OutlineSelection } from '@/threeApp/selection/OutlineSelection';
-import { AnimationManager } from '@/threeApp/animation/AnimationManager';
 import { ViewCube } from '@/threeApp/scene/ViewCube';
 import { OffscreenCanvasManager } from '@/threeApp/worker/OffscreenCanvasManager';
 import { ArcballControls } from '@/threeApp/worker/ArcballControls';
+import { ModelUrlLoader } from '@/threeApp/model/ModelUrlLoader';
+import { InitScene } from '@/threeApp/scene/InitScene';
 
 export class ThreeApp extends ContextSingleton<ThreeApp> {
   public isWorker = true;
 
-  async init() {
+  async init({ autoLoadModelUrl }: { autoLoadModelUrl?: string } = {}) {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
     canvas.addEventListener('contextmenu', (e) => {
@@ -34,27 +28,7 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
     if (this.isWorker) {
       OffscreenCanvasManager.inst().init({ canvas });
     } else {
-      await SceneManager.inst().init({ canvas, rect: rectParams });
-      InitModel.inst();
-      SelectionHandler.inst();
-      MouseManager.inst();
-      OutlineSelection.inst();
-      BVHManager.inst();
-      ClippingBvh.inst();
-      AnimationManager.inst();
-
-      EffectsManager.inst().init({
-        scene: SceneManager.inst().scene,
-        camera: SceneManager.inst().camera,
-        renderer: SceneManager.inst().renderer,
-      });
-      OutlineSelection.inst().init({
-        outlinePass: EffectsManager.inst().outlinePass,
-        composer: EffectsManager.inst().composer,
-      });
-      MouseManager.inst().init(SceneManager.inst().camera, SceneManager.inst().renderer.domElement);
-      BVHManager.inst().init();
-      InitModel.inst().setMerge({ merge: true });
+      await InitScene.init({ canvas, rect: rectParams });
     }
 
     this.initResizeObserver(canvas);
@@ -64,6 +38,25 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
       this.initViewCubeWorker(container);
     } else {
       new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
+    }
+
+    // Автозагрузка модели, если указан URL
+    if (autoLoadModelUrl) {
+      try {
+        await ModelUrlLoader.inst().loadFromUrl(autoLoadModelUrl, {
+          onProgress: (percent) => {
+            console.log(`Загрузка модели: ${percent}%`);
+          },
+          onLoaded: (url) => {
+            console.log(`Модель успешно загружена: ${url}`);
+          },
+          onError: (error) => {
+            console.error(`Ошибка загрузки модели: ${error}`);
+          },
+        });
+      } catch (error) {
+        console.error('Ошибка при автозагрузке модели:', error);
+      }
     }
   }
 

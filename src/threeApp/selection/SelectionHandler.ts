@@ -4,7 +4,7 @@ import { ContextSingleton } from '@/core/ContextSingleton';
 import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
 import { EffectsManager } from '@/threeApp/scene/EffectsManager';
 import { OutlineSelection } from '@/threeApp/selection/OutlineSelection';
-import { SelectedByData } from '@/threeApp/model/structure/selectedByData';
+import { SelectedByData } from '@/threeApp/model/structure/SelectedByData';
 import { SelectionMergedModel } from '@/threeApp/selection/SelectionMergedModel';
 
 interface ActiveObjectItem {

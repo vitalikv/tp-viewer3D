@@ -4,19 +4,16 @@ import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { InitModel } from '@/threeApp/model/InitModel';
 import { AnimationManager } from '@/threeApp/animation/AnimationManager';
-import { BVHManager } from '@/threeApp/bvh/BvhManager';
-import { OutlineSelection } from '@/threeApp/selection/OutlineSelection';
-import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
-import { SelectionHandler } from '@/threeApp/selection/SelectionHandler';
 import { MouseManager } from '@/threeApp/scene/MouseManager';
-import { EffectsManager } from '@/threeApp/scene/EffectsManager';
 import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
+import { InitScene } from '@/threeApp/scene/InitScene';
 
 type WorkerMessage =
   | { type: 'init'; canvas: OffscreenCanvas; rect: { width: number; height: number; left: number; top: number } }
   | { type: 'resize'; width: number; height: number; left: number; top: number }
   | { type: 'event'; event: { kind: string; type: string; clientX?: number; clientY?: number; button?: number } }
   | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string }
+  | { type: 'loadModelFromUrl'; url: string }
   | { type: 'activateClippingBvh' }
   | { type: 'setPlanePosition'; x: number; y: number; z: number }
   | { type: 'setPlaneRotation'; x: number; y: number; z: number }
@@ -98,6 +95,11 @@ class OffscreenCanvasWorker {
       case 'loadModel':
         if (this.scene) {
           this.loadModel(msg.arrayBuffer, msg.filename);
+        }
+        break;
+      case 'loadModelFromUrl':
+        if (this.scene) {
+          this.loadModelFromUrl(msg.url);
         }
         break;
       case 'activateClippingBvh':
@@ -203,7 +205,8 @@ class OffscreenCanvasWorker {
     const left = this.rect.left;
     const top = this.rect.top;
 
-    await SceneManager.inst().init({ canvas, rect: { width, height, left, top } });
+    await InitScene.init({ canvas, rect: { width, height, left, top }, initApiUiToThree: true });
+
     this.scene = SceneManager.inst().scene;
     this.renderer = SceneManager.inst().renderer;
     this.camera = SceneManager.inst().camera;
@@ -218,28 +221,6 @@ class OffscreenCanvasWorker {
         controls.setContainerRect({ width, height, left, top });
       }
     }
-
-    InitModel.inst();
-    SelectionHandler.inst();
-    MouseManager.inst();
-    OutlineSelection.inst();
-    BVHManager.inst();
-    ClippingBvh.inst();
-    AnimationManager.inst();
-    ApiUiToThree.inst();
-
-    EffectsManager.inst().init({
-      scene: SceneManager.inst().scene,
-      camera: SceneManager.inst().camera,
-      renderer: SceneManager.inst().renderer,
-    });
-    OutlineSelection.inst().init({
-      outlinePass: EffectsManager.inst().outlinePass,
-      composer: EffectsManager.inst().composer,
-    });
-    MouseManager.inst().init(SceneManager.inst().camera);
-    BVHManager.inst().init();
-    InitModel.inst().setMerge({ merge: true });
 
     this.controls.addEventListener('change', () => this.sendCameraState());
     this.controls.addEventListener('start', () => this.sendCameraState());
@@ -263,6 +244,95 @@ class OffscreenCanvasWorker {
       this.sendProgress(null);
 
       self.postMessage({ type: 'modelLoaded', filename });
+    } catch (error) {
+      console.error('[WORKER] Ошибка загрузки модели:', error);
+      this.sendProgress(null);
+      self.postMessage({ type: 'modelError', error: error.message });
+    }
+  }
+
+  private extractBasePath(url: string): string {
+    try {
+      // В воркере нет self.location, используем URL напрямую
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+      const lastSlashIndex = pathname.lastIndexOf('/');
+      if (lastSlashIndex >= 0) {
+        return urlObj.origin + pathname.substring(0, lastSlashIndex + 1);
+      }
+      return urlObj.origin + '/';
+    } catch (_e) {
+      return './';
+    }
+  }
+
+  private async fetchWithProgress(url: string, onProgress?: (percent: number) => void): Promise<ArrayBuffer> {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const contentLength = response.headers.get('content-length');
+    const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+    if (!response.body) {
+      throw new Error('Response body is null');
+    }
+
+    const reader = response.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let receivedLength = 0;
+
+    let done = false;
+    while (!done) {
+      const result = await reader.read();
+      done = result.done;
+
+      if (!done && result.value) {
+        chunks.push(result.value);
+        receivedLength += result.value.length;
+
+        if (onProgress && total > 0) {
+          const percent = Math.round((receivedLength / total) * 100);
+          onProgress(percent);
+          this.sendProgress(`Loading: ${percent}%`);
+        }
+      }
+    }
+
+    // Объединяем все chunks в один ArrayBuffer
+    const allChunks = new Uint8Array(receivedLength);
+    let position = 0;
+    for (const chunk of chunks) {
+      allChunks.set(chunk, position);
+      position += chunk.length;
+    }
+
+    return allChunks.buffer;
+  }
+
+  private async loadModelFromUrl(url: string) {
+    try {
+      this.sendProgress('Loading model...');
+
+      const arrayBuffer = await this.fetchWithProgress(url, (percent) => {
+        this.sendProgress(`Loading: ${percent}%`);
+      });
+
+      const basePath = this.extractBasePath(url);
+      await InitModel.inst().handleFileLoad(arrayBuffer, basePath);
+
+      // Отправляем информацию об анимациях в основной поток
+      const animationManager = AnimationManager.inst();
+      if (animationManager.hasAnimations()) {
+        const { animations, maxDuration } = animationManager.getAnimationsInfo();
+        self.postMessage({ type: 'animationsInfo', animations, maxDuration });
+      }
+
+      this.sendProgress(null);
+
+      self.postMessage({ type: 'modelLoaded', filename: url });
     } catch (error) {
       console.error('[WORKER] Ошибка загрузки модели:', error);
       this.sendProgress(null);
