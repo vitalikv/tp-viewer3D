@@ -4,6 +4,7 @@ import { AnimationManager } from '@/threeApp/animation/AnimationManager';
 import { ApiThreeToUi } from '@/api/apiLocal/ApiThreeToUi';
 import { UiPlayerAnimation } from '@/ui/UiPlayerAnimation';
 import { UiDrawCallsDiv } from '@/ui/UiDrawCallsDiv';
+import { AssemblyJsonLoader } from '@/core/AssemblyJsonLoader';
 
 export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasManager> {
   public isWorker = typeof window === 'undefined' && typeof self !== 'undefined';
@@ -154,39 +155,18 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
             this.cameraStateCallback(e.data);
           }
           break;
+        case 'requestAssemblyJson':
+          // Если JSON уже загружен, отправляем его в воркер
+          const jsonData = AssemblyJsonLoader.inst().getJson();
+          if (jsonData !== undefined) {
+            this.worker.postMessage({
+              type: 'setAssemblyJson',
+              jsonData: jsonData,
+            });
+          }
+          break;
       }
     };
-  }
-
-  public loadModel(
-    file: File,
-    callbacks?: {
-      onProgress?: (text: string | null) => void;
-      onLoaded?: (filename: string) => void;
-      onError?: (error: string) => void;
-    }
-  ) {
-    if (callbacks) {
-      this.progressCallback = callbacks.onProgress;
-      this.modelLoadedCallback = callbacks.onLoaded;
-      this.modelErrorCallback = callbacks.onError;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const arrayBuffer = e.target?.result as ArrayBuffer;
-      if (arrayBuffer) {
-        this.worker.postMessage(
-          {
-            type: 'loadModel',
-            arrayBuffer: arrayBuffer,
-            filename: file.name,
-          },
-          [arrayBuffer]
-        );
-      }
-    };
-    reader.readAsArrayBuffer(file);
   }
 
   public loadModelFromUrl(
@@ -221,5 +201,12 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
 
   public setCameraPose({ position, quaternion, up }: { position: number[]; quaternion: number[]; up: number[] }) {
     this.worker.postMessage({ type: 'setCameraPose', position, quaternion, up });
+  }
+
+  public loadAssemblyJson(url: string) {
+    this.worker.postMessage({
+      type: 'loadAssemblyJson',
+      url: url,
+    });
   }
 }

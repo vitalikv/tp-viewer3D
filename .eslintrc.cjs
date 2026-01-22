@@ -31,8 +31,8 @@ module.exports = {
     // Явное использование `any` — предупреждение
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unsafe-function-type': 'warn',
-    // Консоль разрешена только для warn и error (запрещает console.log/info/debug)
-    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    // Консоль разрешена только для warn, error и log (запрещает console.info/debug)
+    'no-console': ['warn', { allow: ['warn', 'error', 'log'] }],
     // Отключаем запрет на комментарии типа `// @ts-ignore` или `// @ts-expect-error`
     '@typescript-eslint/ban-ts-comment': 'off',
     // Разрешаем `const self = this`
@@ -67,5 +67,6 @@ module.exports = {
     'public/',
     '*.min.js',
     'vite.config.ts',
+    '**/*.js',
   ],
 };

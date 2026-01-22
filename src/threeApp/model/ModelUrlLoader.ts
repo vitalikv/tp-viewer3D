@@ -3,6 +3,8 @@ import { ThreeApp } from '@/threeApp/ThreeApp';
 import { InitModel } from '@/threeApp/model/InitModel';
 import { OffscreenCanvasManager } from '@/threeApp/worker/OffscreenCanvasManager';
 import { UiLoadTimeDiv } from '@/ui/UiLoadTimeDiv';
+import { UiFileMenu } from '@/ui/UiFileMenu';
+import { SvgPages } from '@/svgApp/SvgPages';
 
 export class ModelUrlLoader extends ContextSingleton<ModelUrlLoader> {
   private extractBasePath(url: string): string {
@@ -17,6 +19,27 @@ export class ModelUrlLoader extends ContextSingleton<ModelUrlLoader> {
     } catch (_e) {
       // Если URL невалидный, возвращаем текущую директорию
       return './';
+    }
+  }
+
+  private extractFilename(url: string): string {
+    try {
+      const urlObj = new URL(url, window.location.href);
+      const pathname = urlObj.pathname;
+      const lastSlashIndex = pathname.lastIndexOf('/');
+      let filename = 'model.gltf';
+
+      if (lastSlashIndex >= 0 && lastSlashIndex < pathname.length - 1) {
+        filename = pathname.substring(lastSlashIndex + 1);
+      }
+
+      try {
+        return decodeURIComponent(filename);
+      } catch (_e) {
+        return filename;
+      }
+    } catch (_e) {
+      return 'model.gltf';
     }
   }
 
@@ -93,6 +116,12 @@ export class ModelUrlLoader extends ContextSingleton<ModelUrlLoader> {
           },
           onLoaded: (loadedUrl) => {
             UiLoadTimeDiv.inst().stopTimer();
+
+            // Добавляем файл в меню
+            const filename = this.extractFilename(loadedUrl);
+            UiFileMenu.inst().addItem(filename, 'gltf', undefined);
+            SvgPages.inst().hideContainerSvg();
+
             if (callbacks?.onLoaded) {
               callbacks.onLoaded(loadedUrl);
             }
@@ -119,9 +148,17 @@ export class ModelUrlLoader extends ContextSingleton<ModelUrlLoader> {
         const basePath = this.extractBasePath(url);
         const result = await InitModel.inst().handleFileLoad(arrayBuffer, basePath);
 
-        if (result && callbacks?.onLoaded) {
+        if (result) {
           UiLoadTimeDiv.inst().stopTimer();
-          callbacks.onLoaded(url);
+
+          // Добавляем файл в меню
+          const filename = this.extractFilename(url);
+          UiFileMenu.inst().addItem(filename, 'gltf', undefined);
+          SvgPages.inst().hideContainerSvg();
+
+          if (callbacks?.onLoaded) {
+            callbacks.onLoaded(url);
+          }
         }
 
         return result;

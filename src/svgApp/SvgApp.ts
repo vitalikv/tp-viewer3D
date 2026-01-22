@@ -1,11 +1,12 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { SvgPages } from '@/svgApp/SvgPages';
 import { WatermarkSvg } from '@/watermark/WatermarkSvg';
+import { SvgUrlLoader } from '@/svgApp/SvgUrlLoader';
 
 export class SvgApp extends ContextSingleton<SvgApp> {
   private svgContainer: HTMLDivElement;
 
-  public init() {
+  public async init() {
     window.addEventListener('resize', this.handleResize);
     const container = document.body.querySelector('#container') as HTMLDivElement;
 
@@ -28,6 +29,38 @@ export class SvgApp extends ContextSingleton<SvgApp> {
     });
 
     this.svgContainer.style.display = 'none';
+  }
+
+  public async loadSvg(
+    url: string,
+    callbacks?: {
+      onProgress?: (percent: number) => void;
+      onLoaded?: (url: string) => void;
+      onError?: (error: string) => void;
+    }
+  ): Promise<boolean> {
+    try {
+      return await SvgUrlLoader.inst().loadFromUrl(url, {
+        onProgress:
+          callbacks?.onProgress ||
+          ((percent) => {
+            console.log(`Загрузка SVG: ${percent}%`);
+          }),
+        onLoaded:
+          callbacks?.onLoaded ||
+          ((url) => {
+            console.log(`SVG успешно загружен: ${url}`);
+          }),
+        onError:
+          callbacks?.onError ||
+          ((error) => {
+            console.error(`Ошибка загрузки SVG: ${error}`);
+          }),
+      });
+    } catch (error) {
+      console.error('Ошибка при загрузке SVG:', error);
+      throw error;
+    }
   }
 
   private handleResize = () => {

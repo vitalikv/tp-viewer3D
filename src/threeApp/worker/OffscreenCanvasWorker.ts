@@ -7,13 +7,15 @@ import { AnimationManager } from '@/threeApp/animation/AnimationManager';
 import { MouseManager } from '@/threeApp/scene/MouseManager';
 import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
 import { InitScene } from '@/threeApp/scene/InitScene';
+import { AssemblyJsonLoader } from '@/core/AssemblyJsonLoader';
 
 type WorkerMessage =
   | { type: 'init'; canvas: OffscreenCanvas; rect: { width: number; height: number; left: number; top: number } }
   | { type: 'resize'; width: number; height: number; left: number; top: number }
   | { type: 'event'; event: { kind: string; type: string; clientX?: number; clientY?: number; button?: number } }
-  | { type: 'loadModel'; arrayBuffer: ArrayBuffer; filename: string }
   | { type: 'loadModelFromUrl'; url: string }
+  | { type: 'loadAssemblyJson'; url: string }
+  | { type: 'setAssemblyJson'; jsonData: unknown }
   | { type: 'activateClippingBvh' }
   | { type: 'setPlanePosition'; x: number; y: number; z: number }
   | { type: 'setPlaneRotation'; x: number; y: number; z: number }
@@ -92,15 +94,16 @@ class OffscreenCanvasWorker {
           });
         }
         break;
-      case 'loadModel':
-        if (this.scene) {
-          this.loadModel(msg.arrayBuffer, msg.filename);
-        }
-        break;
       case 'loadModelFromUrl':
         if (this.scene) {
           this.loadModelFromUrl(msg.url);
         }
+        break;
+      case 'loadAssemblyJson':
+        this.loadAssemblyJson(msg.url);
+        break;
+      case 'setAssemblyJson':
+        this.setAssemblyJson(msg.jsonData);
         break;
       case 'activateClippingBvh':
         if (this.scene) {
@@ -226,29 +229,9 @@ class OffscreenCanvasWorker {
     this.controls.addEventListener('start', () => this.sendCameraState());
     this.controls.addEventListener('end', () => this.sendCameraState());
     this.sendCameraState();
-  }
 
-  private async loadModel(arrayBuffer: ArrayBuffer, filename: string) {
-    try {
-      this.sendProgress('Loading model...');
-
-      await InitModel.inst().handleFileLoad(arrayBuffer);
-
-      // Отправляем информацию об анимациях в основной поток
-      const animationManager = AnimationManager.inst();
-      if (animationManager.hasAnimations()) {
-        const { animations, maxDuration } = animationManager.getAnimationsInfo();
-        self.postMessage({ type: 'animationsInfo', animations, maxDuration });
-      }
-
-      this.sendProgress(null);
-
-      self.postMessage({ type: 'modelLoaded', filename });
-    } catch (error) {
-      console.error('[WORKER] Ошибка загрузки модели:', error);
-      this.sendProgress(null);
-      self.postMessage({ type: 'modelError', error: error.message });
-    }
+    // Запрашиваем JSON данные у основного потока
+    self.postMessage({ type: 'requestAssemblyJson' });
   }
 
   private extractBasePath(url: string): string {
@@ -367,6 +350,28 @@ class OffscreenCanvasWorker {
     this.controls.update();
     this.sendCameraState();
     SceneManager.inst().render();
+  }
+
+  private async loadAssemblyJson(url: string) {
+    try {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const jsonData = await response.json();
+      AssemblyJsonLoader.inst().setJson(jsonData);
+
+      self.postMessage({ type: 'assemblyJsonLoaded', url });
+    } catch (error) {
+      console.error('[WORKER] Ошибка загрузки JSON сборки:', error);
+      self.postMessage({ type: 'assemblyJsonError', error: error.message });
+    }
+  }
+
+  private setAssemblyJson(jsonData: unknown) {
+    AssemblyJsonLoader.inst().setJson(jsonData);
   }
 }
 

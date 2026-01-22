@@ -1,5 +1,6 @@
 import { InitModel } from '@/threeApp/model/InitModel';
 import { IDataLabel } from '@/threeApp/model/structure/IData';
+import { AssemblyJsonLoader } from '@/core/AssemblyJsonLoader';
 
 // Расширенный интерфейс для узлов в SelectionAdapter
 export interface SelectionNode extends IDataLabel {
@@ -148,7 +149,7 @@ export class SelectionAdapter {
       return [node];
     }
 
-    const jsonData = InitModel.inst().json2 as JsonDataItem[] | undefined;
+    const jsonData = AssemblyJsonLoader.inst().getJson() as JsonDataItem[] | undefined;
 
     const itemJson = this.findInJsonDataByFragmentGuid(fragment_guid.toLowerCase(), jsonData);
 

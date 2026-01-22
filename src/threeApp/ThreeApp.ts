@@ -10,7 +10,7 @@ import { InitScene } from '@/threeApp/scene/InitScene';
 export class ThreeApp extends ContextSingleton<ThreeApp> {
   public isWorker = true;
 
-  async init({ autoLoadModelUrl }: { autoLoadModelUrl?: string } = {}) {
+  async init() {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
     canvas.addEventListener('contextmenu', (e) => {
@@ -39,24 +39,37 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
     } else {
       new ViewCube({ container, controls: SceneManager.inst().controls, animate: () => SceneManager.inst().render() });
     }
+  }
 
-    // Автозагрузка модели, если указан URL
-    if (autoLoadModelUrl) {
-      try {
-        await ModelUrlLoader.inst().loadFromUrl(autoLoadModelUrl, {
-          onProgress: (percent) => {
+  public async loadModel(
+    url: string,
+    callbacks?: {
+      onProgress?: (percent: number) => void;
+      onLoaded?: (url: string) => void;
+      onError?: (error: string) => void;
+    }
+  ): Promise<boolean> {
+    try {
+      return await ModelUrlLoader.inst().loadFromUrl(url, {
+        onProgress:
+          callbacks?.onProgress ||
+          ((percent) => {
             console.log(`Загрузка модели: ${percent}%`);
-          },
-          onLoaded: (url) => {
+          }),
+        onLoaded:
+          callbacks?.onLoaded ||
+          ((url) => {
             console.log(`Модель успешно загружена: ${url}`);
-          },
-          onError: (error) => {
+          }),
+        onError:
+          callbacks?.onError ||
+          ((error) => {
             console.error(`Ошибка загрузки модели: ${error}`);
-          },
-        });
-      } catch (error) {
-        console.error('Ошибка при автозагрузке модели:', error);
-      }
+          }),
+      });
+    } catch (error) {
+      console.error('Ошибка при загрузке модели:', error);
+      throw error;
     }
   }
 

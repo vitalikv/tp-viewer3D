@@ -17,7 +17,6 @@ export class InitModel extends ContextSingleton<InitModel> {
   private isMerge = false;
   private model;
   private jsonGltf;
-  public json2;
   public initData: InitData;
   public mergedMeshes: Set<THREE.Mesh> = new Set();
   public mergedLines: Set<THREE.Line | THREE.LineSegments> = new Set();
@@ -28,8 +27,6 @@ export class InitModel extends ContextSingleton<InitModel> {
     this.dracoLoader = new DRACOLoader();
     this.dracoLoader.setDecoderPath('three/examples/jsm/libs/draco/');
     this.loader.setDRACOLoader(this.dracoLoader);
-
-    this.loadJSON();
   }
 
   public getJsonGltf() {
@@ -162,19 +159,6 @@ export class InitModel extends ContextSingleton<InitModel> {
     });
 
     BVHManager.inst().setupBVH(model);
-  }
-
-  private async loadJSON() {
-    //return;
-    //const response = await fetch('./assets/СЕ-00-00 - Сборка - A.1 (1).json');
-    const url = new URL('/assets/ТРР-1-000 - Транспортер - A.1 (5).json', import.meta.url);
-    const response = await fetch(url);
-    //const response = await fetch('./assets/ТРДДФ-1-000 - Двигатель - A.1.json');
-    //const response = await fetch('./assets/РП.00.00 - Редуктор планетарный  - A.1.json');
-
-    const jsonData = await response.json();
-
-    this.json2 = jsonData;
   }
 
   public dispose() {

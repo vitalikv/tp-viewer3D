@@ -1,5 +1,4 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { UiFileLoader } from '@/ui/UiFileLoader';
 import { UiFileMenu } from '@/ui/UiFileMenu';
 import { UiClippingButton } from '@/ui/UiClippingButton';
 import { UiDrawCallsDiv } from '@/ui/UiDrawCallsDiv';
@@ -10,7 +9,6 @@ export class UiMain extends ContextSingleton<UiMain> {
   public init() {
     const container = document.body.querySelector('#container') as HTMLDivElement;
 
-    UiFileLoader.inst().init(container);
     UiFileMenu.inst().init(container);
     UiClippingButton.inst().init(container);
     UiPlayerAnimation.inst().init(container);

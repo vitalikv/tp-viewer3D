@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { InitModel } from '@/threeApp/model/InitModel';
+import { AssemblyJsonLoader } from '@/core/AssemblyJsonLoader';
 
 export class SelectedByData {
   public static getSelectedNode({ obj }: { obj: THREE.Object3D }) {
@@ -100,7 +101,11 @@ export class SelectedByData {
       throw new Error('Не передан fragment_guid для выбора');
     }
 
-    const jsonData = InitModel.inst().json2;
+    const jsonData = AssemblyJsonLoader.inst().getJson();
+
+    if (!Array.isArray(jsonData)) {
+      return [node];
+    }
 
     const itemJson = this.findsArrObjFromArrByProp(fragment_guid.toLowerCase(), 'fragment_guid', jsonData)[0] as
       | { guid?: string }
