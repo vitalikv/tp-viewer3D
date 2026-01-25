@@ -1,0 +1,55 @@
+# Исходный код
+src/
+*.ts
+!dist/**/*.d.ts
+
+# Конфигурационные файлы
+tsconfig.json
+tsconfig.build.json
+vite.config.ts
+vite.worker.config.ts
+.eslintrc.*
+.prettierrc.*
+.prettierignore
+
+# Сборка и разработка
+dist/assets/
+node_modules/
+.vite/
+*.log
+
+# Тесты
+**/*.test.ts
+**/*.spec.ts
+test/
+tests/
+__tests__/
+
+# Документация (кроме README)
+docs/
+*.md
+!README.md
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Другие
+.env
+.env.local
+.env.*.local
+coverage/
+.DS_Store
+Thumbs.db
+
+# Публичные файлы (не нужны в пакете)
+public/
+index.html

@@ -21,8 +21,22 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
   }) => void;
 
   public init({ canvas }: { canvas: HTMLCanvasElement }) {
-    this.worker = new Worker(new URL('./OffscreenCanvasWorker.ts', import.meta.url), { type: 'module' });
+    // Определяем путь к воркеру
+    // В dev режиме используем исходный .ts файл
+    // В production (в пакете) используем собранный .js файл
 
+    // Определяем режим через import.meta.url (не требует типов Vite)
+    // В dev режиме путь содержит 'src/', в production - 'dist/' или 'node_modules/'
+    const urlString = import.meta.url || '';
+    const isDev = urlString.includes('/src/') || (!urlString.includes('/dist/') && !urlString.includes('node_modules'));
+
+    // Строим путь динамически, чтобы Vite не пытался статически разрешить worker.js в dev режиме
+    const workerFileName = isDev ? 'OffscreenCanvasWorker.ts' : 'worker.js';
+    const workerUrl = new URL(`./${workerFileName}`, import.meta.url);
+
+    this.worker = new Worker(workerUrl, { type: 'module' });
+
+    console.log('workerUrl', workerUrl);
     this.container = canvas;
 
     const rect = this.getClientRect();
