@@ -54,17 +54,17 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
         onProgress:
           callbacks?.onProgress ||
           ((percent) => {
-            console.log(`Загрузка модели: ${percent}%`);
+            //console.log(`Загрузка модели: ${percent}%`);
           }),
         onLoaded:
           callbacks?.onLoaded ||
           ((url) => {
-            console.log(`Модель успешно загружена: ${url}`);
+            //console.log(`Модель успешно загружена: ${url}`);
           }),
         onError:
           callbacks?.onError ||
           ((error) => {
-            console.error(`Ошибка загрузки модели: ${error}`);
+            //console.error(`Ошибка загрузки модели: ${error}`);
           }),
       });
     } catch (error) {

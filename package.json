@@ -1,5 +1,5 @@
 {
-  "name": "tp-viewer3d",
+  "name": "viewer",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",

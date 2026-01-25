@@ -25,10 +25,10 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
     // В dev режиме используем исходный .ts файл
     // В production (в пакете) используем собранный .js файл
 
-    // Определяем режим через import.meta.url (не требует типов Vite)
-    // В dev режиме путь содержит 'src/', в production - 'dist/' или 'node_modules/'
-    const urlString = import.meta.url || '';
-    const isDev = urlString.includes('/src/') || (!urlString.includes('/dist/') && !urlString.includes('node_modules'));
+    // Используем стандартный способ Vite для определения режима разработки
+    const isDev = import.meta.env.DEV;
+    // const urlString = import.meta.url || '';
+    // const isDev = urlString.includes('/src/') || (!urlString.includes('/dist/') && !urlString.includes('node_modules'));
 
     // Строим путь динамически, чтобы Vite не пытался статически разрешить worker.js в dev режиме
     const workerFileName = isDev ? 'OffscreenCanvasWorker.ts' : 'worker.js';
@@ -36,7 +36,7 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
 
     this.worker = new Worker(workerUrl, { type: 'module' });
 
-    console.log('workerUrl', workerUrl);
+    console.log('workerUrl', workerUrl, 'isDev', isDev, workerFileName);
     this.container = canvas;
 
     const rect = this.getClientRect();
