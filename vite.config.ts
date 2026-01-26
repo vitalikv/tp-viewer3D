@@ -11,20 +11,11 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
-      name: 'Viewer3D',
       fileName: 'index',
       formats: ['es'],
     },
     rollupOptions: {
       external: ['three', 'three/examples/jsm/controls/ArcballControls', 'three-mesh-bvh', 'stats.js'],
-      output: {
-        globals: {
-          three: 'THREE',
-          'three/examples/jsm/controls/ArcballControls': 'ArcballControls',
-          'three-mesh-bvh': 'three-mesh-bvh',
-          'stats.js': 'Stats',
-        },
-      },
     },
     outDir: 'dist',
     emptyOutDir: true,

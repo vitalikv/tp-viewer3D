@@ -53,3 +53,4 @@ Thumbs.db
 # Публичные файлы (не нужны в пакете)
 public/
 index.html
+pack/

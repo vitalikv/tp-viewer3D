@@ -39,7 +39,7 @@ export interface Viewer3DInstance {
   dispose: () => void;
 }
 
-export async function initViewer3D(options: Viewer3DOptions): Promise<Viewer3DInstance> {
+export async function TFlexViewer(options: Viewer3DOptions): Promise<Viewer3DInstance> {
   const { canvas, container, useWorker = true } = options;
 
   // Устанавливаем контейнер, если не передан
