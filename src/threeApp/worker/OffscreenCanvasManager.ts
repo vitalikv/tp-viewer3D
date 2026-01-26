@@ -63,12 +63,13 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
 
   private initOffscreen({ canvas }) {
     const offscreen = canvas.transferControlToOffscreen();
+    const rect = this.getClientRect();
 
     this.worker.postMessage(
       {
         type: 'init',
         canvas: offscreen,
-        rect: { width: canvas.width, height: canvas.height, dpr: window.devicePixelRatio },
+        rect: { width: canvas.width, height: canvas.height, left: rect.left, top: rect.top },
       },
       [offscreen as Transferable]
     );
@@ -81,14 +82,13 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
         type,
         (e: PointerEvent) => {
           e.preventDefault();
-          const rect = this.getClientRect();
           this.worker.postMessage({
             type: 'event',
             event: {
               kind: 'pointer',
               type,
-              clientX: e.clientX - rect.left,
-              clientY: e.clientY - rect.top,
+              clientX: e.clientX,
+              clientY: e.clientY,
               button: e.button,
               buttons: e.buttons,
               pointerId: e.pointerId,
@@ -104,14 +104,13 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
       'wheel',
       (e: WheelEvent) => {
         e.preventDefault();
-        const rect = this.getClientRect();
         this.worker.postMessage({
           type: 'event',
           event: {
             kind: 'wheel',
             deltaY: e.deltaY,
-            clientX: e.clientX - rect.left,
-            clientY: e.clientY - rect.top,
+            clientX: e.clientX,
+            clientY: e.clientY,
           },
         });
       },
@@ -130,15 +129,13 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
           }
           break;
         case 'animationsInfo':
-          // Синхронизируем информацию об анимациях из воркера
           if (animations && animations.length > 0) {
             const animationClips = animations.map((animData) => {
-              // Создаем упрощенный AnimationClip для синхронизации
               const clip = new THREE.AnimationClip(animData.name, animData.duration, []);
               return clip;
             });
             AnimationManager.inst().setAnimationsInfo(animationClips, maxDuration || 0);
-            // Обновляем UI меню анимаций
+
             ApiThreeToUi.inst().updatePlayerMenu(animationClips);
           }
           break;
@@ -179,7 +176,6 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
           }
           break;
         case 'requestAssemblyJson':
-          // Если JSON уже загружен, отправляем его в воркер
           const jsonData = AssemblyJsonLoader.inst().getJson();
           if (jsonData !== undefined) {
             this.worker.postMessage({

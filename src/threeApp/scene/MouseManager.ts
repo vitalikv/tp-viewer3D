@@ -116,6 +116,7 @@ export class MouseManager extends ContextSingleton<MouseManager> {
 
   private calculateMousePosition(event: PointerEvent) {
     const rect = SceneManager.inst().getClientRect();
+
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 

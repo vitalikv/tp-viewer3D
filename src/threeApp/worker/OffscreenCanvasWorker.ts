@@ -215,7 +215,6 @@ class OffscreenCanvasWorker {
     this.camera = SceneManager.inst().camera;
     this.controls = SceneManager.inst().controls;
 
-    // Устанавливаем размеры контейнера для controls
     if (this.controls) {
       const controls = this.controls as unknown as {
         setContainerRect?: (rect: { width: number; height: number; left: number; top: number }) => void;
@@ -230,13 +229,11 @@ class OffscreenCanvasWorker {
     this.controls.addEventListener('end', () => this.sendCameraState());
     this.sendCameraState();
 
-    // Запрашиваем JSON данные у основного потока
     self.postMessage({ type: 'requestAssemblyJson' });
   }
 
   private extractBasePath(url: string): string {
     try {
-      // В воркере нет self.location, используем URL напрямую
       const urlObj = new URL(url);
       const pathname = urlObj.pathname;
       const lastSlashIndex = pathname.lastIndexOf('/');
@@ -284,7 +281,6 @@ class OffscreenCanvasWorker {
       }
     }
 
-    // Объединяем все chunks в один ArrayBuffer
     const allChunks = new Uint8Array(receivedLength);
     let position = 0;
     for (const chunk of chunks) {
@@ -306,7 +302,6 @@ class OffscreenCanvasWorker {
       const basePath = this.extractBasePath(url);
       await InitModel.inst().handleFileLoad(arrayBuffer, basePath);
 
-      // Отправляем информацию об анимациях в основной поток
       const animationManager = AnimationManager.inst();
       if (animationManager.hasAnimations()) {
         const { animations, maxDuration } = animationManager.getAnimationsInfo();
