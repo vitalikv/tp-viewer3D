@@ -20,23 +20,32 @@ export class OffscreenCanvasManager extends ContextSingleton<OffscreenCanvasMana
     gizmoPosition?: number[];
   }) => void;
 
-  public init({ canvas }: { canvas: HTMLCanvasElement }) {
-    // Определяем путь к воркеру
-    // В dev режиме используем исходный .ts файл
-    // В production (в пакете) используем собранный .js файл
-
-    // Используем стандартный способ Vite для определения режима разработки
+  private getWorkerUrl(): URL {
     const isDev = import.meta.env.DEV;
-    // const urlString = import.meta.url || '';
-    // const isDev = urlString.includes('/src/') || (!urlString.includes('/dist/') && !urlString.includes('node_modules'));
+    console.log('isDev', isDev);
+    if (isDev) {
+      return new URL('./OffscreenCanvasWorker.ts', import.meta.url);
+    }
 
-    // Строим путь динамически, чтобы Vite не пытался статически разрешить worker.js в dev режиме
-    const workerFileName = isDev ? 'OffscreenCanvasWorker.ts' : 'worker.js';
-    const workerUrl = new URL(`./${workerFileName}`, import.meta.url);
+    // Production режим: вычисляем путь к worker.js на основе структуры пакета
+    // Используем import.meta.url для определения базового пути и заменяем имя файла
+    // Если модуль в node_modules/viewer/dist/index.js, worker в node_modules/viewer/dist/worker.js
+    // Если модуль в dist/index.js (локальная сборка), worker в dist/worker.js
+    const currentUrl = new URL(import.meta.url);
+    const currentPath = currentUrl.pathname;
+
+    // Заменяем имя файла (index.js) на worker.js
+    // Это работает для обоих случаев: node_modules и локальная сборка
+    const workerPath = currentPath.replace(/[^/]+\.js$/, 'worker.js');
+
+    return new URL(workerPath, currentUrl);
+  }
+
+  public init({ canvas }: { canvas: HTMLCanvasElement }) {
+    const workerUrl = this.getWorkerUrl();
 
     this.worker = new Worker(workerUrl, { type: 'module' });
 
-    console.log('workerUrl', workerUrl, 'isDev', isDev, workerFileName);
     this.container = canvas;
 
     const rect = this.getClientRect();
