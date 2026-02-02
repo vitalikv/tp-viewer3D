@@ -28,7 +28,7 @@ export class UiLoadTimeDiv extends ContextSingleton<UiLoadTimeDiv> {
   }
 
   private html() {
-    const css1 = `position: absolute; top: 100px; right: 0px; background: #ffffff; border: 1px solid #222222;`;
+    const css1 = `position: absolute; top: 100px; right: 0px; background: #ffffff; border: 1px solid #222222; z-index: 10;`;
     const css2 = `display: flex; justify-content: center; align-items: center; width: 120px; height: 40px; font-size: 14px; color: #222222;`;
 
     const html = `<div style="${css1}">

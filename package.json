@@ -44,8 +44,15 @@
     "vite": "^7.0.4"
   },
   "dependencies": {
-    "stats.js": "^0.17.0",
     "three": "^0.182.0",
     "three-mesh-bvh": "^0.9.1"
+  },
+  "peerDependencies": {
+    "stats.js": "^0.17.0"
+  },
+  "peerDependenciesMeta": {
+    "stats.js": {
+      "optional": true
+    }
   }
 }

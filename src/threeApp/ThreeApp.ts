@@ -10,19 +10,27 @@ import { InitScene } from '@/threeApp/scene/InitScene';
 export class ThreeApp extends ContextSingleton<ThreeApp> {
   public isWorker = true;
 
-  async init() {
-    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+  async init(container: HTMLElement) {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'canvas';
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.zIndex = '0';
+    container.appendChild(canvas);
 
     canvas.addEventListener('contextmenu', (e) => {
       e.preventDefault();
     });
 
-    const rect = canvas.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
     const rectParams = {
-      width: rect.width,
-      height: rect.height,
-      left: rect.left,
-      top: rect.top,
+      width: containerRect.width || window.innerWidth,
+      height: containerRect.height || window.innerHeight,
+      left: containerRect.left,
+      top: containerRect.top,
     };
 
     if (this.isWorker) {
@@ -33,7 +41,6 @@ export class ThreeApp extends ContextSingleton<ThreeApp> {
 
     this.initResizeObserver(canvas);
 
-    const container = document.getElementById('container');
     if (this.isWorker) {
       this.initViewCubeWorker(container);
     } else {

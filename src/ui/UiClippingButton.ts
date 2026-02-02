@@ -27,7 +27,7 @@ export class UiClippingButton extends ContextSingleton<UiClippingButton> {
   }
 
   private html() {
-    const css1 = `position: absolute; bottom: 70px; right: 20px; background: white; padding: 10px; cursor: pointer;`;
+    const css1 = `position: absolute; bottom: 70px; right: 20px; background: white; padding: 10px; cursor: pointer; z-index: 10;`;
 
     const html = `<button nameId="btnClipping" style="${css1}">Вкл сечение</button>`;
 

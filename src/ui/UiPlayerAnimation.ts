@@ -103,7 +103,7 @@ export class UiPlayerAnimation extends ContextSingleton<UiPlayerAnimation> {
     min-height: 100px;
     background: #fff;
     border: 1px solid #222222;
-    z-index: 1;`;
+    z-index: 10;`;
 
     const html = `
     <div style="${css1}">

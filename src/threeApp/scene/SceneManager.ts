@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 //import { ArcballControls, ArcballControlsEventMap } from 'three/examples/jsm/controls/ArcballControls';
 import { ArcballControls } from '@/threeApp/worker/ArcballControls';
-import Stats from 'stats.js';
 import { ContextSingleton } from '@/core/ContextSingleton';
 
 import { ThreeApp } from '@/threeApp/ThreeApp';
@@ -31,7 +30,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.initWatermark();
 
     const isWorker = ThreeApp.inst().isWorker;
-    if (!isWorker) this.initStats();
+    if (!isWorker) await this.initStats();
     this.initScene();
     this.initRenderer();
     this.initCamera();
@@ -101,13 +100,23 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     }
   }
 
-  private initStats() {
-    this.stats = new Stats();
-    this.stats.showPanel(0);
+  private async initStats() {
+    try {
+      // Динамический импорт stats.js как опциональной зависимости
+      const { default: Stats } = await import('stats.js');
+      this.stats = new Stats();
+      this.stats.showPanel(0);
 
-    document.getElementById('stats').appendChild(this.stats.domElement);
-    this.stats.domElement.style.left = 'auto';
-    this.stats.domElement.style.right = '0';
+      const statsContainer = document.getElementById('stats');
+      if (statsContainer) {
+        statsContainer.appendChild(this.stats.domElement);
+        this.stats.domElement.style.left = 'auto';
+        this.stats.domElement.style.right = '0';
+      }
+    } catch (error) {
+      // stats.js не установлен - это нормально, просто пропускаем
+      console.log('Stats.js is not available (optional dependency)');
+    }
   }
 
   private initScene() {

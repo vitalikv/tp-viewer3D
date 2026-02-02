@@ -5,8 +5,7 @@ import { AssemblyJsonLoader } from '@/core/AssemblyJsonLoader';
 import { OffscreenCanvasManager } from './threeApp/worker/OffscreenCanvasManager';
 
 export interface Viewer3DOptions {
-  canvas: HTMLCanvasElement;
-  container?: HTMLElement;
+  container: HTMLElement;
   useWorker?: boolean;
 }
 
@@ -40,34 +39,12 @@ export interface Viewer3DInstance {
 }
 
 export async function TFlexViewer(options: Viewer3DOptions): Promise<Viewer3DInstance> {
-  const { canvas, container, useWorker = true } = options;
-
-  // Устанавливаем контейнер, если не передан
-  let containerElement = container;
-  if (!containerElement) {
-    containerElement = document.body.querySelector('#container') as HTMLDivElement;
-    if (!containerElement) {
-      containerElement = document.createElement('div');
-      containerElement.id = 'container';
-      containerElement.style.position = 'relative';
-      containerElement.style.width = '100%';
-      containerElement.style.height = '100%';
-      canvas.parentElement?.appendChild(containerElement);
-    }
-  }
-
-  // Убеждаемся, что canvas находится в контейнере и имеет правильный id
-  if (canvas.id !== 'canvas') {
-    canvas.id = 'canvas';
-  }
-  if (canvas.parentElement !== containerElement) {
-    containerElement.appendChild(canvas);
-  }
+  const { container, useWorker = true } = options;
 
   // Инициализируем ThreeApp
   const threeApp = ThreeApp.inst();
   threeApp.isWorker = useWorker;
-  await threeApp.init();
+  await threeApp.init(container);
 
   // Инициализируем SvgApp
   const svgApp = SvgApp.inst();
