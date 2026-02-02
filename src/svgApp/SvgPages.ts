@@ -1,11 +1,14 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { SvgPage } from '@/svgApp/SvgPage';
 import { WatermarkSvg } from '@/watermark/WatermarkSvg';
+import { SvgPanZoom } from '@/svgApp/SvgPanZoom';
 
 export class SvgPages extends ContextSingleton<SvgPages> {
   private container: HTMLDivElement;
   private divPages: HTMLDivElement;
   private arrPages: HTMLDivElement[] = [];
+  private arrSvgPages: SvgPage[] = [];
+  private activePageIndex: number = -1;
 
   public init(container: HTMLDivElement) {
     if (!container) return;
@@ -26,6 +29,8 @@ export class SvgPages extends ContextSingleton<SvgPages> {
     svgPage.init(svgHTML, this.divPages);
 
     this.arrPages.push(svgPage.getPage());
+    this.arrSvgPages.push(svgPage);
+    this.activePageIndex = this.arrPages.length - 1;
 
     WatermarkSvg.updateWatermark();
 
@@ -49,6 +54,14 @@ export class SvgPages extends ContextSingleton<SvgPages> {
 
     this.hidePages();
     this.arrPages[pageIndex].style.display = '';
+    this.activePageIndex = pageIndex;
+  }
+
+  public getActiveSvgPanZoom(): SvgPanZoom | null {
+    if (this.activePageIndex >= 0 && this.activePageIndex < this.arrSvgPages.length) {
+      return this.arrSvgPages[this.activePageIndex].getSvgPanZoom();
+    }
+    return null;
   }
 
   public hideContainerSvg() {

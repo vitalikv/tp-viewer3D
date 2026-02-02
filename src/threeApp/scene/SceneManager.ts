@@ -6,6 +6,7 @@ import { ContextSingleton } from '@/core/ContextSingleton';
 
 import { ThreeApp } from '@/threeApp/ThreeApp';
 import { CameraManager } from '@/threeApp/scene/CameraManager';
+import { ControlsManager } from '@/threeApp/scene/ControlsManager';
 import { ClippingBvh } from '@/threeApp/clipping/ClippingBvh';
 import { EffectsManager } from '@/threeApp/scene/EffectsManager';
 import { WatermarkCanvas, IWatermarkParams } from '@/watermark/WatermarkCanvas';
@@ -21,7 +22,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
   public renderer: THREE.WebGLRenderer;
   public controls: ArcballControls;
   public cameraManager: CameraManager;
-  private renderScheduled = false;
+  private controlsManager: ControlsManager;
 
   public async init({ canvas, rect }) {
     this.canvas = canvas;
@@ -74,6 +75,12 @@ export class SceneManager extends ContextSingleton<SceneManager> {
 
   public getClientRect() {
     return { left: this.rect.left, top: this.rect.top, width: this.rect.width, height: this.rect.height };
+  }
+
+  public setRotationCenterFromPoint(clientX: number, clientY: number) {
+    if (this.controlsManager) {
+      this.controlsManager.setRotationCenterFromPoint(clientX, clientY);
+    }
   }
 
   public handleResize({ width, height, left, top }: { width: number; height: number; left: number; top: number }) {
@@ -225,6 +232,11 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.camera = this.cameraManager.getActiveCamera();
   }
 
+  private initControls() {
+    this.controlsManager = new ControlsManager();
+    this.controls = this.controlsManager.init({ canvas: this.canvas });
+  }
+
   private initRenderer() {
     const rect = this.getClientRect();
 
@@ -232,41 +244,6 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     this.renderer.setSize(rect.width, rect.height, false);
     this.renderer.shadowMap.enabled = true;
     this.renderer.localClippingEnabled = true;
-  }
-
-  private initControls() {
-    this.controls = new ArcballControls(this.camera, this.canvas, this.scene);
-    this.controls.enableAnimations = false;
-    this.controls['_gizmos'].visible = false;
-
-    const isWorker = ThreeApp.inst().isWorker;
-
-    if (isWorker) {
-      const raf =
-        typeof window !== 'undefined'
-          ? window.requestAnimationFrame
-          : typeof self !== 'undefined'
-            ? self.requestAnimationFrame
-            : null;
-      if (raf) {
-        this.controls.addEventListener('change', () => {
-          if (!this.renderScheduled) {
-            this.renderScheduled = true;
-            raf(() => {
-              this.render();
-              this.renderScheduled = false;
-            });
-          }
-        });
-      } else {
-        this.controls.addEventListener('change', () => this.render());
-      }
-    } else {
-      this.controls.addEventListener('change', () => this.render());
-    }
-
-    this.controls.addEventListener('start', () => this.render());
-    this.controls.addEventListener('end', () => this.render());
   }
 
   private initLights() {

@@ -60,6 +60,14 @@ class OffscreenCanvasWorker {
       case 'event':
         if (this.controls) {
           const event = msg.event;
+
+          // Установка центра вращения при pointerdown (левая кнопка мыши)
+          if (event.kind === 'pointer' && event.type === 'pointerdown' && event.button === 0) {
+            if (event.clientX !== undefined && event.clientY !== undefined) {
+              SceneManager.inst().setRotationCenterFromPoint(event.clientX, event.clientY);
+            }
+          }
+
           const controls = this.controls as unknown as {
             handlePointerDown: (e: unknown) => void;
             handlePointerMove: (e: unknown) => void;

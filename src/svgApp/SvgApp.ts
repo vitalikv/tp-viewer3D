@@ -65,5 +65,24 @@ export class SvgApp extends ContextSingleton<SvgApp> {
 
   private handleResize = () => {
     WatermarkSvg.updateWatermark();
+    
+    const activePanZoom = SvgPages.inst().getActiveSvgPanZoom();
+    if (activePanZoom) {
+      const sizes = activePanZoom.getSizes();
+      if (sizes.width === 0) return;
+
+      const zoom = activePanZoom.getZoom();
+      if (isNaN(zoom)) {
+        return;
+      }
+
+      try {
+        activePanZoom.resize();
+        activePanZoom.fit();
+        activePanZoom.center();
+      } catch (e) {
+        console.warn(e);
+      }
+    }
   };
 }
