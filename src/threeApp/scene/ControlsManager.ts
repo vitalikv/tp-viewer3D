@@ -53,8 +53,15 @@ export class ControlsManager {
     return this.controls;
   }
 
+  public updateCamera() {
+    this.camera = SceneManager.inst().camera;
+  }
+
   public setRotationCenterFromPoint(clientX: number, clientY: number) {
-    if (!this.controls || !this.camera) return;
+    if (!this.controls) return;
+
+    const camera = SceneManager.inst().camera;
+    if (!camera) return;
 
     const rect = SceneManager.inst().getClientRect();
 
@@ -62,7 +69,7 @@ export class ControlsManager {
     mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 
-    const hitPoint = this.controls['unprojectOnObj'](mouse, this.camera);
+    const hitPoint = this.controls['unprojectOnObj'](mouse, camera);
 
     if (hitPoint !== null) {
       this.controls.enabled = false;
@@ -70,7 +77,7 @@ export class ControlsManager {
       this.controls.target.copy(hitPoint);
       this.controls['_gizmos'].position.copy(hitPoint);
 
-      const tbRadius = this.controls['calculateTbRadius'](this.camera);
+      const tbRadius = this.controls['calculateTbRadius'](camera);
       this.controls['makeGizmos'](hitPoint, tbRadius);
       this.controls['_currentTarget'].copy(hitPoint);
 

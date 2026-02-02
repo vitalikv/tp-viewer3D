@@ -4,6 +4,7 @@ import { UiClippingButton } from '@/ui/UiClippingButton';
 import { UiDrawCallsDiv } from '@/ui/UiDrawCallsDiv';
 import { UiPlayerAnimation } from '@/ui/UiPlayerAnimation';
 import { UiLoadTimeDiv } from '@/ui/UiLoadTimeDiv';
+import { UiCameraButton } from '@/ui/UiCameraButton';
 
 export class UiMain extends ContextSingleton<UiMain> {
   public init() {
@@ -14,5 +15,6 @@ export class UiMain extends ContextSingleton<UiMain> {
     UiPlayerAnimation.inst().init(container);
     UiDrawCallsDiv.inst().init(container);
     UiLoadTimeDiv.inst().init(container);
+    UiCameraButton.inst().init(container);
   }
 }

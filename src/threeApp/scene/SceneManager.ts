@@ -21,7 +21,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
   public renderer: THREE.WebGLRenderer;
   public controls: ArcballControls;
   public cameraManager: CameraManager;
-  private controlsManager: ControlsManager;
+  public controlsManager: ControlsManager;
 
   public async init({ canvas, rect }) {
     this.canvas = canvas;
@@ -74,12 +74,6 @@ export class SceneManager extends ContextSingleton<SceneManager> {
 
   public getClientRect() {
     return { left: this.rect.left, top: this.rect.top, width: this.rect.width, height: this.rect.height };
-  }
-
-  public setRotationCenterFromPoint(clientX: number, clientY: number) {
-    if (this.controlsManager) {
-      this.controlsManager.setRotationCenterFromPoint(clientX, clientY);
-    }
   }
 
   public handleResize({ width, height, left, top }: { width: number; height: number; left: number; top: number }) {
@@ -268,11 +262,16 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     directionalLight2.position.set(-1, 1, -1);
     directionalLight2.castShadow = true;
     this.scene.add(directionalLight2);
+
+    const directionalLight3 = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight3.position.set(1, -1, -1);
+    directionalLight3.castShadow = true;
+    this.scene.add(directionalLight3);
   }
 
   private initHelpers() {
-    const gridHelper = new THREE.GridHelper(10, 10);
-    this.scene.add(gridHelper);
+    // const gridHelper = new THREE.GridHelper(10, 10);
+    // this.scene.add(gridHelper);
   }
 
   public render() {

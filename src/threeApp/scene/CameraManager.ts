@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import type { ArcballControls } from 'three/examples/jsm/controls/ArcballControls';
 import { ThreeApp } from '@/threeApp/ThreeApp';
 import { Watermark3d } from '@/watermark/Watermark3d';
 import { SceneManager } from '@/threeApp/scene/SceneManager';
@@ -38,7 +37,7 @@ export class CameraManager {
     this.camPerspective = this.createCamPerspective();
     this.camOrthographic = this.createCamOrthographic();
 
-    this.setActiveCamera({ camera: this.camPerspective });
+    this.setActiveCamera({ camera: this.camOrthographic });
   }
 
   private createCamPerspective() {
@@ -148,6 +147,7 @@ export class CameraManager {
     camera.up.copy(cameraOld.up.clone());
     camera.updateProjectionMatrix();
 
+    SceneManager.inst().camera = camera;
     SceneManager.inst().controls.object = camera;
     SceneManager.inst().controls['_gizmos'].position.copy(gizmosPos);
     SceneManager.inst().controls.update();
@@ -172,7 +172,7 @@ export class CameraManager {
     if (!camera || !controls) return;
 
     const target = options.center;
-    const arcballControls = controls as ArcballControls & { target: THREE.Vector3 };
+    const arcballControls = controls as any;
     arcballControls.target.copy(target);
 
     const direction = camera.position.clone().sub(target);
@@ -188,13 +188,42 @@ export class CameraManager {
       const halfFov = Math.max(Math.min(fovRad / 2, Math.PI / 2 - 0.01), 0.1);
       const projectedDistance = options.radius / Math.sin(halfFov);
       distance = Math.max(distance, projectedDistance);
-    }
+      distance = distance * 1.2 + 0.5;
+    } else if (camera instanceof THREE.OrthographicCamera) {
+      const rect = SceneManager.inst().getClientRect();
+      const aspect = rect.width / rect.height;
 
-    distance = distance * 1.2 + 0.5;
+      const size = options.radius * 1.2;
+      let halfW, halfH;
+
+      if (aspect >= 1) {
+        halfW = size;
+        halfH = size / aspect;
+      } else {
+        halfW = size * aspect;
+        halfH = size;
+      }
+
+      camera.left = -halfW;
+      camera.right = halfW;
+      camera.top = halfH;
+      camera.bottom = -halfH;
+
+      distance = Math.max(distance, 5);
+    } else {
+      distance = distance * 1.2 + 0.5;
+    }
 
     camera.position.copy(target).addScaledVector(direction, distance);
     camera.lookAt(target);
     camera.updateProjectionMatrix();
+
+    arcballControls._gizmos.position.copy(target);
+    const tbRadius = arcballControls.calculateTbRadius(camera);
+    arcballControls.makeGizmos(target, tbRadius);
+    arcballControls._currentTarget.copy(target);
+    arcballControls._tbRadius = tbRadius;
+    arcballControls.updateMatrixState();
 
     controls.update();
     sceneManager.render();

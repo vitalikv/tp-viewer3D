@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { InitModel } from '@/threeApp/model/InitModel';
@@ -210,6 +211,23 @@ export class ApiUiToThree extends ContextSingleton<ApiUiToThree> {
       OffscreenCanvasManager.inst().worker.postMessage({ type: 'rebuildAnimationBVH' });
     } else {
       AnimationManager.inst().rebuildBVHIfNeeded();
+    }
+  }
+
+  public toggleCamera(type: 'Perspective' | 'Orthographic') {
+    if (this.shouldUseWorker()) {
+      OffscreenCanvasManager.inst().worker.postMessage({ type: 'toggleCamera', cameraType: type });
+    } else {
+      SceneManager.inst().cameraManager.setCamera({ type });
+    }
+  }
+
+  public getCameraType(): 'Perspective' | 'Orthographic' {
+    if (this.shouldUseWorker()) {
+      return 'Perspective';
+    } else {
+      const camera = SceneManager.inst().cameraManager.getActiveCamera();
+      return camera instanceof THREE.PerspectiveCamera ? 'Perspective' : 'Orthographic';
     }
   }
 }

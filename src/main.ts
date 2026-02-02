@@ -17,8 +17,10 @@ import { TFlexViewer } from '@/index';
     useWorker: true,
   });
 
-  await viewer.loadAssemblyJson('/public/assets/ТРР-1-000 - Транспортер - A.1 (5).json');
-  await viewer.loadModel('/public/assets/ТРР-1-000 - Транспортер - A.1 (1).gltf');
+  await viewer.loadAssemblyJson('/public/assets/ВС-2-000 - Воздушный стартер - A.1.json');
+  await viewer.loadModel('/public/assets/ВС-2-000 - Воздушный стартер - A.1.gltf');
+  // await viewer.loadAssemblyJson('/public/assets/ТРР-1-000 - Транспортер - A.1 (5).json');
+  // await viewer.loadModel('/public/assets/ТРР-1-000 - Транспортер - A.1 (1).gltf');
   // await viewer.loadSvg('/public/assets/svg/ТРР-1-000 - Транспортер - A.1 - Взрыв-схема.svg');
   //await viewer.loadSvg('/public/assets/svg/ТРР-1-021 Блок роликов СБ.svg');
 })();

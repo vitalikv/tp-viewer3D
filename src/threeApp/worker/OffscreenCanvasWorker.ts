@@ -34,6 +34,7 @@ type WorkerMessage =
   | { type: 'setAnimationIndex'; index: number }
   | { type: 'setAnimationTime'; time: number }
   | { type: 'rebuildAnimationBVH' }
+  | { type: 'toggleCamera'; cameraType: 'Perspective' | 'Orthographic' }
   | { type: 'setCameraPose'; position: number[]; quaternion: number[]; up: number[] };
 
 class OffscreenCanvasWorker {
@@ -64,7 +65,7 @@ class OffscreenCanvasWorker {
           // Установка центра вращения при pointerdown (левая кнопка мыши)
           if (event.kind === 'pointer' && event.type === 'pointerdown' && event.button === 0) {
             if (event.clientX !== undefined && event.clientY !== undefined) {
-              SceneManager.inst().setRotationCenterFromPoint(event.clientX, event.clientY);
+              SceneManager.inst().controlsManager.setRotationCenterFromPoint(event.clientX, event.clientY);
             }
           }
 
@@ -201,6 +202,11 @@ class OffscreenCanvasWorker {
       case 'rebuildAnimationBVH':
         if (this.scene) {
           ApiUiToThree.inst().rebuildAnimationBVH();
+        }
+        break;
+      case 'toggleCamera':
+        if (this.scene) {
+          ApiUiToThree.inst().toggleCamera(msg.cameraType);
         }
         break;
       case 'setCameraPose':
